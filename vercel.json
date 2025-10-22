@@ -7,10 +7,7 @@
     {
       "path": "/api/cron/monthly-contributions",
       "schedule": "0 0 1 * *"
-    },
-    {
-      "path": "/api/cron/birthday-events",
-      "schedule": "0 0 1 1 *"
     }
+    
   ]
 }
