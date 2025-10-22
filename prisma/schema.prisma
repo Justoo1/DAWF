@@ -16,6 +16,7 @@ model User {
   department    String?
   password      String         @default("")
   role          UserRole       @default(EMPLOYEE)
+  isActive      Boolean        @default(true) // Track if employee is active or has resigned
   dateOfBirth   DateTime?      // Birthday for automatic birthday tracking
   contributions Contribution[]
   events        Event[]

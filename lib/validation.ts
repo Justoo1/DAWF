@@ -22,6 +22,7 @@ export type UserValues = Omit<z.infer<typeof UserSchema>, 'password' | "departme
   expensesCount: number,
   totalAmountContributed: number,
   totalContributionMonths: number,
+  isActive?: boolean
 }
 
 // Contribution Schema

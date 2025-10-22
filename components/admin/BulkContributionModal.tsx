@@ -21,6 +21,7 @@ interface User {
   id: string
   name: string
   email: string
+  isActive?: boolean
 }
 
 interface BulkContributionModalProps {
@@ -37,10 +38,13 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
   const [endMonth, setEndMonth] = useState('')
   const [amount, setAmount] = useState('100')
 
+  // Filter to only show active employees
+  const activeUsers = users.filter(u => u.isActive !== false)
+
   const handleSelectAll = (checked: boolean) => {
     setSelectAll(checked)
     if (checked) {
-      setSelectedUsers(users.map(u => u.id))
+      setSelectedUsers(activeUsers.map(u => u.id))
     } else {
       setSelectedUsers([])
     }
@@ -199,16 +203,16 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
                   onCheckedChange={handleSelectAll}
                 />
                 <Label htmlFor="selectAll" className="font-normal cursor-pointer">
-                  Select All ({users.length})
+                  Select All ({activeUsers.length})
                 </Label>
               </div>
             </div>
 
             <div className="border rounded-lg p-4 max-h-60 overflow-y-auto space-y-2">
-              {users.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">No employees found</p>
+              {activeUsers.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-4">No active employees found</p>
               ) : (
-                users.map((user) => (
+                activeUsers.map((user) => (
                   <div key={user.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
                     <Checkbox
                       id={user.id}
@@ -230,7 +234,7 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
             </div>
 
             <p className="text-sm text-gray-500">
-              Selected: {selectedUsers.length} employee(s)
+              Selected: {selectedUsers.length} active employee(s)
             </p>
           </div>
 

@@ -178,12 +178,13 @@ export async function fetchUsers() {
 // Server action to fetch only user IDs and names
 export async function fetchUsersIdAndName() {
     try {
-      // Fetch only id, name, and email for all users
+      // Fetch only id, name, email, and isActive for all users
       const users = await prisma.user.findMany({
         select: {
           id: true,
           name: true,
-          email: true
+          email: true,
+          isActive: true
         },
         orderBy: {
           name: 'asc'
@@ -272,4 +273,18 @@ export async function fetchUser(email: string) {
 
 export async function revalidateUserPath(path: string) {
   revalidatePath(path)
+}
+
+export async function updateEmployeeStatus(userId: string, isActive: boolean) {
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isActive }
+    })
+    revalidatePath('/admin/employees')
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating employee status:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }
+  }
 }

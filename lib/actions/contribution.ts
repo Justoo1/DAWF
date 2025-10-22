@@ -233,8 +233,11 @@ export async function createBulkContributions(
  */
 export async function createMonthlyContributions(amount: number = 100) {
   try {
-    // Get all active employees
+    // Get all active employees only
     const users = await prisma.user.findMany({
+      where: {
+        isActive: true
+      },
       select: {
         id: true,
         email: true,
