@@ -84,7 +84,7 @@ export default function RootLayout({
         className={`${kodchasan.className} antialiased bg-bg-img bg-cover bg-black object-cover bg-center bg-blend-luminosity bg-no-repeat`}
       >
         <ProfileChecker />
-        <div className="bg-zinc-950/80 min-h-screen">
+        <div className="bg-zinc-950/80 min-h-screen lg:max-h-screen">
           {children}
         </div>
         <Toaster />

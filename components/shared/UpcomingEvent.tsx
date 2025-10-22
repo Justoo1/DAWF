@@ -34,13 +34,13 @@ interface UpcomingEventProps {
 
 const UpcomingEvent = ({upcomingEvents, success}: UpcomingEventProps) => {
   return (
-    <div className={cn("relative group overflow-hidden rounded-lg bg-[url('/assets/images/upcomingevent.svg')] bg-cover bg-center justify-center items-center flex w-[311px] h-[450px]", manrope.className)}>
+    <div className={cn("relative group overflow-hidden rounded-lg bg-[url('/assets/images/upcomingevent.svg')] bg-cover bg-center justify-center items-center flex w-[311px] h-[450px] lg:w-full lg:max-w-[311px] lg:h-auto lg:aspect-[311/450]", manrope.className)}>
       {success && upcomingEvents.length > 0 ? (
         <Carousel
           opts={{
             align: "start",
             loop: true,
-          }} 
+          }}
           plugins={[
             Autoplay({
               delay: 6000,
@@ -66,27 +66,27 @@ const UpcomingEvent = ({upcomingEvents, success}: UpcomingEventProps) => {
                         UPCOMING EVENT
                       </span>
                     </div>
-            
+
                     <div className='flex flex-col justify-center items-center'>
-                      <h2 className="text-white text-2xl font-bold mb-4 flex-wrap uppercase">
+                      <h2 className="text-white text-2xl lg:text-xl font-bold mb-4 flex-wrap uppercase">
                         {event.title}
                       </h2>
-                      <div className="flex items-end gap-8 mb-2">
+                      <div className="flex items-end gap-8 lg:gap-6 mb-2">
                         <div>
-                          <span className="text-emerald-400 text-5xl tracking-[1rem] 2xl:text-7xl font-extrabold leading-none 2xl:tracking-[0.2rem]">{day}</span>
+                          <span className="text-emerald-400 text-5xl lg:text-4xl tracking-[1rem] lg:tracking-[0.8rem] 2xl:text-5xl font-extrabold leading-none 2xl:tracking-[1rem]">{day}</span>
                           <span className="text-emerald-400 text-xs block tracking-widest text-center font-bold uppercase">{month}.{year}</span>
                         </div>
                         <div>
-                          <span className="text-orange-500 text-5xl tracking-[1rem] 2xl:text-7xl font-extrabold leading-none 2xl:tracking-[0.2rem]">{hour}</span>
+                          <span className="text-orange-500 text-5xl lg:text-4xl tracking-[1rem] lg:tracking-[0.8rem] 2xl:text-5xl font-extrabold leading-none 2xl:tracking-[1rem]">{hour}</span>
                           <span className="text-orange-500 text-xs block tracking-[0.4rem] text-center font-bold">{minutes}.{amPm}</span>
                         </div>
                       </div>
-                    
-                      <span className="text-white text-xl tracking-widest block mb-2 text-center uppercase">
+
+                      <span className="text-white text-xl lg:text-lg tracking-widest block mb-2 text-center uppercase">
                         {event.location}
                       </span>
-                    
-                      <div className="text-center mt-14 2xl:mt-8">
+
+                      <div className="text-center mt-14 lg:mt-8 2xl:mt-8">
                         <Popover>
                           <PopoverTrigger asChild>
                             <button className="text-gray-300 text-xs hover:text-white transition-colors">

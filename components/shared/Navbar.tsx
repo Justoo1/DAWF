@@ -20,7 +20,7 @@ export const Navbar = async () => {
   const userInfo = await fetchUserWithContributions(session.user.email)
 
   return (
-    <header className='p-3 md:px-10 2xl:px-80 lg:py-6'>
+    <header className='p-3 md:px-10 md:pt-3 md:pb-0 2xl:px-80'>
         <nav className="flex items-center justify-between p-4 mx-auto">
         <Link href="/" className="flex items-center gap-2 group ">
           <Home className="h-6 w-6 text-emerald-500 " />

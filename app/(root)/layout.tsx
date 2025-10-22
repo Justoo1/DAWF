@@ -14,7 +14,7 @@ export default function Layout({
 }>) {
   return (
       <div
-        className="flex flex-col 2xl:space-y-32"
+        className="flex flex-col lg:max-h-screen"
       >
         <Navbar />
         {children}

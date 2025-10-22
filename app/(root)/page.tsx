@@ -50,10 +50,10 @@ const Dashboard = async () => {
   }
   
   return (
-    <div className='flex flex-col w-full 2xl:items-center 2xl:justify-center'>
-      <main className="mx-auto w-full max-w-7xl p-4 md:p-6 lg:p-8 space-y-6 flex flex-col">
-        <div className="flex flex-col justify-center items-center lg:flex-row w-full space-y-6 lg:space-y-0 lg:space-x-6 ">
-          <div className="w-full lg:w-[25%] justify-center items-center ">
+    <div className='flex flex-col w-full lg:max-h-screen '>
+      <main className="mx-auto w-full max-w-7xl p-4 md:p-6 lg:p-8 space-y-6 flex flex-col ">
+        <div className="flex flex-col justify-center items-center lg:flex-row w-full space-y-6 lg:space-y-0 lg:space-x-6">
+          <div className="w-full lg:w-[25%] justify-center items-center">
             <UpcomingEvent upcomingEvents={upcomingEvents.events!} success={upcomingEvents.success} />
           </div>
           <div className="w-full lg:w-[75%] flex flex-col space-y-6">
@@ -75,7 +75,7 @@ const Dashboard = async () => {
                       </div>
                     </div>
                   </Card>
-                
+
                   <Link href="/events"  className=" flex flex-grow">
                     <Card className="bg-[url('/assets/images/event.svg')] bg-cover p-4 flex-grow justify-center items-center flex">
                       <div className="text-center ">
