@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/monthly-contributions",
-      "schedule": "59 23 L * *"
+      "schedule": "0 0 1 * *"
     },
     {
       "path": "/api/cron/birthday-events",
