@@ -1,22 +1,10 @@
 "use server"
 
-// import { auth } from "@clerk/nextjs/server"
-import { auth } from "@/lib/auth"
 import prisma from "../prisma"
 import { Expense } from "../validation"
 import { revalidatePath } from "next/cache"
-import { headers } from "next/headers"
-import { redirect } from "next/navigation"
 
 export async function createExpenses(expenses: Expense[]) {
-    // const {userId} = await auth()
-    const session = await auth.api.getSession({
-      headers: await headers()
-    })
-
-    if (!session) {
-      return redirect('/sign-in')
-    }
     const createdExpenses = await prisma.$transaction(
       expenses.map((expense) => 
         prisma.expense.create({

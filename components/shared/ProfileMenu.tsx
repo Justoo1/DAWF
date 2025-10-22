@@ -3,16 +3,16 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { LogOut, Mail, User as UserIcon } from 'lucide-react'
+import { LogOut, Mail, User as UserIcon, ShieldCheck } from 'lucide-react'
 // import { signOut } from "next-auth/react"
 import { User } from "@/lib/validation"
 import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import Link from "next/link"
 // import { authClient } from "@/lib/auth-client"
 
 type EnhancedUser = Omit<User, "password" | "clerkId" | "department"> & {
-  clerkId: string | null;
   department: string | null;
   contributionsCount: number;
   eventsCount: number;
@@ -104,31 +104,39 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
         </Avatar>
       </Button>
       {isOpen && (
-        <div 
+        <div
           ref={menuRef}
           className="absolute right-0 mt-2 w-80 rounded-md bg-white p-4 shadow-lg ring-1 ring-black ring-opacity-5"
           onMouseEnter={clearCloseTimeout}
           onMouseLeave={handleClose}
         >
-          <div className="flex justify-between space-x-4">
-            <Avatar className="h-16 w-16">
+          <div className="flex gap-3">
+            <Avatar className="h-16 w-16 flex-shrink-0">
               <AvatarImage src="/avatars/01.png" />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
-            <div className="space-y-1">
-              <h4 className="text-lg font-semibold">{user?.name}</h4>
-              <p className="text-sm text-muted-foreground">
-                {user?.role}
+            <div className="flex-1 min-w-0 space-y-1">
+              <h4 className="text-lg font-semibold truncate">{user?.name}</h4>
+              <p className="text-sm text-muted-foreground capitalize">
+                {user?.role?.toLowerCase()}
               </p>
-              <div className="flex items-center pt-2">
-                <Mail className="mr-2 h-4 w-4 opacity-70" />{" "}
-                <span className="text-xs text-muted-foreground">
+              <div className="flex items-center pt-1">
+                <Mail className="mr-2 h-4 w-4 opacity-70 flex-shrink-0" />
+                <span className="text-xs text-muted-foreground truncate" title={user?.email}>
                   {user?.email}
                 </span>
               </div>
             </div>
           </div>
           <div className="mt-4 grid gap-2">
+            {user?.role === "ADMIN" && (
+              <Link href="/admin">
+                <Button variant="outline" className="w-full justify-start">
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Admin Dashboard
+                </Button>
+              </Link>
+            )}
             <Button variant="outline" className="justify-start">
               <UserIcon className="mr-2 h-4 w-4" />
               Edit Profile

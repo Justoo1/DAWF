@@ -13,7 +13,7 @@ interface AuthLayoutProps {
 
 const AuthLayout = ({ children, description, secondaryDescription, teamImage, className, flexStart }: AuthLayoutProps) => {
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 overflow-hidden">
+    <div className={cn("flex min-h-screen items-center justify-center p-4 overflow-hidden", flexStart && "flex-start")}>
     <div className="grid h-[100vh] max-h-[800px] w-full max-w-6xl grid-cols-1 gap-8 overflow-hidden rounded-xl lg:grid-cols-[1fr,1fr,1.5fr]">
       <div className="flex items-center justify-center overflow-y-auto">{children}</div>
       <div className="hidden lg:flex lg:items-center lg:justify-center overflow-hidden">

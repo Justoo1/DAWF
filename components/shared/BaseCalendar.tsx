@@ -17,13 +17,17 @@ interface BaseCalendarProps {
 
 const BaseCalendar: React.FC<BaseCalendarProps> = ({ events, onEventClick, editable, selectable, onMouseEnter, onMouseLeave }) => {
   return (
-    <Card className="bg-zinc-800/50 p-4 text-white">
+    <Card className="bg-zinc-800/50 p-2 sm:p-3 md:p-4 text-white overflow-hidden">
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         headerToolbar={{
-          left: "prev,next today",
+          left: "prev,next",
           center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+          right: "today",
+        }}
+        footerToolbar={{
+          left: "dayGridMonth,timeGridWeek",
+          right: "timeGridDay,listWeek",
         }}
         initialView="dayGridMonth"
         editable={editable}
@@ -41,8 +45,11 @@ const BaseCalendar: React.FC<BaseCalendarProps> = ({ events, onEventClick, edita
         eventColor='green'
         height="auto"
         contentHeight="auto"
+        aspectRatio={1.35}
         eventMouseEnter={onMouseEnter}
         eventMouseLeave={onMouseLeave}
+        handleWindowResize={true}
+        windowResizeDelay={100}
       />
     </Card>
   )

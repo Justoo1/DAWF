@@ -131,6 +131,182 @@ export async function fetchContribution(contributionId: string) {
   }
 }
 
+/**
+ * Create bulk contributions for selected employees for selected months
+ * @param userIds - Array of user IDs
+ * @param startMonth - Start month (Date)
+ * @param endMonth - End month (Date)
+ * @param amount - Contribution amount (default 100)
+ */
+export async function createBulkContributions(
+  userIds: string[],
+  startMonth: Date,
+  endMonth: Date,
+  amount: number = 100
+) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers()
+    })
+
+    if (!session) {
+      return { error: 'Unauthorized' }
+    }
+
+    // Generate list of months between start and end
+    const months: Date[] = []
+    // eslint-disable-next-line prefer-const
+    let currentMonth = new Date(startMonth)
+    currentMonth.setDate(1) // Set to first day of month
+
+    const endDate = new Date(endMonth)
+    endDate.setDate(1)
+
+    while (currentMonth <= endDate) {
+      months.push(new Date(currentMonth))
+      currentMonth.setMonth(currentMonth.getMonth() + 1)
+    }
+
+    // Create contributions for each user and each month
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const contributionsToCreate: any[] = []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const skipped: any[] = []
+
+    for (const userId of userIds) {
+      for (const month of months) {
+        const year = month.getFullYear()
+        const quarter = Math.ceil((month.getMonth() + 1) / 3)
+
+        // Check if contribution already exists
+        const existing = await prisma.contribution.findFirst({
+          where: {
+            userId,
+            month,
+            year,
+            quarter
+          }
+        })
+
+        if (existing) {
+          skipped.push({ userId, month: month.toISOString(), reason: 'Already exists' })
+        } else {
+          contributionsToCreate.push({
+            userId,
+            amount,
+            month,
+            year,
+            quarter,
+            status: 'COMPLETED' as const,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          })
+        }
+      }
+    }
+
+    // Bulk create all contributions
+    if (contributionsToCreate.length > 0) {
+      await prisma.contribution.createMany({
+        data: contributionsToCreate
+      })
+    }
+
+    revalidatePath('/admin/contribution')
+
+    return {
+      success: true,
+      created: contributionsToCreate.length,
+      skipped: skipped.length,
+      skippedDetails: skipped,
+      message: `Created ${contributionsToCreate.length} contributions. Skipped ${skipped.length} duplicates.`
+    }
+  } catch (error) {
+    console.error('Bulk contribution creation error:', error)
+    return { error: 'Failed to create bulk contributions' }
+  }
+}
+
+/**
+ * Automatically create contributions for all active employees for the current month
+ * This should be called by a cron job at the end of each month
+ */
+export async function createMonthlyContributions(amount: number = 100) {
+  try {
+    // Get all active employees
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true
+      }
+    })
+
+    if (users.length === 0) {
+      return { success: true, message: 'No users found', created: 0 }
+    }
+
+    const currentDate = new Date()
+    const month = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+    const year = currentDate.getFullYear()
+    const quarter = Math.ceil((currentDate.getMonth() + 1) / 3)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const contributionsToCreate: any[] = []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const skipped: any[] = []
+
+    for (const user of users) {
+      // Check if contribution already exists for this month
+      const existing = await prisma.contribution.findFirst({
+        where: {
+          userId: user.id,
+          month,
+          year,
+          quarter
+        }
+      })
+
+      if (existing) {
+        skipped.push({ userId: user.id, email: user.email, reason: 'Already exists for this month' })
+      } else {
+        contributionsToCreate.push({
+          userId: user.id,
+          amount,
+          month,
+          year,
+          quarter,
+          status: 'COMPLETED' as const,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+      }
+    }
+
+    // Bulk create all contributions
+    if (contributionsToCreate.length > 0) {
+      await prisma.contribution.createMany({
+        data: contributionsToCreate
+      })
+    }
+
+    revalidatePath('/admin/contribution')
+
+    return {
+      success: true,
+      created: contributionsToCreate.length,
+      skipped: skipped.length,
+      skippedDetails: skipped,
+      message: `Created ${contributionsToCreate.length} monthly contributions. Skipped ${skipped.length}.`,
+      month: month.toISOString(),
+      totalUsers: users.length
+    }
+  } catch (error) {
+    console.error('Monthly contribution creation error:', error)
+    return { error: 'Failed to create monthly contributions' }
+  }
+}
+
 
 // Define the response structure
 // interface AnalyticsResponse {

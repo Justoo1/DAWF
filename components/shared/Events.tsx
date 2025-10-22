@@ -33,11 +33,11 @@ const Events: React.FC<EventsProps> = ({ events }) => {
   .slice(0, 5);
 
   return (
-    <main className="mx-auto max-w-7xl space-y-6 p-4">
-      <h1 className="text-2xl font-bold text-white mb-4">Event Calendar</h1>
-      
-      <div className="grid gap-6 lg:grid-cols-[1fr,300px]">
-        <BaseCalendar 
+    <main className="mx-auto max-w-7xl space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4">Event Calendar</h1>
+
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr,300px] xl:grid-cols-[1fr,350px]">
+        <BaseCalendar
           events={events}
           editable={false}
           selectable={true}
@@ -54,58 +54,60 @@ const Events: React.FC<EventsProps> = ({ events }) => {
             setSelectedEvent(events.find(event => event.id === eventId));
           }}
         />
-          
-          <div className="flex flex-col gap-4">
-        
-            <Card className="bg-zinc-800/50 p-4">
-            <h2 className="text-lg font-semibold text-white mb-3">Upcoming Events</h2>
+
+          <div className="flex flex-col gap-4 sm:gap-4">
+
+            <Card className="bg-zinc-800/50 p-3 sm:p-4">
+            <h2 className="text-base sm:text-lg font-semibold text-white mb-2 sm:mb-3">Upcoming Events</h2>
             <ul className="space-y-2">
               {upcomingEvents.length === 0 && (
-                <li className="text-sm text-zinc-400 italic">No upcoming events</li>
+                <li className="text-xs sm:text-sm text-zinc-400 italic">No upcoming events</li>
               )}
               {upcomingEvents
                 .map((event) => (
-                  <li key={event.id} className="text-sm text-zinc-300">
+                  <li key={event.id} className="text-xs sm:text-sm text-zinc-300 py-1">
                     <span className="font-semibold">{event.title}</span>
                     <br />
-                    {new Date(event.start!).toLocaleDateString()}
+                    <span className="text-zinc-400">{new Date(event.start!).toLocaleDateString()}</span>
                   </li>
                 ))
               }
             </ul>
             </Card>
             <div className="flex flex-col">
-              <h1 className="text-2xl font-bold text-white mb-4">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 sm:mb-4">
               {
                 selectedEvent ? "Selected Event": "Select an Event"
               }
             </h1>
-              <Card className="bg-zinc-800/50 p-4">
-                <h2 className="text-lg font-semibold text-white mb-3">Event Details</h2>
-                {selectedEvent && (
-                  <ul className="space-y-2">
-                    <li className="text-sm text-zinc-300">
+              <Card className="bg-zinc-800/50 p-3 sm:p-4">
+                <h2 className="text-base sm:text-lg font-semibold text-white mb-2 sm:mb-3">Event Details</h2>
+                {selectedEvent ? (
+                  <ul className="space-y-2 sm:space-y-3">
+                    <li className="text-xs sm:text-sm text-zinc-300">
                       <span className="font-semibold">Title:</span> {selectedEvent.title}
                     </li>
-                    <li className="text-sm text-zinc-300">
+                    <li className="text-xs sm:text-sm text-zinc-300">
                       <span className="font-semibold">Start Date:</span> {new Date(selectedEvent.start!.toString()!).toLocaleDateString()}
                     </li>
-                    <li className="text-sm text-zinc-300">
+                    <li className="text-xs sm:text-sm text-zinc-300">
                       <span className="font-semibold">End Date:</span> {new Date(selectedEvent.end!.toString()).toLocaleDateString()}
                     </li>
-                    <li className="text-sm text-zinc-300">
+                    <li className="text-xs sm:text-sm text-zinc-300">
                       <span className="font-semibold">Location:</span> {selectedEvent.extendedProps!.location}
                     </li>
-                    <li className="text-sm text-zinc-300">
+                    <li className="text-xs sm:text-sm text-zinc-300 break-words">
                       <span className="font-semibold">Description:</span> {selectedEvent.extendedProps!.description}
                     </li>
-                    
-                  </ul> 
+
+                  </ul>
+                ) : (
+                  <p className="text-xs sm:text-sm text-zinc-400 italic">Click or hover over an event to view details</p>
                 )}
               </Card>
             </div>
           </div>
-        
+
       </div>
     </main>
   )

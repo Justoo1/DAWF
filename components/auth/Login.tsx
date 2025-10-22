@@ -2,66 +2,84 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+// import { Input } from "@/components/ui/input"
 import Link from "next/link"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { loginSchema } from "@/lib/validation"
-import { z } from "zod"
-import { Loader } from "lucide-react"
+// import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form"
+// import { useForm } from "react-hook-form"
+// import { zodResolver } from "@hookform/resolvers/zod"
+// import { loginSchema } from "@/lib/validation"
+// import { z } from "zod"
+// import { Loader } from "lucide-react"
 // import { signIn } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
+// import { useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 
 const Login = () => {
   const { toast } = useToast()
-  const router = useRouter()
+  // const router = useRouter()
 
-  const form = useForm<z.infer<typeof loginSchema>>({
-      resolver: zodResolver(loginSchema),
-      defaultValues: {
-        email: "",
-        password: "",
-      },
-    })
-  
-  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
-    // Simulate API call
+  // Commented out manual form - keeping for potential future use
+  // const form = useForm<z.infer<typeof loginSchema>>({
+  //     resolver: zodResolver(loginSchema),
+  //     defaultValues: {
+  //       email: "",
+  //       password: "",
+  //     },
+  //   })
+
+  const handleGoogleSignIn = async () => {
     try {
-      const { email, password } = values
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { data, error } = await authClient.signIn.email({
-        email,
-        password,
-        callbackURL: "/"
-      }, { 
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          onRequest: (ctx) => {
-           toast({
-            title: "Signing in please wait...",
-           })
-          }, 
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          onSuccess: (ctx) => { 
-            //redirect to the dashboard
-            router.replace("/")
-            form.reset();
-            // router.replace("/login")
-          }, 
-          onError: (ctx) => { 
-            toast({
-              title: "Error",
-              description: ctx.error.message,
-              variant: "destructive",
-            })
-          }, 
-        });
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      })
     } catch (error) {
-      console.log(error)
+      const message = error instanceof Error ? error.message : "Failed to sign in with Google"
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      })
     }
   }
+
+  // Commented out manual login handler - keeping for potential future use
+  // const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+  //   // Simulate API call
+  //   try {
+  //     const { email, password } = values
+  //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  //     const { data, error } = await authClient.signIn.email({
+  //       email,
+  //       password,
+  //       callbackURL: "/"
+  //     }, {
+  //         // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  //         onRequest: (ctx) => {
+  //          toast({
+  //           title: "Signing in please wait...",
+  //          })
+  //         },
+  //         // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  //         onSuccess: (ctx) => {
+  //           //redirect to the dashboard
+  //           router.replace("/")
+  //           form.reset();
+  //           // router.replace("/login")
+  //         },
+  //         onError: (ctx) => {
+  //           toast({
+  //             title: "Error",
+  //             description: ctx.error.message,
+  //             variant: "destructive",
+  //           })
+  //         },
+  //       });
+  //   } catch (error) {
+  //     console.log(error)
+  //   }
+  // }
   return (
     <Card className="border-none bg-[#10A0748C] text-white">
       <CardHeader>
@@ -69,7 +87,8 @@ const Login = () => {
         <p className="text-white/90">Welcome back! Please sign in to continue</p>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
+        {/* Manual Login Form - Commented out for Google OAuth only */}
+        {/* <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
             <FormField
               control={form.control}
@@ -125,8 +144,10 @@ const Login = () => {
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-[#2F7A67] px-2 text-white/50">or</span>
           </div>
-        </div>
+        </div> */}
         <Button
+          onClick={handleGoogleSignIn}
+          type="button"
           className="mt-4 w-full bg-white text-zinc-900 hover:bg-white/90"
           variant="outline"
         >

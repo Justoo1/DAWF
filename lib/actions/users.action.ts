@@ -3,23 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import prisma from '../prisma'
 import { ContributionStatus } from '@prisma/client';
-import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
-import { redirect } from 'next/navigation';
-
-
-// Server action to fetch a single user with their contributions and detailed analytics
 
 export async function fetchUserWithContributions(email: string) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers()
-    })
-
-    if(!session) {
-      return redirect('/sign-in')
-    }
-
     // Fetch user with their contributions
     const user = await prisma.user.findUnique({
       where: { email: email },
@@ -192,27 +178,18 @@ export async function fetchUsers() {
 // Server action to fetch only user IDs and names
 export async function fetchUsersIdAndName() {
     try {
-      // Ensure user is authenticated
-      // const { userId } = await auth()
-      const session = await auth.api.getSession({
-        headers: await headers()
-      })
-  
-      if(!session) {
-        return redirect('/sign-in')
-      }
-  
-      // Fetch only id and name for all users
+      // Fetch only id, name, and email for all users
       const users = await prisma.user.findMany({
         select: {
           id: true,
-          name: true
+          name: true,
+          email: true
         },
         orderBy: {
           name: 'asc'
         }
       })
-  
+
       return {
         success: true,
         users: users

@@ -35,6 +35,11 @@ export const Navbar = async () => {
             EVENTS
             </span>
           </Link>
+          <Link href="/disbursements" className="text-xs md:text-xl font-semibold text-white hover:text-green-700 transition-colors">
+            <span className="flex flex-col items-center justify-center">
+            BENEFITS
+            </span>
+          </Link>
          {userInfo.success && userInfo.user?.role === "ADMIN" && (
            <Link href="/admin" className="text-xs md:text-xl font-semibold text-white hover:text-green-700 transition-colors">
            <span className="flex flex-col items-center justify-center">

@@ -130,5 +130,141 @@ export async function createEvent(event: Event) {
       return { error: 'Failed to create event' }
     }
 }
-  
-  
+
+/**
+ * Automatically generate birthday events for all employees for a specific year
+ * This should be run at the start of each year (or manually triggered)
+ */
+export async function generateBirthdayEvents(year?: number) {
+  try {
+    const targetYear = year || new Date().getFullYear()
+
+    // Get all users with birthdays
+    const users = await prisma.user.findMany({
+      where: {
+        dateOfBirth: {
+          not: null
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        dateOfBirth: true
+      }
+    })
+
+    if (users.length === 0) {
+      return {
+        success: true,
+        message: 'No users with birthdays found',
+        created: 0,
+        skipped: 0,
+        errors: []
+      }
+    }
+
+    const results = {
+      created: 0,
+      skipped: 0,
+      errors: [] as string[]
+    }
+
+    for (const user of users) {
+      if (!user.dateOfBirth) continue
+
+      const birthDate = new Date(user.dateOfBirth)
+      const birthdayThisYear = new Date(targetYear, birthDate.getMonth(), birthDate.getDate())
+
+      // Set the event to start at 9 AM and end at 5 PM on birthday
+      const eventStart = new Date(birthdayThisYear)
+      eventStart.setHours(9, 0, 0, 0)
+
+      const eventEnd = new Date(birthdayThisYear)
+      eventEnd.setHours(17, 0, 0, 0)
+
+      // Check if birthday event already exists for this user and year
+      const existingEvent = await prisma.event.findFirst({
+        where: {
+          userId: user.id,
+          type: 'BIRTHDAY',
+          year: targetYear,
+          month: birthDate.getMonth() + 1
+        }
+      })
+
+      if (existingEvent) {
+        results.skipped++
+        continue
+      }
+
+      // Create the birthday event
+      try {
+        await prisma.event.create({
+          data: {
+            userId: user.id,
+            type: 'BIRTHDAY',
+            title: `${user.name}'s Birthday`,
+            start: eventStart,
+            end: eventEnd,
+            year: targetYear,
+            month: birthDate.getMonth() + 1,
+            quarter: Math.floor(birthDate.getMonth() / 3) + 1,
+            description: `Birthday celebration for ${user.name}`,
+            location: 'Office',
+            status: 'ACTIVE',
+            emailNotificationSent: false
+          }
+        })
+        results.created++
+      } catch (error) {
+        console.error(`Failed to create birthday event for ${user.name}:`, error)
+        results.errors.push(`Failed to create event for ${user.name}`)
+      }
+    }
+
+    revalidatePath('/admin/events')
+    revalidatePath('/admin/calendar')
+
+    return {
+      success: true,
+      message: `Generated birthday events for ${targetYear}`,
+      totalUsers: users.length,
+      created: results.created,
+      skipped: results.skipped,
+      errors: results.errors,
+      year: targetYear
+    }
+  } catch (error) {
+    console.error('Birthday event generation error:', error)
+    return {
+      success: false,
+      error: 'Failed to generate birthday events'
+    }
+  }
+}
+
+/**
+ * Generate birthday events for multiple years (useful for initial setup)
+ */
+export async function generateBirthdayEventsMultipleYears(startYear: number, endYear: number) {
+  try {
+    const results = []
+
+    for (let year = startYear; year <= endYear; year++) {
+      const result = await generateBirthdayEvents(year)
+      results.push({ year, ...result })
+    }
+
+    return {
+      success: true,
+      results
+    }
+  } catch (error) {
+    console.error('Multi-year birthday generation error:', error)
+    return {
+      success: false,
+      error: 'Failed to generate birthday events for multiple years'
+    }
+  }
+}
+

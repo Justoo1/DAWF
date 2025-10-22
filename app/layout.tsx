@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 // } from '@clerk/nextjs'
 import { Kodchasan } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster"
+import { ProfileChecker } from "@/components/auth/ProfileChecker"
 import "./globals.css";
 // import '@fullcalendar/common/main.css'
 // import '@fullcalendar/daygrid/main.css'
@@ -53,6 +54,7 @@ export default function RootLayout({
       <body
         className={`${kodchasan.className} antialiased bg-bg-img bg-cover bg-black object-cover bg-center bg-blend-luminosity bg-no-repeat`}
       >
+        <ProfileChecker />
         <div className="bg-zinc-950/80 min-h-screen">
           {children}
         </div>

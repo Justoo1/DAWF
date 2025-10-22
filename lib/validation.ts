@@ -3,25 +3,25 @@ import { z } from 'zod'
 // User Schema
 export const UserSchema = z.object({
   id: z.string().optional(),
-  clerkId: z.string().optional(),
   email: z.string().email(),
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   department: z.string().optional(),
   role: z.enum(['EMPLOYEE', 'ADMIN']).default('EMPLOYEE'),
   password: z.string().min(8, { message: "Password must be at least 8 characters" }),
 })
-export type User = Omit<z.infer<typeof UserSchema>, "clerkId" | "password" | "department"> & {
+export type User = Omit<z.infer<typeof UserSchema>,  "password" | "department"> & {
   clerkId?: string | null
   department?: string | null
   password: string | null
 }
 
-export type UserValues = Omit<z.infer<typeof UserSchema>, 'password'> & {
+export type UserValues = Omit<z.infer<typeof UserSchema>, 'password' | "department"> & {
   contributionsCount: number,
-eventsCount: number,
-expensesCount: number,
-totalAmountContributed: number,
-totalContributionMonths: number,
+  department?: string | null
+  eventsCount: number,
+  expensesCount: number,
+  totalAmountContributed: number,
+  totalContributionMonths: number,
 }
 
 // Contribution Schema
@@ -96,7 +96,7 @@ export const EventCreateSchema = z.object({
   title: z.string().min(2, { message: "Title must be at least 2 characters" }),
   start: z.string(),
   end: z.string(),
-  year: z.number().int().min(2020, { message: "Year must be 2020 or later" }),
+  year: z.number().int().min(2024, { message: "Year must be 2020 or later" }),
   month: z.number().int().min(1, { message: "Month must be 1-12" }),
   quarter: z.number().int().min(1).max(4),
   description: z.string().optional(),

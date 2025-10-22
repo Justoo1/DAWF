@@ -2,15 +2,15 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+// import { Input } from "@/components/ui/input"
 import Link from "next/link"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { signupSchema } from "@/lib/validation"
+// import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form"
+// import { useForm } from "react-hook-form"
+// import { zodResolver } from "@hookform/resolvers/zod"
+// import { z } from "zod"
+// import { signupSchema } from "@/lib/validation"
 import { useToast } from "@/hooks/use-toast"
-import { Loader } from "lucide-react"
+// import { Loader } from "lucide-react"
 // import { useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 
@@ -20,76 +20,72 @@ const Signup = () => {
     const { toast } = useToast()
     // const router = useRouter()
 
-    const form = useForm<z.infer<typeof signupSchema>>({
-        resolver: zodResolver(signupSchema),
-        defaultValues: {
-          name: "",
-          email: "",
-          password: "",
-        },
-      })
-    
-      const onSubmit = async (values: z.infer<typeof signupSchema>) => {
-        try {
-            // const response = await fetch("/api/users", {
-            //     method: "POST",
-            //     body: JSON.stringify(values),
-            // })
+    // Commented out manual form - keeping for potential future use
+    // const form = useForm<z.infer<typeof signupSchema>>({
+    //     resolver: zodResolver(signupSchema),
+    //     defaultValues: {
+    //       name: "",
+    //       email: "",
+    //       password: "",
+    //     },
+    //   })
 
-            // const result = await response.json()
-            // console.log()
-            
-            // if (response.ok) {
-            //     toast({
-            //         title: "Success",
-            //         description: "Account created successfully",
-            //     })
-            //     router.replace("/login")
-            // }
-            // else if (result.error) {
-            //     toast({
-            //         title: "Error",
-            //         description: result.message,
-            //         variant: "destructive",
-            //     })
-            // }
-            const {email, name, password} = values
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { data, error } = await authClient.signUp.email({
-              email,
-              name,
-              password,
-              callbackURL: "/sign-in"
-            }, { 
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                onRequest: (ctx) => {
-                 toast({
-                  title: "Signing up please wait...",
-                 })
-                }, 
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                onSuccess: (ctx) => { 
-                  //redirect to the dashboard
-                  form.reset();
-                  // router.replace("/login")
-                }, 
-                onError: (ctx) => { 
-                  toast({
-                    title: "Error",
-                    description: ctx.error.message,
-                    variant: "destructive",
-                  })
-                }, 
-              });
-        } catch (error) {
-          const message = error instanceof Error ? error.message : "Something went wrong"
-           toast({
-            title: "Error",
-            description: message,
-            variant: "destructive",
-           }) 
-        }
+    const handleGoogleSignUp = async () => {
+      try {
+        await authClient.signIn.social({
+          provider: "google",
+          callbackURL: "/complete-profile", // Redirect to complete profile to collect birthday
+        })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to sign up with Google"
+        toast({
+          title: "Error",
+          description: message,
+          variant: "destructive",
+        })
       }
+    }
+
+    // Commented out manual registration handler - keeping for potential future use
+    //   const onSubmit = async (values: z.infer<typeof signupSchema>) => {
+    //     try {
+    //         const {email, name, password} = values
+    //         // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    //         const { data, error } = await authClient.signUp.email({
+    //           email,
+    //           name,
+    //           password,
+    //           callbackURL: "/sign-in"
+    //         }, {
+    //             // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    //             onRequest: (ctx) => {
+    //              toast({
+    //               title: "Signing up please wait...",
+    //              })
+    //             },
+    //             // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    //             onSuccess: (ctx) => {
+    //               //redirect to the dashboard
+    //               form.reset();
+    //               // router.replace("/login")
+    //             },
+    //             onError: (ctx) => {
+    //               toast({
+    //                 title: "Error",
+    //                 description: ctx.error.message,
+    //                 variant: "destructive",
+    //               })
+    //             },
+    //           });
+    //     } catch (error) {
+    //       const message = error instanceof Error ? error.message : "Something went wrong"
+    //        toast({
+    //         title: "Error",
+    //         description: message,
+    //         variant: "destructive",
+    //        })
+    //     }
+    //   }
   return (
     <Card className="w-full max-w-md border-none bg-[#10A0748C] text-white overflow-y-auto max-h-full">
       <CardHeader>
@@ -97,7 +93,8 @@ const Signup = () => {
         <p className="text-white/90">Create an account to get started</p>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Form {...form}>
+        {/* Manual Registration Form - Commented out for Google OAuth only */}
+        {/* <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
@@ -171,8 +168,10 @@ const Signup = () => {
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-[#2F7A67] px-2 text-white/50">or</span>
           </div>
-        </div>
+        </div> */}
         <Button
+          onClick={handleGoogleSignUp}
+          type="button"
           className="mt-4 w-full bg-white text-zinc-900 hover:bg-white/90"
           variant="outline"
         >

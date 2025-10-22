@@ -223,3 +223,194 @@ export async function getFinancialSummary(startDate: Date, endDate: Date) {
     totalExpenses: totalExpenses._sum.amount ?? 0,
   };
 }
+
+/**
+ * Get contribution report by employee
+ */
+export async function getContributionsByEmployee(startDate: Date, endDate: Date) {
+  const startOfMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  const endOfMonth = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0);
+
+  const users = await prisma.user.findMany({
+    include: {
+      contributions: {
+        where: {
+          month: { gte: startOfMonth, lte: endOfMonth },
+          status: 'COMPLETED'
+        }
+      }
+    },
+    orderBy: {
+      name: 'asc'
+    }
+  });
+
+  return users.map(user => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    department: user.department,
+    totalContributions: user.contributions.reduce((sum, c) => sum + c.amount, 0),
+    monthsContributed: user.contributions.length,
+    averagePerMonth: user.contributions.length > 0
+      ? user.contributions.reduce((sum, c) => sum + c.amount, 0) / user.contributions.length
+      : 0,
+    contributions: user.contributions.map(c => ({
+      amount: c.amount,
+      month: c.month,
+      year: c.year
+    }))
+  }));
+}
+
+/**
+ * Get expense report by type
+ */
+export async function getExpensesByType(startDate: Date, endDate: Date) {
+  const startOfMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  const endOfMonth = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0);
+
+  const expenses = await prisma.expense.groupBy({
+    by: ['type'],
+    _sum: { amount: true },
+    _count: { id: true },
+    where: {
+      date: { gte: startOfMonth, lte: endOfMonth },
+      status: 'APPROVED'
+    }
+  });
+
+  // Also get detailed expenses
+  const detailedExpenses = await prisma.expense.findMany({
+    where: {
+      date: { gte: startOfMonth, lte: endOfMonth },
+      status: 'APPROVED'
+    },
+    orderBy: {
+      date: 'desc'
+    }
+  });
+
+  return {
+    summary: expenses.map(expense => ({
+      type: expense.type,
+      totalAmount: expense._sum.amount || 0,
+      count: expense._count.id,
+      averagePerExpense: expense._count.id > 0
+        ? (expense._sum.amount || 0) / expense._count.id
+        : 0
+    })),
+    details: detailedExpenses.map(e => ({
+      id: e.id,
+      type: e.type,
+      amount: e.amount,
+      date: e.date,
+      recipient: e.recipient,
+      description: e.description,
+      approvedBy: e.approvedBy
+    }))
+  };
+}
+
+/**
+ * Get event summary report
+ */
+export async function getEventSummary(startDate: Date, endDate: Date) {
+  const startOfMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  const endOfMonth = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0);
+
+  const eventsByType = await prisma.event.groupBy({
+    by: ['type'],
+    _count: { id: true },
+    where: {
+      start: { gte: startOfMonth, lte: endOfMonth },
+      status: 'ACTIVE'
+    }
+  });
+
+  const events = await prisma.event.findMany({
+    where: {
+      start: { gte: startOfMonth, lte: endOfMonth },
+      status: 'ACTIVE'
+    },
+    include: {
+      user: {
+        select: {
+          name: true,
+          email: true
+        }
+      }
+    },
+    orderBy: {
+      start: 'desc'
+    }
+  });
+
+  return {
+    summary: eventsByType.map(e => ({
+      type: e.type,
+      count: e._count.id
+    })),
+    details: events.map(e => ({
+      id: e.id,
+      type: e.type,
+      title: e.title,
+      start: e.start,
+      end: e.end,
+      description: e.description,
+      location: e.location,
+      user: e.user.name
+    }))
+  };
+}
+
+/**
+ * Get quarterly comparison data
+ */
+export async function getQuarterlyComparison(year: number) {
+  const quarters = [1, 2, 3, 4];
+
+  const quarterlyData = await Promise.all(
+    quarters.map(async (quarter) => {
+      const contributions = await prisma.contribution.aggregate({
+        _sum: { amount: true },
+        where: {
+          year,
+          quarter,
+          status: 'COMPLETED'
+        }
+      });
+
+      // Calculate quarter date range for expenses
+      const startMonth = (quarter - 1) * 3;
+      const startDate = new Date(year, startMonth, 1);
+      const endDate = new Date(year, startMonth + 3, 0);
+
+      const expenses = await prisma.expense.aggregate({
+        _sum: { amount: true },
+        where: {
+          date: { gte: startDate, lte: endDate },
+          status: 'APPROVED'
+        }
+      });
+
+      const events = await prisma.event.count({
+        where: {
+          year,
+          quarter,
+          status: 'ACTIVE'
+        }
+      });
+
+      return {
+        quarter: `Q${quarter}`,
+        contributions: contributions._sum.amount || 0,
+        expenses: expenses._sum.amount || 0,
+        net: (contributions._sum.amount || 0) - (expenses._sum.amount || 0),
+        events
+      };
+    })
+  );
+
+  return quarterlyData;
+}

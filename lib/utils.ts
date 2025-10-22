@@ -1,5 +1,3 @@
-import { EventApi } from "@fullcalendar/core";
-import { Event } from "@prisma/client";
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -81,46 +79,4 @@ export const formatDateTime = (dateString: Date) => {
     dateWeekDay: formattedDateWeedDay,
     timeOnly: formattedTime,
   }
-}
-
-export function transformToCalendarEvents(events: Event[]): EventApi[] {
-  return events.map(event => ({
-    id: event.id,
-    title: event.title,
-    start: event.start,
-    end: event.end,
-    startStr: event.start.toISOString(),
-    endStr: event.end.toISOString(), 
-    allDay: false,
-    backgroundColor: '',
-    borderColor: '',
-    textColor: '',
-    editable: false,
-    startEditable: false,
-    durationEditable: false,
-    constraint: null,
-    overlap: false,
-    url: '',
-    classNames: [],
-    extendedProps: {
-      userId: event.userId,
-      type: event.type,
-      description: event.description,
-      location: event.location,
-      status: event.status
-    },
-    groupId: '', // Add this
-    display: 'block', // Add this
-    setProp: (key, value) => {}, // Add this
-    setExtendedProp: (key, value) => {}, // Add this
-    getSource: () => {}, // Add this
-    getDates: () => {}, // Add this
-    hasDate: () => {}, // Add this
-    isStart: () => {}, // Add this
-    isEnd: () => {}, // Add this
-    isSame: () => {}, // Add this
-    clone: () => {}, // Add this
-    toPlainObject: () => {}, // Add this
-    allow: [], // Add this
-  }));
 }

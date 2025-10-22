@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/send-notifications",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/monthly-contributions",
+      "schedule": "59 23 L * *"
+    },
+    {
+      "path": "/api/cron/birthday-events",
+      "schedule": "0 0 1 1 *"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  url  	    = env("DATABASE_URL")
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
@@ -11,12 +11,12 @@ generator client {
 
 model User {
   id            String         @id @default(cuid())
-  clerkId       String?         @unique
   email         String         @unique
   name          String
   department    String?
   password      String         @default("")
   role          UserRole       @default(EMPLOYEE)
+  dateOfBirth   DateTime?      // Birthday for automatic birthday tracking
   contributions Contribution[]
   events        Event[]
   expenses      Expense[]
@@ -49,21 +49,22 @@ model Contribution {
 }
 
 model Event {
-  id          String         @id @default(cuid())
-  userId      String
-  user        User        @relation(fields: [userId], references: [id])
-  type        EventType
-  title       String
-  start       DateTime
-  end         DateTime
-  year        Int
-  month       Int
-  quarter     Int
-  description String?
-  location    String?
-  status      EventStatus @default(ACTIVE)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @default(now())
+  id                    String         @id @default(cuid())
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id])
+  type                  EventType
+  title                 String
+  start                 DateTime
+  end                   DateTime
+  year                  Int
+  month                 Int
+  quarter               Int
+  description           String?
+  location              String?
+  status                EventStatus @default(ACTIVE)
+  emailNotificationSent Boolean     @default(false) // Track if notification email was sent
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @default(now())
   // Indexes for faster querying and aggregation
   @@index([type, year, month])
   @@index([year, quarter])
