@@ -20,28 +20,33 @@ export const Navbar = async () => {
   const userInfo = await fetchUserWithContributions(session.user.email)
 
   return (
-    <header className='p-3 md:px-10 md:pt-3 md:pb-0 2xl:px-80'>
-        <nav className="flex items-center justify-between p-4 mx-auto">
-        <Link href="/" className="flex items-center gap-2 group ">
-          <Home className="h-6 w-6 text-emerald-500 " />
-          <span className="flex flex-col justify-center items-center md:flex-row text-xs md:text-xl font-semibold text-white group-hover:text-green-700 transition-colors">
+    <header className='p-2 md:px-10 md:pt-3 md:pb-0 2xl:px-80'>
+        <nav className="flex items-center justify-between p-2 md:p-4 mx-auto">
+        <Link href="/" className="flex items-center gap-1 md:gap-2 group ">
+          <Home className="h-5 w-5 md:h-6 md:w-6 text-emerald-500 " />
+          <span className="hidden sm:flex flex-col justify-center items-center md:flex-row text-xs md:text-xl font-semibold text-white group-hover:text-green-700 transition-colors">
             HOME
           </span>
         </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/events" className="text-xs md:text-xl font-semibold text-white hover:text-green-700 transition-colors">
+        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4">
+          <Link href="/events" className="text-[10px] sm:text-xs md:text-xl font-semibold text-white hover:text-green-700 transition-colors">
             <span className="flex flex-col items-center justify-center">
             {/* <Calendar className="h-6 w-6 text-emerald-500 md:hidden" /> */}
             EVENTS
             </span>
           </Link>
-          <Link href="/disbursements" className="text-xs md:text-xl font-semibold text-white hover:text-green-700 transition-colors">
+          <Link href="/disbursements" className="text-[10px] sm:text-xs md:text-xl font-semibold text-white hover:text-green-700 transition-colors">
             <span className="flex flex-col items-center justify-center">
             BENEFITS
             </span>
           </Link>
+          <Link href="/policy" className="text-[10px] sm:text-xs md:text-xl font-semibold text-white hover:text-green-700 transition-colors">
+            <span className="flex flex-col items-center justify-center">
+            POLICY
+            </span>
+          </Link>
          {userInfo.success && userInfo.user?.role === "ADMIN" && (
-           <Link href="/admin" className="text-xs md:text-xl font-semibold text-white hover:text-green-700 transition-colors">
+           <Link href="/admin" className="text-[10px] sm:text-xs md:text-xl font-semibold text-white hover:text-green-700 transition-colors">
            <span className="flex flex-col items-center justify-center">
            {/* <LayoutDashboardIcon className="h-6 w-6 text-emerald-500 md:hidden" /> */}
            ADMIN

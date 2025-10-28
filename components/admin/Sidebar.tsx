@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link'
-import { Home, Users, FileText, BarChart, PlusSquare, ChartBar, ListCheckIcon, PlusIcon, Calendar, CalendarPlus } from 'lucide-react'
+import { Home, Users, FileText, BarChart, PlusSquare, ChartBar, ListCheckIcon, PlusIcon, Calendar, CalendarPlus, BookOpen } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
@@ -41,6 +41,10 @@ export function Sidebar() {
         <Link href="/admin/employees" className={cn("block py-2.5 px-4 rounded transition duration-200 hover:bg-green-700 hover:text-white", pathName === "/admin/employees" && "bg-green-700 text-white")}>
           <Users className="inline-block mr-2" size={20} />
           Employees
+        </Link>
+        <Link href="/admin/policies" className={cn("block py-2.5 px-4 rounded transition duration-200 hover:bg-green-700 hover:text-white", pathName.startsWith("/admin/policies") && "bg-green-700 text-white")}>
+          <BookOpen className="inline-block mr-2" size={20} />
+          Policies
         </Link>
         <Link href="/admin/reports" className={cn("block py-2.5 px-4 rounded transition duration-200 hover:bg-green-700 hover:text-white", pathName === "/admin/reports" && "bg-green-700 text-white")}>
           <ChartBar className="inline-block mr-2" size={20} />

@@ -170,3 +170,17 @@ model Verification {
 
   @@map("verification")
 }
+
+model Policy {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique // URL-friendly identifier
+  content     String   @db.Text // Store HTML or Markdown content
+  version     Int      @default(1)
+  isActive    Boolean  @default(true)
+  updatedBy   String? // Email of admin who updated
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("policies")
+}

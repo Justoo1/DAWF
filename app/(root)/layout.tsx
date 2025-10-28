@@ -14,7 +14,7 @@ export default function Layout({
 }>) {
   return (
       <div
-        className="flex flex-col lg:max-h-screen"
+        className="flex flex-col"
       >
         <Navbar />
         {children}

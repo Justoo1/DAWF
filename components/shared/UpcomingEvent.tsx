@@ -34,7 +34,7 @@ interface UpcomingEventProps {
 
 const UpcomingEvent = ({upcomingEvents, success}: UpcomingEventProps) => {
   return (
-    <div className={cn("relative group overflow-hidden rounded-lg bg-[url('/assets/images/upcomingevent.svg')] bg-cover bg-center justify-center items-center flex w-[311px] h-[450px] lg:w-full lg:max-w-[311px] lg:h-auto lg:aspect-[311/450]", manrope.className)}>
+    <div className={cn("relative group overflow-hidden rounded-lg bg-[url('/assets/images/upcomingevent.svg')] bg-cover bg-center justify-center items-center flex  h-[450px] lg:w-full lg:max-w-[311px] lg:h-auto lg:aspect-[311/450]", manrope.className)}>
       {success && upcomingEvents.length > 0 ? (
         <Carousel
           opts={{
