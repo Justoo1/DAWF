@@ -145,8 +145,13 @@ export async function fetchUserWithContributions(email: string) {
 //   }
 // }
 
-export async function fetchUsers() {
+export async function fetchUsers(page: number = 1, pageSize: number = 10) {
   try {
+    const skip = (page - 1) * pageSize
+
+    // Get total count for pagination
+    const totalCount = await prisma.user.count()
+
     // Fetch users with their contributions, events, and expenses
     const users = await prisma.user.findMany({
       include: {
@@ -154,6 +159,11 @@ export async function fetchUsers() {
         events: true,
         expenses: true,
       },
+      skip,
+      take: pageSize,
+      orderBy: {
+        createdAt: 'desc'
+      }
     });
 
     // Map the users to the UserValues type
@@ -169,7 +179,16 @@ export async function fetchUsers() {
       expenses: user.expenses,
     }));
 
-    return { success: true, users: userValues };
+    return {
+      success: true,
+      users: userValues,
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages: Math.ceil(totalCount / pageSize)
+      }
+    };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' };
   }

@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { createPolicy, updatePolicy, Policy } from '@/lib/actions/policy.actions'
 import { ArrowLeft, Save } from 'lucide-react'
 import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
+import RichTextEditor from '@/components/ui/rich-text-editor'
 
 interface PolicyFormProps {
   userEmail: string
@@ -134,19 +134,16 @@ const PolicyForm = ({ userEmail, mode, initialData }: PolicyFormProps) => {
         </div>
 
         <div>
-          <Label htmlFor="content">Policy Content (HTML)</Label>
-          <Textarea
-            id="content"
-            value={formData.content}
-            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-            placeholder="Enter policy content in HTML format..."
-            required
-            disabled={loading}
-            rows={20}
-            className="font-mono text-sm"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            You can paste HTML content here. The content will be rendered on the policy page.
+          <Label htmlFor="content">Policy Content</Label>
+          <div className="mt-2">
+            <RichTextEditor
+              content={formData.content}
+              onChange={(content) => setFormData({ ...formData, content })}
+              disabled={loading}
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            Use the toolbar above to format your policy document. No HTML knowledge required!
           </p>
         </div>
       </div>

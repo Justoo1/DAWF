@@ -4,9 +4,19 @@ import BulkContributionModal from '@/components/admin/BulkContributionModal'
 import { fetchContributions } from '@/lib/actions/contribution'
 import { fetchUsersIdAndName } from '@/lib/actions/users.action'
 
-const ContributionPage = async () => {
+interface ContributionPageProps {
+  searchParams: Promise<{
+    page?: string
+  }>
+}
+
+const ContributionPage = async ({ searchParams }: ContributionPageProps) => {
+    const params = await searchParams
+    const currentPage = Number(params.page) || 1
+    const pageSize = 10
+
     const [data, usersData] = await Promise.all([
-      fetchContributions(),
+      fetchContributions(currentPage, pageSize),
       fetchUsersIdAndName()
     ])
 
@@ -26,7 +36,10 @@ const ContributionPage = async () => {
         <BulkContributionModal users={users} />
       </div>
       <QuickActions />
-      <Contributions contributions={data.contributions} />
+      <Contributions
+        contributions={data.contributions}
+        pagination={data.pagination!}
+      />
     </main>
   )
 }

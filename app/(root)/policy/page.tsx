@@ -37,7 +37,7 @@ const PolicyPage = async () => {
           </div>
 
           {policyResult.success && policyResult.policy ? (
-            <Card className="bg-white p-6 md:p-8 max-h-96 overflow-auto">
+            <Card className="bg-white p-6 md:p-8 max-h-96 2xl:max-h-[32rem] overflow-auto">
               <article
                 className={`prose prose-sm md:prose-base max-w-none ${manrope.className}`}
                 dangerouslySetInnerHTML={{ __html: policyResult.policy.content }}

@@ -12,14 +12,32 @@ import { PenBoxIcon, Trash2Icon } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import ContributionForm from './ContributionForm'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+import { useRouter, useSearchParams } from 'next/navigation'
 
 interface ContributionsProps {
     contributions: ContributionValues[]
+    pagination: {
+      page: number
+      pageSize: number
+      totalCount: number
+      totalPages: number
+    }
 }
 
-const Contributions = ({contributions}: ContributionsProps) => {
+const Contributions = ({contributions, pagination}: ContributionsProps) => {
     const [searchTerm, setSearchTerm] = useState('')
     const { toast } = useToast()
+    const router = useRouter()
+    const searchParams = useSearchParams()
 
   const filteredRecords = contributions.filter(record =>{
 
@@ -27,11 +45,85 @@ const Contributions = ({contributions}: ContributionsProps) => {
       const monthNumber = (record.month.getMonth() + 1).toString(); // Numeric month (1-12)
       return (
             record.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            record.status.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            record.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
             monthName.includes(searchTerm.toLowerCase()) || // Match full month name
             monthNumber.includes(searchTerm.toLowerCase()) // Match month number
       )
   })
+
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('page', page.toString())
+    router.push(`?${params.toString()}`)
+  }
+
+  const renderPaginationItems = () => {
+    const items = []
+    const { page, totalPages } = pagination
+
+    // Always show first page
+    items.push(
+      <PaginationItem key={1}>
+        <PaginationLink
+          onClick={() => handlePageChange(1)}
+          isActive={page === 1}
+          className="cursor-pointer"
+        >
+          1
+        </PaginationLink>
+      </PaginationItem>
+    )
+
+    // Show ellipsis if current page is far from start
+    if (page > 3) {
+      items.push(
+        <PaginationItem key="ellipsis-start">
+          <PaginationEllipsis />
+        </PaginationItem>
+      )
+    }
+
+    // Show pages around current page
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+      items.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            onClick={() => handlePageChange(i)}
+            isActive={page === i}
+            className="cursor-pointer"
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      )
+    }
+
+    // Show ellipsis if current page is far from end
+    if (page < totalPages - 2) {
+      items.push(
+        <PaginationItem key="ellipsis-end">
+          <PaginationEllipsis />
+        </PaginationItem>
+      )
+    }
+
+    // Always show last page if there's more than one page
+    if (totalPages > 1) {
+      items.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink
+            onClick={() => handlePageChange(totalPages)}
+            isActive={page === totalPages}
+            className="cursor-pointer"
+          >
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      )
+    }
+
+    return items
+  }
   
 
   const handleDelete =  async (id: string | undefined) => {
@@ -105,6 +197,34 @@ const Contributions = ({contributions}: ContributionsProps) => {
             ))}
           </TableBody>
         </Table>
+
+        {/* Pagination */}
+        {pagination.totalPages > 1 && (
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              Showing {((pagination.page - 1) * pagination.pageSize) + 1} to{' '}
+              {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} of{' '}
+              {pagination.totalCount} contributions
+            </p>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => handlePageChange(pagination.page - 1)}
+                    className={pagination.page === 1 ? 'pointer-events-none opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+                {renderPaginationItems()}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => handlePageChange(pagination.page + 1)}
+                    className={pagination.page === pagination.totalPages ? 'pointer-events-none opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </CardContent>
     </Card>
         </div>

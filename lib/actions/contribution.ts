@@ -79,23 +79,31 @@ export async function updateContribution(contributionId: string, values: Contrib
   }
 }
 
-export async function fetchContributions() {
+export async function fetchContributions(page: number = 1, pageSize: number = 10) {
   try {
+    const skip = (page - 1) * pageSize
+
+    // Get total count for pagination
+    const totalCount = await prisma.contribution.count()
+
     const contributions = await prisma.contribution.findMany({
       include: {
         user: true
       },
       orderBy:{
         month: "desc"
-      }
+      },
+      skip,
+      take: pageSize
     })
+
     const totalContributions = contributions.reduce((sum, contribution) => sum + contribution.amount, 0)
-    
+
     // Calculate the percentage change from last month
     const lastMonthStart = new Date()
     lastMonthStart.setMonth(lastMonthStart.getMonth() - 1)
     lastMonthStart.setDate(1)
-    
+
     const lastMonthContributions = await prisma.contribution.findMany({
       where: {
         month: {
@@ -104,15 +112,21 @@ export async function fetchContributions() {
         }
       }
     })
-    
+
     const lastMonthTotal = lastMonthContributions.reduce((sum, contribution) => sum + contribution.amount, 0)
     const percentageChange = lastMonthTotal ? ((totalContributions - lastMonthTotal) / lastMonthTotal) * 100 : 0
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       contributions,
       totalContributions,
-      percentageChange: percentageChange.toFixed(1)
+      percentageChange: percentageChange.toFixed(1),
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages: Math.ceil(totalCount / pageSize)
+      }
     }
   } catch (error) {
     console.error('Contribution fetch error:', error)
