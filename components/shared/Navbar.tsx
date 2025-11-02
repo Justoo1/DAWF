@@ -5,6 +5,7 @@ import React from 'react'
 import { fetchUserWithContributions } from '@/lib/actions/users.action'
 import { Home } from 'lucide-react'
 import ProfileMenu from './ProfileMenu'
+import NotificationBell from './NotificationBell'
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 
@@ -54,6 +55,7 @@ export const Navbar = async () => {
          </Link>
          )}
           {/* <UserButton /> */}
+          {session.user && <NotificationBell userId={session.user.id} />}
           {userInfo.success && userInfo.user && <ProfileMenu user={userInfo.user} />}
         </div>
       </nav>

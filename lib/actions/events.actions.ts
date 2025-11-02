@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import prisma from "../prisma"
 import { Event } from "../validation";
+import { createNotificationForAllUsers } from './notification.actions';
 
 export async function fetchUpcomingEvents() {
   try {
@@ -122,7 +123,17 @@ export async function updateEvent(eventId: string, event: Event) {
 
 export async function createEvent(event: Event) {
     try {
-      await prisma.event.create({ data: event })
+      const createdEvent = await prisma.event.create({ data: event })
+
+      // Notify all users about the new event
+      await createNotificationForAllUsers({
+        type: 'EVENT_CREATED',
+        title: `New Event: ${event.title}`,
+        message: `A new ${event.type.toLowerCase()} event has been scheduled for ${new Date(event.start).toLocaleDateString()}.`,
+        linkUrl: '/events',
+        eventId: createdEvent.id,
+      })
+
       revalidatePath('/admin/events')
       return { success: true }
     } catch (error) {

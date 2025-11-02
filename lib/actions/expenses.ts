@@ -3,10 +3,11 @@
 import prisma from "../prisma"
 import { Expense } from "../validation"
 import { revalidatePath } from "next/cache"
+import { createNotificationForAllUsers } from './notification.actions'
 
 export async function createExpenses(expenses: Expense[]) {
     const createdExpenses = await prisma.$transaction(
-      expenses.map((expense) => 
+      expenses.map((expense) =>
         prisma.expense.create({
           data: {
             ...expense,
@@ -16,7 +17,18 @@ export async function createExpenses(expenses: Expense[]) {
         })
       )
     )
-  
+
+    // Notify all users about the new expenses
+    if (createdExpenses.length > 0) {
+      const totalAmount = createdExpenses.reduce((sum, exp) => sum + exp.amount, 0)
+      await createNotificationForAllUsers({
+        type: 'EXPENSE_ADDED',
+        title: 'New Expenses Recorded',
+        message: `${createdExpenses.length} new expense(s) totaling GH₵${totalAmount.toFixed(2)} have been recorded.`,
+        linkUrl: '/expenses',
+      })
+    }
+
     return createdExpenses
   }
 

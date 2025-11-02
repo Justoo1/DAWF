@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache'
 import { Contribution, ContributionCreateSchema, ExpenseSchema } from '../validation'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { createNotificationForAllUsers } from './notification.actions'
 
 
 export async function createContribution(values: Contribution) {
@@ -223,6 +224,14 @@ export async function createBulkContributions(
     if (contributionsToCreate.length > 0) {
       await prisma.contribution.createMany({
         data: contributionsToCreate
+      })
+
+      // Notify all users about the new contributions
+      await createNotificationForAllUsers({
+        type: 'CONTRIBUTION_ADDED',
+        title: 'New Contributions Added',
+        message: `${contributionsToCreate.length} new contribution(s) have been recorded for this period.`,
+        linkUrl: '/contributions',
       })
     }
 

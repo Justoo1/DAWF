@@ -99,7 +99,7 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
         aria-expanded={isOpen}
       >
         <Avatar className="h-10 w-10 flex items-center justify-center bg-green-700">
-          <AvatarImage src="/avatars/01.png" alt="@username" />
+          {/* <AvatarImage src="/avatars/01.png" alt="@username" /> */}
           <AvatarFallback className="bg-emerald-500 text-wh">{initials}</AvatarFallback>
         </Avatar>
       </Button>

@@ -21,6 +21,7 @@ model User {
   contributions Contribution[]
   events        Event[]
   expenses      Expense[]
+  notifications Notification[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @default(now())
 
@@ -183,4 +184,35 @@ model Policy {
   updatedAt   DateTime @updatedAt
 
   @@map("policies")
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        NotificationType
+  title       String
+  message     String
+  linkUrl     String?          // Optional link to relevant page
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  // Optional references to related entities
+  eventId     String?
+  contributionId String?
+  expenseId   Int?
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  EVENT_UPCOMING       // Event happening soon
+  EVENT_ACTIVE         // Event is currently active
+  EVENT_CREATED        // New event created
+  CONTRIBUTION_ADDED   // New contribution recorded
+  EXPENSE_ADDED        // New expense recorded
+  REMINDER             // General reminder to check the app
+  ANNOUNCEMENT         // General announcement
 }
