@@ -1,0 +1,24 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/send-notifications",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/monthly-contributions",
+      "schedule": "0 0 1 * *"
+    },
+    {
+      "path": "/api/cron/notifications?type=active",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/notifications?type=upcoming",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/notifications?type=reminder",
+      "schedule": "0 9 * * 1"
+    }
+  ]
+}
