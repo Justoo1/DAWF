@@ -32,7 +32,6 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     'manage_events',
     'view_conference_rooms',
     'manage_conference_rooms',
-    'view_policies',
   ],
   ADMIN: [
     'view_dashboard',
