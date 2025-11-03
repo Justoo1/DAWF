@@ -4,12 +4,12 @@ import { fetchContributions } from '@/lib/actions/contribution'
 import { fetchUpcomingEvents } from '@/lib/actions/events.actions'
 import { fetchExpenses } from '@/lib/actions/expenses'
 import { fetchMembers, fetchUserWithContributions } from '@/lib/actions/users.action'
-// import { auth } from '@clerk/nextjs/server'
 import { auth } from "@/lib/auth"
 import { redirect } from 'next/navigation'
 import UserAnalysis from '@/components/admin/User-analysis'
 import QuickActions from "@/components/admin/QuickActions"
 import { headers } from "next/headers"
+import { canAccessAdmin } from '@/lib/permissions'
 
 const Dashboard = async () => {
   // const { userId } = await auth()
@@ -29,7 +29,8 @@ const Dashboard = async () => {
     fetchUserWithContributions(session.user.email),
   ])
 
-  if (userData.user?.role !== "ADMIN"){
+  // Check if user has admin or manager role
+  if (!userData.user || !canAccessAdmin(userData.user.role as 'EMPLOYEE' | 'MANAGER' | 'ADMIN')){
     redirect('/')
   }
   

@@ -60,31 +60,59 @@ export async function fetchUpcomingEvents() {
 }
 
 import { EventInput } from '@fullcalendar/core';
+import { fetchBookingsForCalendar } from './conferenceRoom.actions';
 
 // Modify the fetchAllEvents function to return compatible events
 export async function fetchAllEventsForCalendar() {
   try {
     const result = await fetchAllEvents(); // Call your existing function
+    const bookingsResult = await fetchBookingsForCalendar(); // Get conference room bookings
 
     if (result.success) {
-      const events: EventInput[] = result.events.map(event => ({
-        id: event.id, // FullCalendar's ID
-        title: event.title, // Title for the event
-        start: event.start.toISOString(), // Start date in ISO format
-        end: event.end ? event.end.toISOString() : undefined, // End date in ISO format
-        allDay: false, // Adjust based on your logic
-        extendedProps: {
-          userId: event.userId, // Extra data can go here
-          description: event.description,
-          location: event.location,
-          status: event.status
-        }
-      }));
+      // Map regular events
+      const events: EventInput[] = result.events.map(event => {
+        // Determine color based on event category and type
+        let backgroundColor = '#3b82f6'; // Default blue
+        let borderColor = '#2563eb';
 
-      return { 
-        success: true, 
+        if (event.category === 'WELFARE') {
+          backgroundColor = '#ec4899'; // Pink for welfare events
+          borderColor = '#db2777';
+        } else if (event.category === 'COMPANY') {
+          backgroundColor = '#8b5cf6'; // Purple for company events
+          borderColor = '#7c3aed';
+        }
+
+        return {
+          id: event.id, // FullCalendar's ID
+          title: event.title, // Title for the event
+          start: event.start.toISOString(), // Start date in ISO format
+          end: event.end ? event.end.toISOString() : undefined, // End date in ISO format
+          allDay: false, // Adjust based on your logic
+          backgroundColor,
+          borderColor,
+          extendedProps: {
+            type: event.type,
+            category: event.category,
+            userId: event.userId, // Extra data can go here
+            description: event.description,
+            location: event.location,
+            status: event.status,
+            maxAttendees: event.maxAttendees,
+            isRecurring: event.isRecurring
+          }
+        };
+      });
+
+      // Add conference room bookings to the calendar
+      if (bookingsResult.success && bookingsResult.bookings) {
+        events.push(...bookingsResult.bookings);
+      }
+
+      return {
+        success: true,
         events,
-        totalEvents: events.length 
+        totalEvents: events.length
       };
     } else {
       return { error: 'Failed to fetch events' };

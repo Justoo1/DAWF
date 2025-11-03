@@ -45,16 +45,21 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
       end: event ? event.end.toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
       status: event ? event.status : "ACTIVE",
       type: event ? event.type : "BIRTHDAY",
+      category: event ? event.category : "WELFARE",
       location: event ? event.location! : "",
       description: event ? event.description! : "",
       year: event ? event.year : new Date().getFullYear(),
       quarter: event ? event.quarter : Math.ceil((new Date().getMonth() + 1) / 3),
       month: event ? event.month : new Date().getMonth() + 1,
+      maxAttendees: event ? event.maxAttendees! : undefined,
+      isRecurring: event ? event.isRecurring : false,
+      recurrencePattern: event ? event.recurrencePattern! : undefined,
     }
   })
 
     const { watch, setValue } = form;
     const startDate = watch("start");
+    const selectedCategory = watch("category");
 
     // Update the month whenever the start date changes
     useEffect(() => {
@@ -120,9 +125,31 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
           console.error(error)
         }
       }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="category"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Event Category</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select event category" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="WELFARE">Welfare Event</SelectItem>
+                  <SelectItem value="COMPANY">Company Event</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="type"
@@ -136,11 +163,27 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="BIRTHDAY">Birthday</SelectItem>
-                  <SelectItem value="FUNERAL">Funeral</SelectItem>
-                  <SelectItem value="CHILDBIRTH">Childbirth</SelectItem>
-                  <SelectItem value="MARRIAGE">Marriage</SelectItem>
-                  <SelectItem value="OTHER">Other</SelectItem>
+                  {selectedCategory === 'WELFARE' && (
+                    <>
+                      <SelectItem value="BIRTHDAY">Birthday</SelectItem>
+                      <SelectItem value="FUNERAL">Funeral</SelectItem>
+                      <SelectItem value="CHILDBIRTH">Childbirth</SelectItem>
+                      <SelectItem value="MARRIAGE">Marriage</SelectItem>
+                      <SelectItem value="OTHER">Other</SelectItem>
+                    </>
+                  )}
+                  {selectedCategory === 'COMPANY' && (
+                    <>
+                      <SelectItem value="TEAM_BUILDING">Team Building</SelectItem>
+                      <SelectItem value="TRAINING">Training</SelectItem>
+                      <SelectItem value="MEETING">Meeting</SelectItem>
+                      <SelectItem value="WORKSHOP">Workshop</SelectItem>
+                      <SelectItem value="CONFERENCE">Conference</SelectItem>
+                      <SelectItem value="TOWN_HALL">Town Hall</SelectItem>
+                      <SelectItem value="CELEBRATION">Celebration</SelectItem>
+                      <SelectItem value="OTHER">Other</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -314,8 +357,8 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
             render={({ field }) => (
               <FormItem className='w-full'>
                 <FormLabel>Quarter</FormLabel>
-                <Select 
-                  onValueChange={(value) => field.onChange(Number(value))} 
+                <Select
+                  onValueChange={(value) => field.onChange(Number(value))}
                   value={field.value.toString()}
                 >
                   <FormControl>
@@ -336,8 +379,33 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
           />
         </div>
 
-        <Button 
-          type="submit" 
+        {selectedCategory === 'COMPANY' && (
+          <div className="flex gap-3">
+            <FormField
+              control={form.control}
+              name="maxAttendees"
+              render={({ field }) => (
+                <FormItem className='w-full'>
+                  <FormLabel>Max Attendees (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      value={field.value || ''}
+                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      min={1}
+                      placeholder="Enter maximum number of attendees"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        )}
+
+        <Button
+          type="submit"
           disabled={form.formState.isSubmitting}
         >
           {update ? form.formState.isSubmitting ? 'Updating...' : 'Update Event' : form.formState.isSubmitting ? 'Adding...' : 'Add Event'}

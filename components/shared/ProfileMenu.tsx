@@ -1,28 +1,17 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { LogOut, Mail, User as UserIcon, ShieldCheck } from 'lucide-react'
-// import { signOut } from "next-auth/react"
-import { User } from "@/lib/validation"
+import { UserValues } from "@/lib/validation"
 import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
-// import { authClient } from "@/lib/auth-client"
-
-type EnhancedUser = Omit<User, "password" | "clerkId" | "department"> & {
-  department: string | null;
-  contributionsCount: number;
-  eventsCount: number;
-  expensesCount: number;
-  totalAmountContributed: number;
-  totalContributionMonths: number;
-}
 
 interface ProfileMenuProps {
-    user: EnhancedUser
+    user: UserValues
 }
 
 const ProfileMenu = ({ user }: ProfileMenuProps) => {
@@ -63,7 +52,7 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
           title: "Success",
           description: "Signed out successfully",
         })
-        router.replace("/sign-in")
+        router.replace("/public-calendar")
       },
       onError: () => {
         toast({
@@ -112,7 +101,7 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
         >
           <div className="flex gap-3">
             <Avatar className="h-16 w-16 flex-shrink-0">
-              <AvatarImage src="/avatars/01.png" />
+              {/* <AvatarImage src="/avatars/01.png" /> */}
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0 space-y-1">
@@ -129,7 +118,7 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
             </div>
           </div>
           <div className="mt-4 grid gap-2">
-            {user?.role === "ADMIN" && (
+            {(user?.role === "ADMIN" || user?.role === "MANAGER") && (
               <Link href="/admin">
                 <Button variant="outline" className="w-full justify-start">
                   <ShieldCheck className="mr-2 h-4 w-4" />

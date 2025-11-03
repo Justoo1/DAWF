@@ -9,21 +9,108 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserRole {
+  EMPLOYEE
+  MANAGER  // Limited admin: can view employees, events, and conference rooms
+  ADMIN    // Full admin access
+}
+
+enum ContributionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum EventType {
+  BIRTHDAY
+  FUNERAL
+  CHILDBIRTH
+  MARRIAGE
+  OTHER
+  TEAM_BUILDING
+  TRAINING
+  MEETING
+  WORKSHOP
+  CONFERENCE
+  TOWN_HALL
+  CELEBRATION
+}
+
+enum EventCategory {
+  WELFARE    // Welfare events (birthdays, funerals, etc.)
+  COMPANY    // Company events (meetings, training, etc.)
+}
+
+enum EventStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum AttendeeStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  MAYBE
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum ExpenseType {
+  BIRTHDAY
+  FUNERAL
+  MARRIAGE
+  CHILDBIRTH
+  EMPLOYEE_DEPARTURE
+  OTHER
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NotificationType {
+  EVENT_UPCOMING       // Event happening soon
+  EVENT_ACTIVE         // Event is currently active
+  EVENT_CREATED        // New event created
+  CONTRIBUTION_ADDED   // New contribution recorded
+  EXPENSE_ADDED        // New expense recorded
+  REMINDER             // General reminder to check the app
+  ANNOUNCEMENT         // General announcement
+  ROOM_BOOKING_CREATED // Conference room booking notification
+}
+
+// ============================================
+// MODELS
+// ============================================
+
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  name          String
-  department    String?
-  password      String         @default("")
-  role          UserRole       @default(EMPLOYEE)
-  isActive      Boolean        @default(true) // Track if employee is active or has resigned
-  dateOfBirth   DateTime?      // Birthday for automatic birthday tracking
-  contributions Contribution[]
-  events        Event[]
-  expenses      Expense[]
-  notifications Notification[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @default(now())
+  id                    String                  @id @default(cuid())
+  email                 String                  @unique
+  name                  String
+  department            String?
+  password              String                  @default("")
+  role                  UserRole                @default(EMPLOYEE)
+  isActive              Boolean                 @default(true) // Track if employee is active or has resigned
+  dateOfBirth           DateTime?               // Birthday for automatic birthday tracking
+  contributions         Contribution[]
+  events                Event[]
+  expenses              Expense[]
+  notifications         Notification[]
+  eventAttendees        EventAttendee[]
+  conferenceRoomBookings ConferenceRoomBooking[]
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @default(now())
 
   emailVerified Boolean
   image         String?
@@ -55,6 +142,7 @@ model Event {
   userId                String
   user                  User        @relation(fields: [userId], references: [id])
   type                  EventType
+  category              EventCategory @default(WELFARE) // Differentiate between welfare and company events
   title                 String
   start                 DateTime
   end                   DateTime
@@ -65,12 +153,69 @@ model Event {
   location              String?
   status                EventStatus @default(ACTIVE)
   emailNotificationSent Boolean     @default(false) // Track if notification email was sent
+  maxAttendees          Int?        // For company events with limited capacity
+  isRecurring           Boolean     @default(false) // Support for recurring events
+  recurrencePattern     String?     // JSON string: {frequency: 'daily'|'weekly'|'monthly', interval: number, endDate: Date}
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @default(now())
+  attendees             EventAttendee[]
   // Indexes for faster querying and aggregation
   @@index([type, year, month])
   @@index([year, quarter])
+  @@index([category, status])
   @@map("events")
+}
+
+model EventAttendee {
+  id          String            @id @default(cuid())
+  eventId     String
+  event       Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+  status      AttendeeStatus    @default(PENDING)
+  respondedAt DateTime?
+  createdAt   DateTime          @default(now())
+
+  @@unique([eventId, userId])
+  @@index([userId, status])
+  @@map("event_attendees")
+}
+
+model ConferenceRoom {
+  id          String              @id @default(cuid())
+  name        String              @unique
+  capacity    Int
+  location    String?
+  amenities   String?             // JSON array: ['Projector', 'Whiteboard', 'Video Conference']
+  isActive    Boolean             @default(true)
+  description String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @default(now())
+  bookings    ConferenceRoomBooking[]
+
+  @@map("conference_rooms")
+}
+
+model ConferenceRoomBooking {
+  id              String          @id @default(cuid())
+  roomId          String
+  room            ConferenceRoom  @relation(fields: [roomId], references: [id])
+  userId          String
+  user            User            @relation(fields: [userId], references: [id])
+  title           String
+  description     String?
+  start           DateTime
+  end             DateTime
+  status          BookingStatus   @default(APPROVED) // Auto-approve or require admin approval
+  purpose         String?
+  attendeeCount   Int?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @default(now())
+
+  @@index([roomId, start, end])
+  @@index([userId, status])
+  @@index([start, end, status])
+  @@map("conference_room_bookings")
 }
 
 model Expense {
@@ -86,45 +231,6 @@ model Expense {
   status      ExpenseStatus @default(APPROVED)
   userId      String? // Optional link to related user
   user        User?         @relation(fields: [userId], references: [id])
-}
-
-enum ExpenseType {
-  BIRTHDAY
-  FUNERAL
-  MARRIAGE
-  CHILDBIRTH
-  EMPLOYEE_DEPARTURE
-  OTHER
-}
-
-enum ExpenseStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum UserRole {
-  EMPLOYEE
-  ADMIN
-}
-
-enum ContributionStatus {
-  PENDING
-  COMPLETED
-  FAILED
-}
-
-enum EventType {
-  BIRTHDAY
-  FUNERAL
-  CHILDBIRTH
-  MARRIAGE
-  OTHER
-}
-
-enum EventStatus {
-  ACTIVE
-  ARCHIVED
 }
 
 model Session {
@@ -205,14 +311,4 @@ model Notification {
   @@index([userId, isRead])
   @@index([createdAt])
   @@map("notifications")
-}
-
-enum NotificationType {
-  EVENT_UPCOMING       // Event happening soon
-  EVENT_ACTIVE         // Event is currently active
-  EVENT_CREATED        // New event created
-  CONTRIBUTION_ADDED   // New contribution recorded
-  EXPENSE_ADDED        // New expense recorded
-  REMINDER             // General reminder to check the app
-  ANNOUNCEMENT         // General announcement
 }

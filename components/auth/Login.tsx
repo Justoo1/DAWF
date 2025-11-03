@@ -171,11 +171,21 @@ const Login = () => {
           </svg>
           Continue with Google
         </Button>
-        <div className="mt-4 text-center text-sm">
-          Don&apos;t have an account?{" "}
-          <Link className="text-[#E84E1B] hover:underline" href="/sign-up">
-            Sign up
-          </Link>
+        <div className="mt-4 text-center text-sm space-y-2">
+          <div>
+            Don&apos;t have an account?{" "}
+            <Link className="text-[#E84E1B] hover:underline" href="/sign-up">
+              Sign up
+            </Link>
+          </div>
+          <div className="pt-2 border-t border-white/20">
+            <Link className="text-white hover:text-[#E84E1B] hover:underline flex items-center justify-center gap-2" href="/public-calendar">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              View Public Calendar (No login required)
+            </Link>
+          </div>
         </div>
       </CardContent>
     </Card>
