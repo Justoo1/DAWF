@@ -35,5 +35,6 @@ export {
   marriageCongratulationsTemplate,
   marriageAnnouncementTemplate,
   upcomingEventTemplate,
+  conferenceRoomBookingTemplate,
   monthlySummaryTemplate
 } from './email-templates';

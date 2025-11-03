@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 const QuickActions = () => {
   return (
-    <div className="grid gap-6 mb-8 md:grid-cols-2 mt-8 md:hidden">
+    <div className="gap-6 mb-8 md:grid-cols-2 mt-8 hidden">
         <Card>
             <CardHeader>
             <CardTitle>Quick Actions</CardTitle>

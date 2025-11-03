@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import prisma from "../prisma";
 import { ConferenceRoom, ConferenceRoomBooking } from "../validation";
 import { createNotificationForAllUsers } from './notification.actions';
+import { sendEmail, conferenceRoomBookingTemplate } from '../email';
 
 // ============================================
 // CONFERENCE ROOM MANAGEMENT
@@ -290,13 +291,23 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
       return { error: 'Room is not available for the selected time period' };
     }
 
-    // Get room details for notification
-    const room = await prisma.conferenceRoom.findUnique({
-      where: { id: booking.roomId }
-    });
+    // Get room details and user details
+    const [room, user] = await Promise.all([
+      prisma.conferenceRoom.findUnique({
+        where: { id: booking.roomId }
+      }),
+      prisma.user.findUnique({
+        where: { id: booking.userId },
+        select: { name: true, email: true }
+      })
+    ]);
 
     if (!room) {
       return { error: 'Conference room not found' };
+    }
+
+    if (!user) {
+      return { error: 'User not found' };
     }
 
     // Create the booking
@@ -309,6 +320,25 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
       }
     });
 
+    // Format date/time for email
+    const startDateTime = new Date(booking.start).toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const endDateTime = new Date(booking.end).toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
     // Notify all users about the new booking
     await createNotificationForAllUsers({
       type: 'ROOM_BOOKING_CREATED',
@@ -316,6 +346,43 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
       message: `${room.name} has been booked for ${booking.title} on ${new Date(booking.start).toLocaleDateString()}.`,
       linkUrl: '/events',
     });
+
+    // Send email to all active employees
+    try {
+      // Fetch all active employees
+      const activeEmployees = await prisma.user.findMany({
+        where: { isActive: true },
+        select: { email: true }
+      });
+
+      const emailAddresses = activeEmployees.map(emp => emp.email);
+
+      if (emailAddresses.length > 0) {
+        // Generate email HTML
+        const emailHtml = conferenceRoomBookingTemplate(
+          room.name,
+          booking.title,
+          user.name,
+          startDateTime,
+          endDateTime,
+          booking.purpose || undefined,
+          booking.description || undefined,
+          booking.attendeeCount || undefined
+        );
+
+        // Send email to all active employees
+        await sendEmail({
+          to: emailAddresses,
+          subject: `Conference Room Booked: ${room.name} - ${booking.title}`,
+          html: emailHtml
+        });
+
+        console.log(`Booking notification email sent to ${emailAddresses.length} employees`);
+      }
+    } catch (emailError) {
+      // Log email error but don't fail the booking
+      console.error('Failed to send booking notification emails:', emailError);
+    }
 
     revalidatePath('/conference-rooms');
     revalidatePath('/events');

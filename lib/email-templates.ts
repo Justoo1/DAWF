@@ -246,6 +246,98 @@ export function upcomingEventTemplate(eventTitle: string, eventType: string, eve
   `;
 }
 
+export function conferenceRoomBookingTemplate(
+  roomName: string,
+  bookingTitle: string,
+  bookedBy: string,
+  startDateTime: string,
+  endDateTime: string,
+  purpose?: string,
+  description?: string,
+  attendeeCount?: number
+) {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #10A074 0%, #2F7A67 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">🏢 Conference Room Booked</h1>
+        </div>
+
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <p style="font-size: 18px; margin-bottom: 20px;">Dear Team,</p>
+
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            A conference room has been booked. Please note the following details:
+          </p>
+
+          <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h2 style="color: #10A074; margin-top: 0; font-size: 22px;">${bookingTitle}</h2>
+
+            <div style="margin-bottom: 12px;">
+              <p style="margin: 5px 0; color: #666; font-size: 14px;">Conference Room:</p>
+              <p style="margin: 0; font-size: 18px; color: #333; font-weight: bold;">${roomName}</p>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+              <p style="margin: 5px 0; color: #666; font-size: 14px;">Booked By:</p>
+              <p style="margin: 0; font-size: 16px; color: #333;">${bookedBy}</p>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+              <p style="margin: 5px 0; color: #666; font-size: 14px;">Start Time:</p>
+              <p style="margin: 0; font-size: 16px; color: #333; font-weight: 600;">📅 ${startDateTime}</p>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+              <p style="margin: 5px 0; color: #666; font-size: 14px;">End Time:</p>
+              <p style="margin: 0; font-size: 16px; color: #333; font-weight: 600;">📅 ${endDateTime}</p>
+            </div>
+
+            ${purpose ? `
+              <div style="margin-bottom: 12px;">
+                <p style="margin: 5px 0; color: #666; font-size: 14px;">Purpose:</p>
+                <p style="margin: 0; font-size: 16px; color: #333;">${purpose}</p>
+              </div>
+            ` : ''}
+
+            ${description ? `
+              <div style="margin-bottom: 12px;">
+                <p style="margin: 5px 0; color: #666; font-size: 14px;">Description:</p>
+                <p style="margin: 0; font-size: 14px; color: #555; line-height: 1.5;">${description}</p>
+              </div>
+            ` : ''}
+
+            ${attendeeCount ? `
+              <div style="margin-bottom: 12px;">
+                <p style="margin: 5px 0; color: #666; font-size: 14px;">Expected Attendees:</p>
+                <p style="margin: 0; font-size: 16px; color: #333;">👥 ${attendeeCount} people</p>
+              </div>
+            ` : ''}
+          </div>
+
+          <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+            <p style="margin: 0; font-size: 14px; color: #856404;">
+              ℹ️ <strong>Note:</strong> Please check the event calendar to avoid scheduling conflicts.
+            </p>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
+            <p style="font-size: 14px; color: #666; margin: 0;">
+              Best regards,<br>
+              <strong>DevOps Africa Welfare Fund</strong>
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
 export function monthlySummaryTemplate(
   employeeName: string,
   month: string,
