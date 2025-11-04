@@ -36,7 +36,7 @@ export const Navbar = () => {
     { href: '/policy', label: 'Policy', icon: BookOpen },
   ]
 
-  if (userInfo?.role === 'APPROVER') {
+  if (userInfo?.canApproveBookings) {
     navItems.push({ href: '/approvals', label: 'Approvals', icon: CheckSquare })
   }
 

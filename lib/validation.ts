@@ -6,7 +6,7 @@ export const UserSchema = z.object({
   email: z.string().email(),
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   department: z.string().optional(),
-  role: z.enum(['EMPLOYEE', 'MANAGER', 'ADMIN', 'APPROVER']).default('EMPLOYEE'),
+  role: z.enum(['EMPLOYEE', 'MANAGER', 'ADMIN']).default('EMPLOYEE'),
   password: z.string().min(8, { message: "Password must be at least 8 characters" }),
 })
 export type User = Omit<z.infer<typeof UserSchema>,  "password" | "department"> & {
@@ -24,6 +24,7 @@ export type UserValues = Omit<z.infer<typeof UserSchema>, 'password' | "departme
   totalContributionMonths: number,
   isActive?: boolean
   isContributor?: boolean
+  canApproveBookings?: boolean
 }
 
 // Contribution Schema

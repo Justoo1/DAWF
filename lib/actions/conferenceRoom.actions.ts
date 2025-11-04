@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import prisma from "../prisma";
 import { ConferenceRoom, ConferenceRoomBooking } from "../validation";
-import { createNotificationForAllUsers, createNotificationForRole, createNotification } from './notification.actions';
+import { createNotificationForAllUsers, createNotification, createNotificationForApprovers } from './notification.actions';
 import { sendEmail, conferenceRoomBookingTemplate, roomBookingApprovedTemplate, roomBookingRejectedTemplate } from '../email';
 
 // ============================================
@@ -320,9 +320,8 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
       }
     });
 
-    // Notify all users with APPROVER role about the new booking pending approval
-    await createNotificationForRole({
-      role: 'APPROVER',
+    // Notify all users who can approve bookings about the new booking pending approval
+    await createNotificationForApprovers({
       type: 'ROOM_BOOKING_PENDING',
       title: `New Booking Awaiting Approval`,
       message: `${user.name} has requested to book ${room.name} for ${booking.title} on ${new Date(booking.start).toLocaleDateString()}. Please review and approve/reject.`,
@@ -442,11 +441,11 @@ export async function approveBooking(bookingId: string, approverId: string) {
     // Get approver details
     const approver = await prisma.user.findUnique({
       where: { id: approverId },
-      select: { name: true, role: true }
+      select: { name: true, canApproveBookings: true }
     });
 
-    if (!approver || approver.role !== 'APPROVER') {
-      return { error: 'Only users with APPROVER role can approve bookings' };
+    if (!approver || !approver.canApproveBookings) {
+      return { error: 'Only users with booking approval permission can approve bookings' };
     }
 
     // Update booking status to APPROVED
@@ -585,11 +584,11 @@ export async function rejectBooking(bookingId: string, approverId: string, rejec
     // Get approver details
     const approver = await prisma.user.findUnique({
       where: { id: approverId },
-      select: { name: true, role: true }
+      select: { name: true, canApproveBookings: true }
     });
 
-    if (!approver || approver.role !== 'APPROVER') {
-      return { error: 'Only users with APPROVER role can reject bookings' };
+    if (!approver || !approver.canApproveBookings) {
+      return { error: 'Only users with booking approval permission can reject bookings' };
     }
 
     // Update booking status to REJECTED

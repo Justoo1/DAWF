@@ -322,3 +322,17 @@ export async function updateContributorStatus(userId: string, isContributor: boo
     return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }
   }
 }
+
+export async function updateBookingApprovalPermission(userId: string, canApproveBookings: boolean) {
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { canApproveBookings }
+    })
+    revalidatePath('/admin/employees')
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating booking approval permission:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }
+  }
+}

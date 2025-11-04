@@ -20,14 +20,14 @@ const ApprovalsPage = async () => {
     redirect('/sign-in')
   }
 
-  // Check if user has APPROVER role
-  if (userData.user.role !== 'APPROVER') {
+  // Check if user has booking approval permission
+  if (!userData.user.canApproveBookings) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <Card className="bg-zinc-800/50 p-6 max-w-md">
           <h1 className="text-xl font-bold text-white mb-4">Access Denied</h1>
           <p className="text-zinc-400">
-            You do not have permission to access this page. Only users with the APPROVER role can view and manage booking approvals.
+            You do not have permission to access this page. Only users with booking approval permission can view and manage booking approvals.
           </p>
         </Card>
       </div>

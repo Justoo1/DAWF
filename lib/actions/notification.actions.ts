@@ -321,7 +321,7 @@ export async function createNotificationForRole({
   message,
   linkUrl,
 }: {
-  role: 'ADMIN' | 'MANAGER' | 'APPROVER' | 'EMPLOYEE'
+  role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE'
   type: NotificationType
   title: string
   message: string
@@ -356,6 +356,53 @@ export async function createNotificationForRole({
     return { success: true, count: notifications.count }
   } catch (error) {
     console.error(`Error creating notifications for role ${role}:`, error)
+    return { success: false, error: 'Failed to create notifications' }
+  }
+}
+
+/**
+ * Create notifications for users who can approve bookings
+ */
+export async function createNotificationForApprovers({
+  type,
+  title,
+  message,
+  linkUrl,
+}: {
+  type: NotificationType
+  title: string
+  message: string
+  linkUrl?: string
+}) {
+  try {
+    // Get all active users who can approve bookings
+    const users = await prisma.user.findMany({
+      where: {
+        isActive: true,
+        canApproveBookings: true
+      },
+      select: { id: true },
+    })
+
+    if (users.length === 0) {
+      return { success: true, count: 0, message: 'No active users with booking approval permission' }
+    }
+
+    // Create notifications for all approvers
+    const notifications = await prisma.notification.createMany({
+      data: users.map((user) => ({
+        userId: user.id,
+        type,
+        title,
+        message,
+        linkUrl,
+      })),
+    })
+
+    revalidatePath('/')
+    return { success: true, count: notifications.count }
+  } catch (error) {
+    console.error('Error creating notifications for approvers:', error)
     return { success: false, error: 'Failed to create notifications' }
   }
 }

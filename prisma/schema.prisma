@@ -17,7 +17,6 @@ enum UserRole {
   EMPLOYEE
   MANAGER  // Limited admin: can view employees, events, and conference rooms
   ADMIN    // Full admin access
-  APPROVER // Can approve/reject conference room bookings
 }
 
 enum ContributionStatus {
@@ -107,6 +106,7 @@ model User {
   role                  UserRole                @default(EMPLOYEE)
   isActive              Boolean                 @default(true) // Track if employee is active or has resigned
   isContributor         Boolean                 @default(true) // Track if employee contributes to the welfare fund
+  canApproveBookings    Boolean                 @default(false) // Permission to approve/reject conference room bookings
   dateOfBirth           DateTime?               // Birthday for automatic birthday tracking
   contributions         Contribution[]
   events                Event[]

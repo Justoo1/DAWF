@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserValues } from '@/lib/validation'
 import { Trash2Icon } from 'lucide-react'
-import { deleteUser, revalidateUserPath, updateEmployeeStatus, updateContributorStatus } from '@/lib/actions/users.action'
+import { deleteUser, revalidateUserPath, updateEmployeeStatus, updateContributorStatus, updateBookingApprovalPermission } from '@/lib/actions/users.action'
 import { Button } from '../ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { Switch } from '@/components/ui/switch'
@@ -168,6 +168,25 @@ const Employees = ({employees, pagination}: EmployeesProps) => {
     }
   }
 
+  const handleApprovalPermissionToggle = async (id: string | undefined, currentStatus: boolean | undefined) => {
+    if (!id) return
+    const newStatus = !currentStatus
+    const result = await updateBookingApprovalPermission(id, newStatus)
+    if (result.success) {
+      toast({
+        title: 'Success',
+        description: `Booking approval permission ${newStatus ? 'granted' : 'revoked'}`,
+      })
+      revalidateUserPath('/admin/employees')
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: result.error,
+      })
+    }
+  }
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -187,6 +206,7 @@ const Employees = ({employees, pagination}: EmployeesProps) => {
               <TableHead>Employee Name</TableHead>
               <TableHead>Active Status</TableHead>
               <TableHead>Contributor Status</TableHead>
+              <TableHead>Can Approve Bookings</TableHead>
               <TableHead>Total Contribution</TableHead>
               <TableHead>Total Months</TableHead>
               <TableHead>Actions</TableHead>
@@ -217,6 +237,18 @@ const Employees = ({employees, pagination}: EmployeesProps) => {
                     />
                     <Badge variant={record.isContributor ?? true ? 'default' : 'outline'}>
                       {record.isContributor ?? true ? 'Contributor' : 'Non-Contributor'}
+                    </Badge>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={record.canApproveBookings ?? false}
+                      onCheckedChange={() => handleApprovalPermissionToggle(record.id, record.canApproveBookings)}
+                      aria-label="Toggle booking approval permission"
+                    />
+                    <Badge variant={record.canApproveBookings ? 'default' : 'outline'}>
+                      {record.canApproveBookings ? 'Can Approve' : 'Cannot Approve'}
                     </Badge>
                   </div>
                 </TableCell>
