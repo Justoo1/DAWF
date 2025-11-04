@@ -197,13 +197,14 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
 // Server action to fetch only user IDs and names
 export async function fetchUsersIdAndName() {
     try {
-      // Fetch only id, name, email, and isActive for all users
+      // Fetch only id, name, email, isActive, and isContributor for all users
       const users = await prisma.user.findMany({
         select: {
           id: true,
           name: true,
           email: true,
-          isActive: true
+          isActive: true,
+          isContributor: true
         },
         orderBy: {
           name: 'asc'
@@ -304,6 +305,20 @@ export async function updateEmployeeStatus(userId: string, isActive: boolean) {
     return { success: true }
   } catch (error) {
     console.error('Error updating employee status:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }
+  }
+}
+
+export async function updateContributorStatus(userId: string, isContributor: boolean) {
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isContributor }
+    })
+    revalidatePath('/admin/employees')
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating contributor status:', error)
     return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }
   }
 }

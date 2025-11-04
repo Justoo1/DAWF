@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import React, { useState, useEffect } from 'react'
 import { fetchUserWithContributions } from '@/lib/actions/users.action'
-import { Home, Menu, X, Calendar, DoorOpen, Gift, BookOpen, LayoutDashboard } from 'lucide-react'
+import { Home, Menu, X, Calendar, DoorOpen, Gift, BookOpen, LayoutDashboard, CheckSquare } from 'lucide-react'
 import ProfileMenu from './ProfileMenu'
 import NotificationBell from './NotificationBell'
 import { authClient } from "@/lib/auth-client"
@@ -35,6 +35,10 @@ export const Navbar = () => {
     { href: '/disbursements', label: 'Benefits', icon: Gift },
     { href: '/policy', label: 'Policy', icon: BookOpen },
   ]
+
+  if (userInfo?.role === 'APPROVER') {
+    navItems.push({ href: '/approvals', label: 'Approvals', icon: CheckSquare })
+  }
 
   if (userInfo?.role === 'ADMIN' || userInfo?.role === 'MANAGER') {
     navItems.push({ href: '/admin', label: 'Admin', icon: LayoutDashboard })

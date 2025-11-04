@@ -310,3 +310,52 @@ export async function sendEngagementReminder() {
     return { success: false, error: 'Failed to send engagement reminder' }
   }
 }
+
+/**
+ * Create notifications for users with a specific role
+ */
+export async function createNotificationForRole({
+  role,
+  type,
+  title,
+  message,
+  linkUrl,
+}: {
+  role: 'ADMIN' | 'MANAGER' | 'APPROVER' | 'EMPLOYEE'
+  type: NotificationType
+  title: string
+  message: string
+  linkUrl?: string
+}) {
+  try {
+    // Get all active users with the specified role
+    const users = await prisma.user.findMany({
+      where: {
+        isActive: true,
+        role: role
+      },
+      select: { id: true },
+    })
+
+    if (users.length === 0) {
+      return { success: true, count: 0, message: `No active users with role ${role}` }
+    }
+
+    // Create notifications for all users with the role
+    const notifications = await prisma.notification.createMany({
+      data: users.map((user) => ({
+        userId: user.id,
+        type,
+        title,
+        message,
+        linkUrl,
+      })),
+    })
+
+    revalidatePath('/')
+    return { success: true, count: notifications.count }
+  } catch (error) {
+    console.error(`Error creating notifications for role ${role}:`, error)
+    return { success: false, error: 'Failed to create notifications' }
+  }
+}

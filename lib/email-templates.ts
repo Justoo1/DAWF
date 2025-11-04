@@ -395,3 +395,141 @@ export function monthlySummaryTemplate(
     </html>
   `;
 }
+
+export function roomBookingApprovedTemplate(
+  requesterName: string,
+  roomName: string,
+  bookingTitle: string,
+  startDateTime: string,
+  endDateTime: string,
+  approverName: string
+) {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #10A074 0%, #2F7A67 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">✅ Booking Approved</h1>
+        </div>
+
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <p style="font-size: 18px; margin-bottom: 20px;">Dear ${requesterName},</p>
+
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            Great news! Your conference room booking has been <strong style="color: #10A074;">approved</strong>.
+          </p>
+
+          <div style="background: #d1fae5; border-left: 4px solid #10A074; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+            <h2 style="color: #065f46; margin-top: 0; font-size: 20px;">${bookingTitle}</h2>
+
+            <div style="margin-bottom: 8px;">
+              <p style="margin: 3px 0; color: #047857; font-size: 14px;">Conference Room:</p>
+              <p style="margin: 0; font-size: 16px; color: #065f46; font-weight: bold;">${roomName}</p>
+            </div>
+
+            <div style="margin-bottom: 8px;">
+              <p style="margin: 3px 0; color: #047857; font-size: 14px;">Start Time:</p>
+              <p style="margin: 0; font-size: 16px; color: #065f46;">📅 ${startDateTime}</p>
+            </div>
+
+            <div style="margin-bottom: 8px;">
+              <p style="margin: 3px 0; color: #047857; font-size: 14px;">End Time:</p>
+              <p style="margin: 0; font-size: 16px; color: #065f46;">📅 ${endDateTime}</p>
+            </div>
+
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #10A074;">
+              <p style="margin: 0; font-size: 14px; color: #047857;">Approved by: <strong>${approverName}</strong></p>
+            </div>
+          </div>
+
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            Your booking is now confirmed. The room is reserved for your meeting at the scheduled time.
+          </p>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
+            <p style="font-size: 14px; color: #666; margin: 0;">
+              Best regards,<br>
+              <strong>DevOps Africa Welfare Fund</strong>
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
+export function roomBookingRejectedTemplate(
+  requesterName: string,
+  roomName: string,
+  bookingTitle: string,
+  startDateTime: string,
+  endDateTime: string,
+  rejectionReason: string,
+  approverName: string
+) {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">❌ Booking Rejected</h1>
+        </div>
+
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <p style="font-size: 18px; margin-bottom: 20px;">Dear ${requesterName},</p>
+
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            Unfortunately, your conference room booking has been <strong style="color: #dc2626;">rejected</strong>.
+          </p>
+
+          <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+            <h2 style="color: #7f1d1d; margin-top: 0; font-size: 20px;">${bookingTitle}</h2>
+
+            <div style="margin-bottom: 8px;">
+              <p style="margin: 3px 0; color: #991b1b; font-size: 14px;">Conference Room:</p>
+              <p style="margin: 0; font-size: 16px; color: #7f1d1d; font-weight: bold;">${roomName}</p>
+            </div>
+
+            <div style="margin-bottom: 8px;">
+              <p style="margin: 3px 0; color: #991b1b; font-size: 14px;">Requested Start Time:</p>
+              <p style="margin: 0; font-size: 16px; color: #7f1d1d;">📅 ${startDateTime}</p>
+            </div>
+
+            <div style="margin-bottom: 8px;">
+              <p style="margin: 3px 0; color: #991b1b; font-size: 14px;">Requested End Time:</p>
+              <p style="margin: 0; font-size: 16px; color: #7f1d1d;">📅 ${endDateTime}</p>
+            </div>
+          </div>
+
+          <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+            <p style="margin: 5px 0; color: #78350f; font-size: 14px; font-weight: bold;">Reason for Rejection:</p>
+            <p style="margin: 8px 0 0 0; font-size: 15px; color: #92400e; line-height: 1.6;">${rejectionReason}</p>
+          </div>
+
+          <p style="font-size: 14px; color: #666; margin-bottom: 8px;">
+            Rejected by: <strong>${approverName}</strong>
+          </p>
+
+          <p style="font-size: 16px; margin-top: 20px; margin-bottom: 20px;">
+            If you have any questions or would like to submit a new booking request, please contact the approver or try booking for a different time.
+          </p>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
+            <p style="font-size: 14px; color: #666; margin: 0;">
+              Best regards,<br>
+              <strong>DevOps Africa Welfare Fund</strong>
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}

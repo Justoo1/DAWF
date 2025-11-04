@@ -22,6 +22,7 @@ interface User {
   name: string
   email: string
   isActive?: boolean
+  isContributor?: boolean
 }
 
 interface BulkContributionModalProps {
@@ -38,13 +39,13 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
   const [endMonth, setEndMonth] = useState('')
   const [amount, setAmount] = useState('100')
 
-  // Filter to only show active employees
-  const activeUsers = users.filter(u => u.isActive !== false)
+  // Filter to only show active employees who are contributors
+  const activeContributors = users.filter(u => u.isActive !== false && u.isContributor !== false)
 
   const handleSelectAll = (checked: boolean) => {
     setSelectAll(checked)
     if (checked) {
-      setSelectedUsers(activeUsers.map(u => u.id))
+      setSelectedUsers(activeContributors.map(u => u.id))
     } else {
       setSelectedUsers([])
     }
@@ -203,16 +204,16 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
                   onCheckedChange={handleSelectAll}
                 />
                 <Label htmlFor="selectAll" className="font-normal cursor-pointer">
-                  Select All ({activeUsers.length})
+                  Select All ({activeContributors.length})
                 </Label>
               </div>
             </div>
 
             <div className="border rounded-lg p-4 max-h-60 overflow-y-auto space-y-2">
-              {activeUsers.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">No active employees found</p>
+              {activeContributors.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-4">No active contributors found</p>
               ) : (
-                activeUsers.map((user) => (
+                activeContributors.map((user) => (
                   <div key={user.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
                     <Checkbox
                       id={user.id}
@@ -234,7 +235,7 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
             </div>
 
             <p className="text-sm text-gray-500">
-              Selected: {selectedUsers.length} active employee(s)
+              Selected: {selectedUsers.length} contributor(s)
             </p>
           </div>
 

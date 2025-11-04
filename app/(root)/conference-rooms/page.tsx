@@ -96,7 +96,7 @@ const ConferenceRoomsPage = async () => {
                 className="p-4 bg-zinc-700/50 rounded-lg border border-zinc-600"
               >
                 <div className="flex justify-between items-start">
-                  <div>
+                  <div className="flex-1">
                     <h3 className="text-base font-semibold text-white">{booking.title}</h3>
                     <p className="text-sm text-zinc-300 mt-1">{booking.room.name}</p>
                     <div className="mt-2 space-y-1 text-sm text-zinc-400">
@@ -105,9 +105,15 @@ const ConferenceRoomsPage = async () => {
                       {booking.purpose && <p>Purpose: {booking.purpose}</p>}
                       {booking.attendeeCount && <p>Attendees: {booking.attendeeCount}</p>}
                     </div>
+                    {booking.status === 'REJECTED' && booking.rejectionReason && (
+                      <div className="mt-3 p-3 bg-red-900/20 border border-red-600/30 rounded-md">
+                        <p className="text-xs font-semibold text-red-400 mb-1">Rejection Reason:</p>
+                        <p className="text-sm text-red-300">{booking.rejectionReason}</p>
+                      </div>
+                    )}
                   </div>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${
                       booking.status === 'APPROVED'
                         ? 'bg-green-600 text-white'
                         : booking.status === 'PENDING'

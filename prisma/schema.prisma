@@ -17,6 +17,7 @@ enum UserRole {
   EMPLOYEE
   MANAGER  // Limited admin: can view employees, events, and conference rooms
   ADMIN    // Full admin access
+  APPROVER // Can approve/reject conference room bookings
 }
 
 enum ContributionStatus {
@@ -88,6 +89,9 @@ enum NotificationType {
   REMINDER             // General reminder to check the app
   ANNOUNCEMENT         // General announcement
   ROOM_BOOKING_CREATED // Conference room booking notification
+  ROOM_BOOKING_PENDING // Conference room booking pending approval (for approvers)
+  ROOM_BOOKING_APPROVED // Conference room booking approved (for requester)
+  ROOM_BOOKING_REJECTED // Conference room booking rejected (for requester)
 }
 
 // ============================================
@@ -102,6 +106,7 @@ model User {
   password              String                  @default("")
   role                  UserRole                @default(EMPLOYEE)
   isActive              Boolean                 @default(true) // Track if employee is active or has resigned
+  isContributor         Boolean                 @default(true) // Track if employee contributes to the welfare fund
   dateOfBirth           DateTime?               // Birthday for automatic birthday tracking
   contributions         Contribution[]
   events                Event[]
@@ -206,9 +211,11 @@ model ConferenceRoomBooking {
   description     String?
   start           DateTime
   end             DateTime
-  status          BookingStatus   @default(APPROVED) // Auto-approve or require admin approval
+  status          BookingStatus   @default(PENDING) // Requires approver approval
   purpose         String?
   attendeeCount   Int?
+  rejectionReason String?         // Reason for rejection if status is REJECTED
+  approvedBy      String?         // User ID of approver who approved/rejected
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @default(now())
 

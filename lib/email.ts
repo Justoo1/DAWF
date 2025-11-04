@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const fromEmail = process.env.FROM_EMAIL || 'dawf@edtmsys.com';
+const fromEmail = process.env.FROM_EMAIL || 'DAWF <dawf@edtmsys.com>';
 
 interface SendEmailParams {
   to: string | string[];
@@ -36,5 +36,7 @@ export {
   marriageAnnouncementTemplate,
   upcomingEventTemplate,
   conferenceRoomBookingTemplate,
-  monthlySummaryTemplate
+  monthlySummaryTemplate,
+  roomBookingApprovedTemplate,
+  roomBookingRejectedTemplate
 } from './email-templates';

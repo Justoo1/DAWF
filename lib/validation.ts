@@ -6,7 +6,7 @@ export const UserSchema = z.object({
   email: z.string().email(),
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   department: z.string().optional(),
-  role: z.enum(['EMPLOYEE', 'MANAGER', 'ADMIN']).default('EMPLOYEE'),
+  role: z.enum(['EMPLOYEE', 'MANAGER', 'ADMIN', 'APPROVER']).default('EMPLOYEE'),
   password: z.string().min(8, { message: "Password must be at least 8 characters" }),
 })
 export type User = Omit<z.infer<typeof UserSchema>,  "password" | "department"> & {
@@ -23,6 +23,7 @@ export type UserValues = Omit<z.infer<typeof UserSchema>, 'password' | "departme
   totalAmountContributed: number,
   totalContributionMonths: number,
   isActive?: boolean
+  isContributor?: boolean
 }
 
 // Contribution Schema
@@ -152,9 +153,11 @@ export const ConferenceRoomBookingSchema = z.object({
   description: z.string().optional(),
   start: z.string().transform((str) => new Date(str)),
   end: z.string().transform((str) => new Date(str)),
-  status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']).default('APPROVED'),
+  status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']).default('PENDING'),
   purpose: z.string().optional(),
-  attendeeCount: z.number().int().positive().optional()
+  attendeeCount: z.number().int().positive().optional(),
+  rejectionReason: z.string().optional(),
+  approvedBy: z.string().optional()
 })
 export type ConferenceRoomBooking = z.infer<typeof ConferenceRoomBookingSchema>
 

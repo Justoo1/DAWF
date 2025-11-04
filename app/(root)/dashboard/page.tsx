@@ -16,6 +16,12 @@ const Dashboard = async () => {
 
 
   const userInfo = await fetchUserWithContributions(session.user.email)
+
+  // Check if user is inactive
+  if (userInfo.success && userInfo.user && !userInfo.user.isActive) {
+    redirect('/account-deactivated')
+  }
+
   return (
     <div className="min-h-screen  ">
       {/* Main Content */}

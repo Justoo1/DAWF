@@ -35,6 +35,17 @@ export const auth = betterAuth({
           throw new Error("Only DevOps Africa Limited employees can sign in with Google. Please use your @devopsafricalimited.com email.");
         }
       }
+
+      // Check if the user is active
+      const dbUser = await prisma.user.findUnique({
+        where: { email: user.email },
+        select: { isActive: true }
+      });
+
+      if (dbUser && !dbUser.isActive) {
+        throw new Error("Your account has been deactivated. Please contact the administrator for assistance.");
+      }
+
       return true;
     },
   },

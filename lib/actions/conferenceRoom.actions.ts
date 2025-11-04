@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import prisma from "../prisma";
 import { ConferenceRoom, ConferenceRoomBooking } from "../validation";
-import { createNotificationForAllUsers } from './notification.actions';
-import { sendEmail, conferenceRoomBookingTemplate } from '../email';
+import { createNotificationForAllUsers, createNotificationForRole, createNotification } from './notification.actions';
+import { sendEmail, conferenceRoomBookingTemplate, roomBookingApprovedTemplate, roomBookingRejectedTemplate } from '../email';
 
 // ============================================
 // CONFERENCE ROOM MANAGEMENT
@@ -310,79 +310,26 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
       return { error: 'User not found' };
     }
 
-    // Create the booking
+    // Create the booking with PENDING status
     const createdBooking = await prisma.conferenceRoomBooking.create({
       data: {
         ...booking,
         start: new Date(booking.start),
         end: new Date(booking.end),
-        status: 'APPROVED' // Auto-approve bookings
+        status: 'PENDING' // Requires approval from approvers
       }
     });
 
-    // Format date/time for email
-    const startDateTime = new Date(booking.start).toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    // Notify all users with APPROVER role about the new booking pending approval
+    await createNotificationForRole({
+      role: 'APPROVER',
+      type: 'ROOM_BOOKING_PENDING',
+      title: `New Booking Awaiting Approval`,
+      message: `${user.name} has requested to book ${room.name} for ${booking.title} on ${new Date(booking.start).toLocaleDateString()}. Please review and approve/reject.`,
+      linkUrl: '/approvals',
     });
 
-    const endDateTime = new Date(booking.end).toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-
-    // Notify all users about the new booking
-    await createNotificationForAllUsers({
-      type: 'ROOM_BOOKING_CREATED',
-      title: `Conference Room Booked: ${room.name}`,
-      message: `${room.name} has been booked for ${booking.title} on ${new Date(booking.start).toLocaleDateString()}.`,
-      linkUrl: '/events',
-    });
-
-    // Send email to all active employees
-    try {
-      // Fetch all active employees
-      const activeEmployees = await prisma.user.findMany({
-        where: { isActive: true },
-        select: { email: true }
-      });
-
-      const emailAddresses = activeEmployees.map(emp => emp.email);
-
-      if (emailAddresses.length > 0) {
-        // Generate email HTML
-        const emailHtml = conferenceRoomBookingTemplate(
-          room.name,
-          booking.title,
-          user.name,
-          startDateTime,
-          endDateTime,
-          booking.purpose || undefined,
-          booking.description || undefined,
-          booking.attendeeCount || undefined
-        );
-
-        // Send email to all active employees
-        await sendEmail({
-          to: emailAddresses,
-          subject: `Conference Room Booked: ${room.name} - ${booking.title}`,
-          html: emailHtml
-        });
-
-        console.log(`Booking notification email sent to ${emailAddresses.length} employees`);
-      }
-    } catch (emailError) {
-      // Log email error but don't fail the booking
-      console.error('Failed to send booking notification emails:', emailError);
-    }
+    console.log(`Booking created and pending approval. Approvers have been notified.`);
 
     revalidatePath('/conference-rooms');
     revalidatePath('/events');
@@ -460,5 +407,285 @@ export async function deleteBooking(bookingId: string) {
   } catch (error) {
     console.error('Booking deletion error:', error);
     return { error: 'Failed to delete booking' };
+  }
+}
+
+// ============================================
+// BOOKING APPROVAL MANAGEMENT
+// ============================================
+
+export async function approveBooking(bookingId: string, approverId: string) {
+  try {
+    // Get the booking with user and room details
+    const booking = await prisma.conferenceRoomBooking.findUnique({
+      where: { id: bookingId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        room: true
+      }
+    });
+
+    if (!booking) {
+      return { error: 'Booking not found' };
+    }
+
+    if (booking.status !== 'PENDING') {
+      return { error: 'Booking is not pending approval' };
+    }
+
+    // Get approver details
+    const approver = await prisma.user.findUnique({
+      where: { id: approverId },
+      select: { name: true, role: true }
+    });
+
+    if (!approver || approver.role !== 'APPROVER') {
+      return { error: 'Only users with APPROVER role can approve bookings' };
+    }
+
+    // Update booking status to APPROVED
+    await prisma.conferenceRoomBooking.update({
+      where: { id: bookingId },
+      data: {
+        status: 'APPROVED',
+        approvedBy: approverId
+      }
+    });
+
+    // Format date/time for email
+    const startDateTime = booking.start.toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const endDateTime = booking.end.toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Notify the requester that their booking was approved
+    await createNotification({
+      userId: booking.userId,
+      type: 'ROOM_BOOKING_APPROVED',
+      title: `Booking Approved: ${booking.room.name}`,
+      message: `Your booking for ${booking.room.name} on ${booking.start.toLocaleDateString()} has been approved by ${approver.name}.`,
+      linkUrl: '/conference-rooms',
+    });
+
+    // Send approval email to the requester
+    try {
+      const approvalEmailHtml = roomBookingApprovedTemplate(
+        booking.user.name,
+        booking.room.name,
+        booking.title,
+        startDateTime,
+        endDateTime,
+        approver.name
+      );
+
+      await sendEmail({
+        to: booking.user.email,
+        subject: `Booking Approved: ${booking.room.name} - ${booking.title}`,
+        html: approvalEmailHtml
+      });
+    } catch (emailError) {
+      console.error('Failed to send approval email:', emailError);
+    }
+
+    // Notify all employees about the approved booking
+    await createNotificationForAllUsers({
+      type: 'ROOM_BOOKING_CREATED',
+      title: `Conference Room Booked: ${booking.room.name}`,
+      message: `${booking.room.name} has been booked for ${booking.title} on ${booking.start.toLocaleDateString()}.`,
+      linkUrl: '/events',
+    });
+
+    // Send email to all active employees
+    try {
+      const activeEmployees = await prisma.user.findMany({
+        where: { isActive: true },
+        select: { email: true }
+      });
+
+      const emailAddresses = activeEmployees.map(emp => emp.email);
+
+      if (emailAddresses.length > 0) {
+        const emailHtml = conferenceRoomBookingTemplate(
+          booking.room.name,
+          booking.title,
+          booking.user.name,
+          startDateTime,
+          endDateTime,
+          booking.purpose || undefined,
+          booking.description || undefined,
+          booking.attendeeCount || undefined
+        );
+
+        await sendEmail({
+          to: emailAddresses,
+          subject: `Conference Room Booked: ${booking.room.name} - ${booking.title}`,
+          html: emailHtml
+        });
+
+        console.log(`Booking approval notification sent to ${emailAddresses.length} employees`);
+      }
+    } catch (emailError) {
+      console.error('Failed to send booking notification emails:', emailError);
+    }
+
+    revalidatePath('/conference-rooms');
+    revalidatePath('/events');
+    revalidatePath('/approvals');
+    return { success: true };
+  } catch (error) {
+    console.error('Booking approval error:', error);
+    return { error: 'Failed to approve booking' };
+  }
+}
+
+export async function rejectBooking(bookingId: string, approverId: string, rejectionReason: string) {
+  try {
+    // Get the booking with user and room details
+    const booking = await prisma.conferenceRoomBooking.findUnique({
+      where: { id: bookingId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        room: true
+      }
+    });
+
+    if (!booking) {
+      return { error: 'Booking not found' };
+    }
+
+    if (booking.status !== 'PENDING') {
+      return { error: 'Booking is not pending approval' };
+    }
+
+    // Get approver details
+    const approver = await prisma.user.findUnique({
+      where: { id: approverId },
+      select: { name: true, role: true }
+    });
+
+    if (!approver || approver.role !== 'APPROVER') {
+      return { error: 'Only users with APPROVER role can reject bookings' };
+    }
+
+    // Update booking status to REJECTED
+    await prisma.conferenceRoomBooking.update({
+      where: { id: bookingId },
+      data: {
+        status: 'REJECTED',
+        approvedBy: approverId,
+        rejectionReason
+      }
+    });
+
+    // Format date/time for email
+    const startDateTime = booking.start.toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const endDateTime = booking.end.toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Notify the requester that their booking was rejected
+    await createNotification({
+      userId: booking.userId,
+      type: 'ROOM_BOOKING_REJECTED',
+      title: `Booking Rejected: ${booking.room.name}`,
+      message: `Your booking for ${booking.room.name} on ${booking.start.toLocaleDateString()} has been rejected. Reason: ${rejectionReason}`,
+      linkUrl: '/conference-rooms',
+    });
+
+    // Send rejection email to the requester
+    try {
+      const rejectionEmailHtml = roomBookingRejectedTemplate(
+        booking.user.name,
+        booking.room.name,
+        booking.title,
+        startDateTime,
+        endDateTime,
+        rejectionReason,
+        approver.name
+      );
+
+      await sendEmail({
+        to: booking.user.email,
+        subject: `Booking Rejected: ${booking.room.name} - ${booking.title}`,
+        html: rejectionEmailHtml
+      });
+    } catch (emailError) {
+      console.error('Failed to send rejection email:', emailError);
+    }
+
+    revalidatePath('/conference-rooms');
+    revalidatePath('/events');
+    revalidatePath('/approvals');
+    return { success: true };
+  } catch (error) {
+    console.error('Booking rejection error:', error);
+    return { error: 'Failed to reject booking' };
+  }
+}
+
+export async function fetchPendingBookings() {
+  try {
+    const bookings = await prisma.conferenceRoomBooking.findMany({
+      where: { status: 'PENDING' },
+      include: {
+        room: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            department: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return {
+      success: true,
+      bookings,
+      totalBookings: bookings.length
+    };
+  } catch (error) {
+    console.error('Pending bookings fetch error:', error);
+    return { error: 'Failed to fetch pending bookings' };
   }
 }

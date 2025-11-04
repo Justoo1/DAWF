@@ -26,6 +26,20 @@ export async function createContribution(values: Contribution) {
 
     const validatedData = ContributionCreateSchema.parse(values)
 
+    // Check if user is a contributor
+    const user = await prisma.user.findUnique({
+      where: { id: validatedData.userId },
+      select: { isContributor: true, name: true }
+    })
+
+    if (!user) {
+      return { error: 'User not found' }
+    }
+
+    if (!user.isContributor) {
+      return { error: `${user.name} is not a contributor. Only contributors can have contributions recorded.` }
+    }
+
     const existingContribution = await prisma.contribution.findFirst({
       where: {
         userId: validatedData.userId,
@@ -189,6 +203,20 @@ export async function createBulkContributions(
     const skipped: any[] = []
 
     for (const userId of userIds) {
+      // Check if user is a contributor
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { isContributor: true, name: true }
+      })
+
+      if (!user || !user.isContributor) {
+        // Skip non-contributors
+        for (const month of months) {
+          skipped.push({ userId, month: month.toISOString(), reason: `${user?.name || 'User'} is not a contributor` })
+        }
+        continue
+      }
+
       for (const month of months) {
         const year = month.getFullYear()
         const quarter = Math.ceil((month.getMonth() + 1) / 3)
@@ -256,10 +284,11 @@ export async function createBulkContributions(
  */
 export async function createMonthlyContributions(amount: number = 100) {
   try {
-    // Get all active employees only
+    // Get all active employees who are contributors
     const users = await prisma.user.findMany({
       where: {
-        isActive: true
+        isActive: true,
+        isContributor: true
       },
       select: {
         id: true,
@@ -269,7 +298,7 @@ export async function createMonthlyContributions(amount: number = 100) {
     })
 
     if (users.length === 0) {
-      return { success: true, message: 'No users found', created: 0 }
+      return { success: true, message: 'No active contributors found', created: 0 }
     }
 
     const currentDate = new Date()
