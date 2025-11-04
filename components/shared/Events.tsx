@@ -5,6 +5,7 @@ import { EventInput } from '@fullcalendar/core'
 import BaseCalendar from './BaseCalendar'
 import { Card } from '@/components/ui/card'
 import { useState } from 'react';
+import { getfilteredUpcomingEvents } from '@/lib/utils';
 
 interface EventsProps {
   events: EventInput[];
@@ -13,11 +14,6 @@ interface EventsProps {
 const Events: React.FC<EventsProps> = ({ events }) => {
   const [ selectedEvent, setSelectedEvent ] = useState<EventInput | undefined>(undefined);
   const [ filter, setFilter ] = useState<'all' | 'welfare' | 'company' | 'bookings'>('all');
-
-  function parseToDate(dateString: string): Date | null {
-    const date = new Date(dateString);
-    return isNaN(date.getTime()) ? null : date;
-  }
 
   // Filter events based on selected filter
   const filteredEvents = events.filter(event => {
@@ -28,20 +24,8 @@ const Events: React.FC<EventsProps> = ({ events }) => {
     return true;
   });
   const now = new Date();
-  const upcomingEvents = filteredEvents
-  .filter(event => {
-    if (!event.start) return false;
-
-    const start = event.start ? parseToDate(event.start.toString()) : null;
-    return start && start > now; // Include only valid future dates
-  })
-  .map(event => ({ ...event, start: event.start ? parseToDate(event.start.toString()) : null })) // Parse the start property here
-  .sort((a, b) => {
-    const dateA = a.start?.getTime() || 0;
-    const dateB = b.start?.getTime() || 0;
-    return dateA - dateB; // Sort by ascending date
-  })
-  .slice(0, 5);
+  const limit = 5
+  const upcomingEvents = getfilteredUpcomingEvents(now, filteredEvents, limit);
 
   return (
     <main className="mx-auto max-w-7xl space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">

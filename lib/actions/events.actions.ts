@@ -7,19 +7,60 @@ import { createNotificationForAllUsers } from './notification.actions';
 
 export async function fetchUpcomingEvents() {
   try {
-    
+    const now = new Date();
+
+    // Fetch regular events
     const events = await prisma.event.findMany({
       orderBy: {
         start: 'asc'
       }
     })
 
-    const upcomingEvents = events
-    .filter(event => event.start > new Date())
-    .sort((a, b) => a.start.getTime() - b.start.getTime())
-    .slice(0, 3)
+    // Fetch approved/pending conference room bookings
+    const bookings = await prisma.conferenceRoomBooking.findMany({
+      where: {
+        status: { in: ['APPROVED', 'PENDING'] }
+      },
+      include: {
+        room: true,
+        user: {
+          select: {
+            name: true
+          }
+        }
+      },
+      orderBy: {
+        start: 'asc'
+      }
+    })
 
-    const eventTypes = events.reduce((acc, event) => {
+    // Transform bookings to match event format
+    const bookingEvents = bookings.map(booking => ({
+      id: `booking-${booking.id}`,
+      title: `${booking.room.name}: ${booking.title}`,
+      start: booking.start,
+      end: booking.end,
+      type: 'ROOM_BOOKING' as const,
+      category: 'COMPANY' as const,
+      userId: booking.userId,
+      description: booking.description,
+      location: booking.room.name,
+      status: 'ACTIVE' as const,
+      maxAttendees: booking.attendeeCount,
+      isRecurring: false,
+      year: booking.start.getFullYear(),
+      month: booking.start.getMonth() + 1,
+      quarter: Math.floor(booking.start.getMonth() / 3) + 1,
+      emailNotificationSent: false,
+      createdAt: booking.createdAt,
+      updatedAt: booking.updatedAt
+    }));
+
+    // Combine events and bookings
+    const allEvents = [...events, ...bookingEvents];
+
+    const upcomingEvents = getfilteredUpcomingEvents(now, allEvents);
+    const eventTypes = allEvents.reduce((acc, event) => {
       acc[event.type] = (acc[event.type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -27,7 +68,7 @@ export async function fetchUpcomingEvents() {
     return {
       success: true,
       events: upcomingEvents,
-      totalEvents: events.length,
+      totalEvents: allEvents.length,
       eventTypes,
     };
   } catch (error) {
@@ -61,6 +102,7 @@ export async function fetchUpcomingEvents() {
 
 import { EventInput } from '@fullcalendar/core';
 import { fetchBookingsForCalendar } from './conferenceRoom.actions';
+import { getfilteredUpcomingEvents } from "../utils";
 
 // Modify the fetchAllEvents function to return compatible events
 export async function fetchAllEventsForCalendar() {

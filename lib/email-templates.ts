@@ -326,6 +326,12 @@ export function conferenceRoomBookingTemplate(
             </p>
           </div>
 
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://dawf.edtmsys.com/events" style="display: inline-block; background: linear-gradient(135deg, #10A074 0%, #2F7A67 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              📅 View Calendar
+            </a>
+          </div>
+
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>

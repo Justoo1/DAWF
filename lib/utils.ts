@@ -80,3 +80,37 @@ export const formatDateTime = (dateString: Date) => {
     timeOnly: formattedTime,
   }
 }
+
+export const parseToDate = (dateString: string): Date | null => {
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getfilteredUpcomingEvents = (now: Date, allEvents: any[], limit: number = 3) => {
+
+  const upcomingEvents = allEvents
+    .filter(event => {
+      if (!event.start) return false;
+
+      // Include events that haven't ended yet (either upcoming or ongoing)
+      const start = event.start ? parseToDate(event.start.toString()) : null;
+      const end = event.end ? parseToDate(event.end.toString()) : null;
+      const hasEnded = end ? end < now : (start ? start < now : false);
+
+      return !hasEnded; // Include if not ended
+    })
+    .map(event => ({
+      ...event,
+      start: event.start ? parseToDate(event.start.toString()) : null,
+      end: event.end ? parseToDate(event.end.toString()) : null
+    }))
+    .sort((a, b) => {
+      const dateA = a.start?.getTime() || 0;
+      const dateB = b.start?.getTime() || 0;
+      return dateA - dateB; // Sort by ascending date
+    })
+    .slice(0, limit);
+
+    return upcomingEvents
+}
