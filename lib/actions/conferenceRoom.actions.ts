@@ -320,6 +320,25 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
       }
     });
 
+    // Format date/time for email
+    const startDateTime = new Date(booking.start).toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const endDateTime = new Date(booking.end).toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
     // Notify all users who can approve bookings about the new booking pending approval
     await createNotificationForApprovers({
       type: 'ROOM_BOOKING_PENDING',
@@ -327,6 +346,44 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
       message: `${user.name} has requested to book ${room.name} for ${booking.title} on ${new Date(booking.start).toLocaleDateString()}. Please review and approve/reject.`,
       linkUrl: '/approvals',
     });
+
+    // Send email to approvers
+    try {
+      const approvers = await prisma.user.findMany({
+        where: {
+          isActive: true,
+          canApproveBookings: true
+        },
+        select: { email: true }
+      });
+
+      const approverEmails = approvers.map(approver => approver.email);
+
+      if (approverEmails.length > 0) {
+        const { roomBookingPendingApprovalTemplate } = await import('@/lib/email-templates');
+
+        const emailHtml = roomBookingPendingApprovalTemplate(
+          room.name,
+          booking.title,
+          user.name,
+          startDateTime,
+          endDateTime,
+          booking.purpose || undefined,
+          booking.description || undefined,
+          booking.attendeeCount || undefined
+        );
+
+        await sendEmail({
+          to: approverEmails,
+          subject: `Action Required: New Booking Request - ${room.name}`,
+          html: emailHtml
+        });
+
+        console.log(`Booking approval email sent to ${approverEmails.length} approver(s)`);
+      }
+    } catch (emailError) {
+      console.error('Failed to send booking approval emails:', emailError);
+    }
 
     console.log(`Booking created and pending approval. Approvers have been notified.`);
 

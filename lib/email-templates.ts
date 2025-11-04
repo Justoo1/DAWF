@@ -539,3 +539,105 @@ export function roomBookingRejectedTemplate(
     </html>
   `;
 }
+
+export function roomBookingPendingApprovalTemplate(
+  roomName: string,
+  bookingTitle: string,
+  requesterName: string,
+  startDateTime: string,
+  endDateTime: string,
+  purpose?: string,
+  description?: string,
+  attendeeCount?: number
+) {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">⏳ Booking Pending Approval</h1>
+        </div>
+
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <p style="font-size: 18px; margin-bottom: 20px;">Dear Approver,</p>
+
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            A new conference room booking request requires your approval.
+          </p>
+
+          <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
+            <h2 style="color: #92400e; margin-top: 0; font-size: 22px;">${bookingTitle}</h2>
+
+            <div style="margin-bottom: 12px;">
+              <p style="margin: 5px 0; color: #78350f; font-size: 14px;">Requested By:</p>
+              <p style="margin: 0; font-size: 16px; color: #92400e; font-weight: bold;">👤 ${requesterName}</p>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+              <p style="margin: 5px 0; color: #78350f; font-size: 14px;">Conference Room:</p>
+              <p style="margin: 0; font-size: 18px; color: #92400e; font-weight: bold;">${roomName}</p>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+              <p style="margin: 5px 0; color: #78350f; font-size: 14px;">Start Time:</p>
+              <p style="margin: 0; font-size: 16px; color: #92400e; font-weight: 600;">📅 ${startDateTime}</p>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+              <p style="margin: 5px 0; color: #78350f; font-size: 14px;">End Time:</p>
+              <p style="margin: 0; font-size: 16px; color: #92400e; font-weight: 600;">📅 ${endDateTime}</p>
+            </div>
+
+            ${purpose ? `
+              <div style="margin-bottom: 12px;">
+                <p style="margin: 5px 0; color: #78350f; font-size: 14px;">Purpose:</p>
+                <p style="margin: 0; font-size: 16px; color: #92400e;">${purpose}</p>
+              </div>
+            ` : ''}
+
+            ${description ? `
+              <div style="margin-bottom: 12px;">
+                <p style="margin: 5px 0; color: #78350f; font-size: 14px;">Description:</p>
+                <p style="margin: 0; font-size: 14px; color: #92400e; line-height: 1.5;">${description}</p>
+              </div>
+            ` : ''}
+
+            ${attendeeCount ? `
+              <div style="margin-bottom: 12px;">
+                <p style="margin: 5px 0; color: #78350f; font-size: 14px;">Expected Attendees:</p>
+                <p style="margin: 0; font-size: 16px; color: #92400e;">👥 ${attendeeCount} people</p>
+              </div>
+            ` : ''}
+          </div>
+
+          <p style="font-size: 16px; margin-bottom: 25px; color: #78350f; font-weight: 600;">
+            Please review and approve or reject this booking request.
+          </p>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://dawf.edtmsys.com/approvals" style="display: inline-block; background: linear-gradient(135deg, #10A074 0%, #2F7A67 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              ✅ Review Request
+            </a>
+          </div>
+
+          <div style="background: #fef3c7; border: 1px solid #fbbf24; padding: 15px; margin-top: 20px; border-radius: 4px;">
+            <p style="margin: 0; font-size: 13px; color: #78350f;">
+              ⚠️ <strong>Action Required:</strong> This booking is pending and awaiting your approval. Click the button above to review the details and approve or reject the request.
+            </p>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
+            <p style="font-size: 14px; color: #666; margin: 0;">
+              Best regards,<br>
+              <strong>DevOps Africa Welfare Fund</strong>
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
