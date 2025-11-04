@@ -236,13 +236,14 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           name="purpose"
           render={({ field }) => (
             <FormItem className='text-white'>
-              <FormLabel>Purpose (Optional)</FormLabel>
+              <FormLabel>Purpose</FormLabel>
               <FormControl>
                 <Input
                   type="text"
                   {...field}
                   placeholder="e.g., Project Planning, Client Meeting"
                   className="w-full"
+                  required
                 />
               </FormControl>
               <FormMessage />
@@ -273,7 +274,7 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           name="attendeeCount"
           render={({ field }) => (
             <FormItem className='text-white'>
-              <FormLabel>Expected Attendees (Optional)</FormLabel>
+              <FormLabel>Expected Attendees</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -283,6 +284,7 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
                   min={1}
                   placeholder="Number of expected attendees"
                   className="w-full"
+                  required
                 />
               </FormControl>
               <FormMessage />
