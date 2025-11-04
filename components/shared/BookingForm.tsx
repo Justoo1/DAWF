@@ -117,7 +117,7 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
       } else {
         toast({
           title: 'Success',
-          description: 'Conference room booked successfully'
+          description: 'Conference room booking request has been submitted, waiting for approval'
         })
         form.reset()
         onSuccess?.()
