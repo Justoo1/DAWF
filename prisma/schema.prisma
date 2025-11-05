@@ -1,7 +1,6 @@
-
 datasource db {
   provider  = "postgresql"
-  url  	    = env("DATABASE_URL")
+  url       = env("DATABASE_URL")
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
@@ -15,8 +14,9 @@ generator client {
 
 enum UserRole {
   EMPLOYEE
-  MANAGER  // Limited admin: can view employees, events, and conference rooms
-  ADMIN    // Full admin access
+  MANAGER // Limited admin: can view employees, events, and conference rooms
+  ADMIN // Full admin access
+  FOOD_COMMITTEE // Food committee: can only manage food vendors, menus, and orders
 }
 
 enum ContributionStatus {
@@ -41,8 +41,8 @@ enum EventType {
 }
 
 enum EventCategory {
-  WELFARE    // Welfare events (birthdays, funerals, etc.)
-  COMPANY    // Company events (meetings, training, etc.)
+  WELFARE // Welfare events (birthdays, funerals, etc.)
+  COMPANY // Company events (meetings, training, etc.)
 }
 
 enum EventStatus {
@@ -80,17 +80,36 @@ enum ExpenseStatus {
 }
 
 enum NotificationType {
-  EVENT_UPCOMING       // Event happening soon
-  EVENT_ACTIVE         // Event is currently active
-  EVENT_CREATED        // New event created
-  CONTRIBUTION_ADDED   // New contribution recorded
-  EXPENSE_ADDED        // New expense recorded
-  REMINDER             // General reminder to check the app
-  ANNOUNCEMENT         // General announcement
+  EVENT_UPCOMING // Event happening soon
+  EVENT_ACTIVE // Event is currently active
+  EVENT_CREATED // New event created
+  CONTRIBUTION_ADDED // New contribution recorded
+  EXPENSE_ADDED // New expense recorded
+  REMINDER // General reminder to check the app
+  ANNOUNCEMENT // General announcement
   ROOM_BOOKING_CREATED // Conference room booking notification
   ROOM_BOOKING_PENDING // Conference room booking pending approval (for approvers)
   ROOM_BOOKING_APPROVED // Conference room booking approved (for requester)
   ROOM_BOOKING_REJECTED // Conference room booking rejected (for requester)
+  FOOD_MENU_PUBLISHED // New weekly menu available
+  FOOD_SELECTION_REMINDER // Reminder to make selections
+  FOOD_SELECTION_CONFIRMED // Confirmation of selections
+  FOOD_SELECTION_DEADLINE // Deadline approaching
+}
+
+enum MenuStatus {
+  DRAFT // Being created by committee
+  PUBLISHED // Published, employees can select
+  CLOSED // Selection period ended
+  SENT // Orders sent to vendor
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
 }
 
 // ============================================
@@ -98,24 +117,25 @@ enum NotificationType {
 // ============================================
 
 model User {
-  id                    String                  @id @default(cuid())
-  email                 String                  @unique
-  name                  String
-  department            String?
-  password              String                  @default("")
-  role                  UserRole                @default(EMPLOYEE)
-  isActive              Boolean                 @default(true) // Track if employee is active or has resigned
-  isContributor         Boolean                 @default(true) // Track if employee contributes to the welfare fund
-  canApproveBookings    Boolean                 @default(false) // Permission to approve/reject conference room bookings
-  dateOfBirth           DateTime?               // Birthday for automatic birthday tracking
-  contributions         Contribution[]
-  events                Event[]
-  expenses              Expense[]
-  notifications         Notification[]
-  eventAttendees        EventAttendee[]
+  id                     String                  @id @default(cuid())
+  email                  String                  @unique
+  name                   String
+  department             String?
+  password               String                  @default("")
+  role                   UserRole                @default(EMPLOYEE)
+  isActive               Boolean                 @default(true) // Track if employee is active or has resigned
+  isContributor          Boolean                 @default(true) // Track if employee contributes to the welfare fund
+  canApproveBookings     Boolean                 @default(false) // Permission to approve/reject conference room bookings
+  dateOfBirth            DateTime? // Birthday for automatic birthday tracking
+  contributions          Contribution[]
+  events                 Event[]
+  expenses               Expense[]
+  notifications          Notification[]
+  eventAttendees         EventAttendee[]
   conferenceRoomBookings ConferenceRoomBooking[]
-  createdAt             DateTime                @default(now())
-  updatedAt             DateTime                @default(now())
+  foodSelections         FoodSelection[]
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @default(now())
 
   emailVerified Boolean
   image         String?
@@ -136,6 +156,7 @@ model Contribution {
   status    ContributionStatus @default(PENDING)
   createdAt DateTime           @default(now())
   updatedAt DateTime           @default(now())
+
   // Indexes for faster aggregation
   @@index([userId, year, month])
   @@index([year, quarter])
@@ -143,11 +164,11 @@ model Contribution {
 }
 
 model Event {
-  id                    String         @id @default(cuid())
+  id                    String          @id @default(cuid())
   userId                String
-  user                  User        @relation(fields: [userId], references: [id])
+  user                  User            @relation(fields: [userId], references: [id])
   type                  EventType
-  category              EventCategory @default(WELFARE) // Differentiate between welfare and company events
+  category              EventCategory   @default(WELFARE) // Differentiate between welfare and company events
   title                 String
   start                 DateTime
   end                   DateTime
@@ -156,14 +177,15 @@ model Event {
   quarter               Int
   description           String?
   location              String?
-  status                EventStatus @default(ACTIVE)
-  emailNotificationSent Boolean     @default(false) // Track if notification email was sent
-  maxAttendees          Int?        // For company events with limited capacity
-  isRecurring           Boolean     @default(false) // Support for recurring events
-  recurrencePattern     String?     // JSON string: {frequency: 'daily'|'weekly'|'monthly', interval: number, endDate: Date}
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @default(now())
+  status                EventStatus     @default(ACTIVE)
+  emailNotificationSent Boolean         @default(false) // Track if notification email was sent
+  maxAttendees          Int? // For company events with limited capacity
+  isRecurring           Boolean         @default(false) // Support for recurring events
+  recurrencePattern     String? // JSON string: {frequency: 'daily'|'weekly'|'monthly', interval: number, endDate: Date}
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @default(now())
   attendees             EventAttendee[]
+
   // Indexes for faster querying and aggregation
   @@index([type, year, month])
   @@index([year, quarter])
@@ -172,14 +194,14 @@ model Event {
 }
 
 model EventAttendee {
-  id          String            @id @default(cuid())
+  id          String         @id @default(cuid())
   eventId     String
-  event       Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event       Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
   userId      String
-  user        User              @relation(fields: [userId], references: [id])
-  status      AttendeeStatus    @default(PENDING)
+  user        User           @relation(fields: [userId], references: [id])
+  status      AttendeeStatus @default(PENDING)
   respondedAt DateTime?
-  createdAt   DateTime          @default(now())
+  createdAt   DateTime       @default(now())
 
   @@unique([eventId, userId])
   @@index([userId, status])
@@ -187,37 +209,37 @@ model EventAttendee {
 }
 
 model ConferenceRoom {
-  id          String              @id @default(cuid())
-  name        String              @unique
+  id          String                  @id @default(cuid())
+  name        String                  @unique
   capacity    Int
   location    String?
-  amenities   String?             // JSON array: ['Projector', 'Whiteboard', 'Video Conference']
-  isActive    Boolean             @default(true)
+  amenities   String? // JSON array: ['Projector', 'Whiteboard', 'Video Conference']
+  isActive    Boolean                 @default(true)
   description String?
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @default(now())
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @default(now())
   bookings    ConferenceRoomBooking[]
 
   @@map("conference_rooms")
 }
 
 model ConferenceRoomBooking {
-  id              String          @id @default(cuid())
+  id              String         @id @default(cuid())
   roomId          String
-  room            ConferenceRoom  @relation(fields: [roomId], references: [id])
+  room            ConferenceRoom @relation(fields: [roomId], references: [id])
   userId          String
-  user            User            @relation(fields: [userId], references: [id])
+  user            User           @relation(fields: [userId], references: [id])
   title           String
   description     String?
   start           DateTime
   end             DateTime
-  status          BookingStatus   @default(PENDING) // Requires approver approval
+  status          BookingStatus  @default(PENDING) // Requires approver approval
   purpose         String?
   attendeeCount   Int?
-  rejectionReason String?         // Reason for rejection if status is REJECTED
-  approvedBy      String?         // User ID of approver who approved/rejected
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @default(now())
+  rejectionReason String? // Reason for rejection if status is REJECTED
+  approvedBy      String? // User ID of approver who approved/rejected
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @default(now())
 
   @@index([roomId, start, end])
   @@index([userId, status])
@@ -286,36 +308,114 @@ model Verification {
 }
 
 model Policy {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique // URL-friendly identifier
-  content     String   @db.Text // Store HTML or Markdown content
-  version     Int      @default(1)
-  isActive    Boolean  @default(true)
-  updatedBy   String? // Email of admin who updated
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique // URL-friendly identifier
+  content   String   @db.Text // Store HTML or Markdown content
+  version   Int      @default(1)
+  isActive  Boolean  @default(true)
+  updatedBy String? // Email of admin who updated
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("policies")
 }
 
 model Notification {
-  id          String           @id @default(cuid())
-  userId      String
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type        NotificationType
-  title       String
-  message     String
-  linkUrl     String?          // Optional link to relevant page
-  isRead      Boolean          @default(false)
-  createdAt   DateTime         @default(now())
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  linkUrl   String? // Optional link to relevant page
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
 
   // Optional references to related entities
-  eventId     String?
+  eventId        String?
   contributionId String?
-  expenseId   Int?
+  expenseId      Int?
 
   @@index([userId, isRead])
   @@index([createdAt])
   @@map("notifications")
+}
+
+// ============================================
+// FOOD ORDERING MODELS
+// ============================================
+
+model FoodVendor {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  contactName String?
+  phone       String?
+  email       String?
+  description String?
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now())
+  menus       WeeklyFoodMenu[]
+
+  @@map("food_vendors")
+}
+
+model WeeklyFoodMenu {
+  id                 String          @id @default(cuid())
+  vendorId           String
+  vendor             FoodVendor      @relation(fields: [vendorId], references: [id])
+  weekStartDate      DateTime // Monday of the week
+  weekEndDate        DateTime // Friday of the week
+  isActive           Boolean         @default(true)
+  selectionOpenDate  DateTime // When employees can start selecting
+  selectionCloseDate DateTime // Deadline for selections
+  status             MenuStatus      @default(DRAFT)
+  notificationSent   Boolean         @default(false) // Track if publication notification was sent
+  reminderSent       Boolean         @default(false) // Track if reminder was sent
+  createdBy          String // User ID of creator
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @default(now())
+  menuItems          FoodMenuItem[]
+  selections         FoodSelection[]
+
+  @@index([vendorId, weekStartDate])
+  @@index([status, selectionCloseDate])
+  @@map("weekly_food_menus")
+}
+
+model FoodMenuItem {
+  id           String          @id @default(cuid())
+  menuId       String
+  menu         WeeklyFoodMenu  @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  dayOfWeek    DayOfWeek
+  itemName     String // "Jollof with Chicken"
+  description  String?
+  price        Float? // Optional pricing
+  isAvailable  Boolean         @default(true)
+  displayOrder Int             @default(0) // For ordering items in dropdown
+  createdAt    DateTime        @default(now())
+  selections   FoodSelection[]
+
+  @@index([menuId, dayOfWeek, displayOrder])
+  @@map("food_menu_items")
+}
+
+model FoodSelection {
+  id         String         @id @default(cuid())
+  menuId     String
+  menu       WeeklyFoodMenu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  menuItemId String? // Null if "No Selection"
+  menuItem   FoodMenuItem?  @relation(fields: [menuItemId], references: [id])
+  userId     String
+  user       User           @relation(fields: [userId], references: [id])
+  dayOfWeek  DayOfWeek
+  notes      String? // Special requests (e.g., "No onions please")
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @default(now())
+
+  @@unique([menuId, userId, dayOfWeek]) // One selection per user per day per menu
+  @@index([menuId, dayOfWeek])
+  @@index([userId])
+  @@map("food_selections")
 }

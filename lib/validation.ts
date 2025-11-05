@@ -6,7 +6,7 @@ export const UserSchema = z.object({
   email: z.string().email(),
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   department: z.string().optional(),
-  role: z.enum(['EMPLOYEE', 'MANAGER', 'ADMIN']).default('EMPLOYEE'),
+  role: z.enum(['EMPLOYEE', 'MANAGER', 'ADMIN', 'FOOD_COMMITTEE']).default('EMPLOYEE'),
   password: z.string().min(8, { message: "Password must be at least 8 characters" }),
 })
 export type User = Omit<z.infer<typeof UserSchema>,  "password" | "department"> & {
@@ -215,3 +215,145 @@ export const signupSchema = z.object({
     message: "Password must be at least 8 characters.",
   }),
 })
+
+// ============================================
+// FOOD ORDERING SCHEMAS
+// ============================================
+
+// Food Vendor Schema
+export const FoodVendorSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(2, { message: "Vendor name must be at least 2 characters" }),
+  contactName: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true)
+})
+export type FoodVendor = z.infer<typeof FoodVendorSchema>
+
+export const FoodVendorCreateSchema = FoodVendorSchema.omit({ id: true })
+
+export type FoodVendorValues = Omit<FoodVendor, 'contactName' | 'phone' | 'email' | 'description'> & {
+  contactName: string | null
+  phone: string | null
+  email: string | null
+  description: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+// Food Menu Item Schema
+export const FoodMenuItemSchema = z.object({
+  id: z.string().optional(),
+  menuId: z.string(),
+  dayOfWeek: z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']),
+  itemName: z.string().min(2, { message: "Item name must be at least 2 characters" }),
+  description: z.string().optional(),
+  price: z.number().positive().optional(),
+  isAvailable: z.boolean().default(true),
+  displayOrder: z.number().int().default(0)
+})
+export type FoodMenuItem = z.infer<typeof FoodMenuItemSchema>
+
+export const FoodMenuItemCreateSchema = FoodMenuItemSchema.omit({ id: true, menuId: true })
+
+export type FoodMenuItemValues = Omit<FoodMenuItem, 'description' | 'price'> & {
+  description: string | null
+  price: number | null
+  createdAt: Date
+}
+
+// Weekly Food Menu Schema
+export const WeeklyFoodMenuSchema = z.object({
+  id: z.string().optional(),
+  vendorId: z.string(),
+  weekStartDate: z.string().transform((str) => new Date(str)),
+  weekEndDate: z.string().transform((str) => new Date(str)),
+  isActive: z.boolean().default(true),
+  selectionOpenDate: z.string().transform((str) => new Date(str)),
+  selectionCloseDate: z.string().transform((str) => new Date(str)),
+  status: z.enum(['DRAFT', 'PUBLISHED', 'CLOSED', 'SENT']).default('DRAFT'),
+  notificationSent: z.boolean().default(false),
+  reminderSent: z.boolean().default(false),
+  createdBy: z.string()
+})
+export type WeeklyFoodMenu = z.infer<typeof WeeklyFoodMenuSchema>
+
+export const WeeklyFoodMenuCreateSchema = z.object({
+  vendorId: z.string(),
+  weekStartDate: z.string(),
+  weekEndDate: z.string(),
+  selectionOpenDate: z.string(),
+  selectionCloseDate: z.string(),
+  menuItems: z.array(FoodMenuItemCreateSchema).min(1, { message: "At least one menu item is required" })
+}).refine((data) => {
+  const start = new Date(data.weekStartDate)
+  const end = new Date(data.weekEndDate)
+  return end > start
+}, {
+  message: "Week end date must be after start date",
+  path: ["weekEndDate"]
+}).refine((data) => {
+  const openDate = new Date(data.selectionOpenDate)
+  const closeDate = new Date(data.selectionCloseDate)
+  return closeDate > openDate
+}, {
+  message: "Selection close date must be after open date",
+  path: ["selectionCloseDate"]
+})
+
+export type WeeklyFoodMenuValues = Omit<WeeklyFoodMenu, 'weekStartDate' | 'weekEndDate' | 'selectionOpenDate' | 'selectionCloseDate'> & {
+  weekStartDate: Date
+  weekEndDate: Date
+  selectionOpenDate: Date
+  selectionCloseDate: Date
+  createdAt: Date
+  updatedAt: Date
+  vendor: FoodVendorValues
+  menuItems: FoodMenuItemValues[]
+  _count?: {
+    selections: number
+  }
+}
+
+// Food Selection Schema
+export const FoodSelectionSchema = z.object({
+  id: z.string().optional(),
+  menuId: z.string(),
+  menuItemId: z.string().optional().nullable(),
+  userId: z.string(),
+  dayOfWeek: z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']),
+  notes: z.string().optional()
+})
+export type FoodSelection = z.infer<typeof FoodSelectionSchema>
+
+export const FoodSelectionCreateSchema = z.object({
+  menuId: z.string(),
+  menuItemId: z.string().optional().nullable(),
+  dayOfWeek: z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']),
+  notes: z.string().max(200, { message: "Notes must be less than 200 characters" }).optional()
+})
+
+export const BulkFoodSelectionCreateSchema = z.object({
+  menuId: z.string(),
+  selections: z.array(z.object({
+    dayOfWeek: z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']),
+    menuItemId: z.string().optional().nullable(),
+    notes: z.string().max(200).optional()
+  }))
+})
+
+export type FoodSelectionValues = Omit<FoodSelection, 'menuItemId' | 'notes'> & {
+  menuItemId: string | null
+  notes: string | null
+  createdAt: Date
+  updatedAt: Date
+  user: {
+    id: string
+    name: string
+    email: string
+    department: string | null
+  }
+  menuItem: FoodMenuItemValues | null
+}

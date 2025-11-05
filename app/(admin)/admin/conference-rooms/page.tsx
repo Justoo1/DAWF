@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { fetchAllConferenceRooms, fetchAllBookings } from '@/lib/actions/conferenceRoom.actions'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import DeleteConferenceRoomButton from '@/components/admin/DeleteConferenceRoomButton'
 
 const ConferenceRoomsAdminPage = async () => {
   const roomsData = await fetchAllConferenceRooms()
@@ -98,6 +99,10 @@ const ConferenceRoomsAdminPage = async () => {
                           Edit
                         </Button>
                       </Link>
+                      <DeleteConferenceRoomButton
+                        roomId={room.id}
+                        roomName={room.name}
+                      />
                     </div>
                   </div>
                 ))

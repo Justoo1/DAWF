@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import React, { useState, useEffect } from 'react'
 import { fetchUserWithContributions } from '@/lib/actions/users.action'
-import { Home, Menu, X, Calendar, DoorOpen, Gift, BookOpen, LayoutDashboard, CheckSquare } from 'lucide-react'
+import { Home, Menu, X, Calendar, DoorOpen, Gift, BookOpen, LayoutDashboard, CheckSquare, UtensilsCrossed } from 'lucide-react'
 import ProfileMenu from './ProfileMenu'
 import NotificationBell from './NotificationBell'
 import { authClient } from "@/lib/auth-client"
@@ -32,6 +32,7 @@ export const Navbar = () => {
   const navItems = [
     { href: '/events', label: 'Events', icon: Calendar },
     { href: '/conference-rooms', label: 'Book Room', icon: DoorOpen },
+    { href: '/food-orders', label: 'Food Orders', icon: UtensilsCrossed },
     { href: '/disbursements', label: 'Benefits', icon: Gift },
     { href: '/policy', label: 'Policy', icon: BookOpen },
   ]
@@ -40,7 +41,7 @@ export const Navbar = () => {
     navItems.push({ href: '/approvals', label: 'Approvals', icon: CheckSquare })
   }
 
-  if (userInfo?.role === 'ADMIN' || userInfo?.role === 'MANAGER') {
+  if (userInfo?.role === 'ADMIN' || userInfo?.role === 'MANAGER' || userInfo?.role === 'FOOD_COMMITTEE') {
     navItems.push({ href: '/admin', label: 'Admin', icon: LayoutDashboard })
   }
 

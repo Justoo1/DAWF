@@ -30,10 +30,15 @@ const Dashboard = async () => {
   ])
 
   // Check if user has admin or manager role
-  if (!userData.user || !canAccessAdmin(userData.user.role as 'EMPLOYEE' | 'MANAGER' | 'ADMIN')){
+  if (!userData.user || !canAccessAdmin(userData.user.role as 'EMPLOYEE' | 'MANAGER' | 'ADMIN' | 'FOOD_COMMITTEE')){
     redirect('/')
   }
-  
+
+  // Redirect FOOD_COMMITTEE users to food management
+  if (userData.user.role === 'FOOD_COMMITTEE') {
+    redirect('/admin/food-management/vendors')
+  }
+
   return (
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
           <h2 className="text-2xl font-semibold text-gray-800 mb-6">Dashboard Overview</h2>

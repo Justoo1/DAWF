@@ -12,6 +12,9 @@ interface EditPolicyPageProps {
   }>
 }
 
+// Tell Next.js to not pre-generate any pages for this dynamic route
+export const dynamic = 'force-dynamic'
+
 const EditPolicyPage = async ({ params }: EditPolicyPageProps) => {
   const session = await auth.api.getSession({
     headers: await headers()

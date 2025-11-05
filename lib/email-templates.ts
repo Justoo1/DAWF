@@ -486,14 +486,14 @@ export function roomBookingRejectedTemplate(
       </head>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-          <h1 style="color: white; margin: 0; font-size: 28px;">❌ Booking Rejected</h1>
+          <h1 style="color: white; margin: 0; font-size: 28px;">❌ Booking Declined</h1>
         </div>
 
         <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
           <p style="font-size: 18px; margin-bottom: 20px;">Dear ${requesterName},</p>
 
           <p style="font-size: 16px; margin-bottom: 20px;">
-            Unfortunately, your conference room booking has been <strong style="color: #dc2626;">rejected</strong>.
+            Unfortunately, your conference room booking has been <strong style="color: #dc2626;">declined</strong>.
           </p>
 
           <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
@@ -516,12 +516,12 @@ export function roomBookingRejectedTemplate(
           </div>
 
           <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
-            <p style="margin: 5px 0; color: #78350f; font-size: 14px; font-weight: bold;">Reason for Rejection:</p>
+            <p style="margin: 5px 0; color: #78350f; font-size: 14px; font-weight: bold;">Reason for the decline:</p>
             <p style="margin: 8px 0 0 0; font-size: 15px; color: #92400e; line-height: 1.6;">${rejectionReason}</p>
           </div>
 
           <p style="font-size: 14px; color: #666; margin-bottom: 8px;">
-            Rejected by: <strong>${approverName}</strong>
+            Declined by: <strong>${approverName}</strong>
           </p>
 
           <p style="font-size: 16px; margin-top: 20px; margin-bottom: 20px;">
@@ -615,7 +615,7 @@ export function roomBookingPendingApprovalTemplate(
           </div>
 
           <p style="font-size: 16px; margin-bottom: 25px; color: #78350f; font-weight: 600;">
-            Please review and approve or reject this booking request.
+            Please review and approve or decline this booking request.
           </p>
 
           <div style="text-align: center; margin: 30px 0;">
@@ -626,7 +626,7 @@ export function roomBookingPendingApprovalTemplate(
 
           <div style="background: #fef3c7; border: 1px solid #fbbf24; padding: 15px; margin-top: 20px; border-radius: 4px;">
             <p style="margin: 0; font-size: 13px; color: #78350f;">
-              ⚠️ <strong>Action Required:</strong> This booking is pending and awaiting your approval. Click the button above to review the details and approve or reject the request.
+              ⚠️ <strong>Action Required:</strong> This booking is pending and awaiting your approval. Click the button above to review the details and approve or decline the request.
             </p>
           </div>
 
@@ -634,6 +634,219 @@ export function roomBookingPendingApprovalTemplate(
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
               <strong>DevOps Africa Welfare Fund</strong>
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
+// ============================================
+// FOOD ORDERING EMAIL TEMPLATES
+// ============================================
+
+export function foodMenuPublishedTemplate({
+  userName,
+  vendorName,
+  weekStartDate,
+  weekEndDate,
+  selectionCloseDate,
+  linkUrl
+}: {
+  userName: string;
+  vendorName: string;
+  weekStartDate: Date;
+  weekEndDate: Date;
+  selectionCloseDate: Date;
+  linkUrl: string;
+}) {
+  const weekStart = weekStartDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric'
+  });
+  const weekEnd = weekEndDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+  const deadline = selectionCloseDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #10A074 0%, #2F7A67 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">🍽️ Weekly Food Menu Available</h1>
+        </div>
+
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <p style="font-size: 18px; margin-bottom: 20px;">Hello ${userName},</p>
+
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            The weekly food menu from <strong>${vendorName}</strong> for <strong>${weekStart} - ${weekEnd}</strong> is now available!
+          </p>
+
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            Click the button below to view the menu and make your selections for the week.
+          </p>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${linkUrl}" style="display: inline-block; background: linear-gradient(135deg, #10A074 0%, #2F7A67 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              🍴 Make Your Selections
+            </a>
+          </div>
+
+          <div style="background: #fef3c7; border: 1px solid #fbbf24; padding: 15px; margin-top: 20px; border-radius: 4px;">
+            <p style="margin: 0; font-size: 13px; color: #78350f;">
+              ⏰ <strong>Selection Deadline:</strong> ${deadline}
+            </p>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
+            <p style="font-size: 14px; color: #666; margin: 0;">
+              Best regards,<br>
+              <strong>DevOps Africa Food Committee</strong>
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
+export function foodSelectionReminderTemplate({
+  userName,
+  vendorName,
+  selectionCloseDate,
+  linkUrl
+}: {
+  userName: string;
+  vendorName: string;
+  selectionCloseDate: Date;
+  linkUrl: string;
+}) {
+  const deadline = selectionCloseDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">⏰ Reminder: Food Selection Deadline</h1>
+        </div>
+
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <p style="font-size: 18px; margin-bottom: 20px;">Hello ${userName},</p>
+
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            This is a friendly reminder that the food selection deadline for <strong>${vendorName}</strong> is approaching!
+          </p>
+
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            Don't miss out - make your food selections now before the deadline.
+          </p>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${linkUrl}" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              🍽️ Select Your Meals
+            </a>
+          </div>
+
+          <div style="background: #fee2e2; border: 1px solid #ef4444; padding: 15px; margin-top: 20px; border-radius: 4px;">
+            <p style="margin: 0; font-size: 13px; color: #7f1d1d;">
+              ⚠️ <strong>Deadline:</strong> ${deadline}
+            </p>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #f59e0b;">
+            <p style="font-size: 14px; color: #666; margin: 0;">
+              Best regards,<br>
+              <strong>DevOps Africa Food Committee</strong>
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
+export function foodSelectionConfirmedTemplate({
+  userName,
+  vendorName,
+  weekStartDate,
+  weekEndDate,
+  actualMealCount
+}: {
+  userName: string;
+  vendorName: string;
+  weekStartDate: Date;
+  weekEndDate: Date;
+  actualMealCount: number;
+}) {
+  const weekStart = weekStartDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric'
+  });
+  const weekEnd = weekEndDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #10A074 0%, #2F7A67 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">✅ Food Selections Confirmed</h1>
+        </div>
+
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <p style="font-size: 18px; margin-bottom: 20px;">Hello ${userName},</p>
+
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            Your food selections for <strong>${vendorName}</strong> have been saved successfully!
+          </p>
+
+          <div style="background: #dcfce7; border: 1px solid #22c55e; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; font-size: 14px; color: #14532d;">
+              ✅ <strong>Confirmed:</strong> ${actualMealCount} meal${actualMealCount !== 1 ? 's' : ''} ordered for ${weekStart} - ${weekEnd}
+            </p>
+          </div>
+
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            You can still modify your selections before the deadline if needed.
+          </p>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
+            <p style="font-size: 14px; color: #666; margin: 0;">
+              Thank you,<br>
+              <strong>DevOps Africa Food Committee</strong>
             </p>
           </div>
         </div>

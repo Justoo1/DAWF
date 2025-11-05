@@ -1,5 +1,5 @@
 // Role-based permissions configuration
-export type UserRole = 'EMPLOYEE' | 'MANAGER' | 'ADMIN'
+export type UserRole = 'EMPLOYEE' | 'MANAGER' | 'ADMIN' | 'FOOD_COMMITTEE'
 
 export type Permission =
   | 'view_dashboard'
@@ -17,6 +17,11 @@ export type Permission =
   | 'view_analytics'
   | 'view_policies'
   | 'manage_policies'
+  | 'view_food_management'
+  | 'manage_food_vendors'
+  | 'manage_food_menus'
+  | 'view_food_orders'
+  | 'export_food_orders'
 
 // Define permissions for each role
 const rolePermissions: Record<UserRole, Permission[]> = {
@@ -49,6 +54,18 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     'view_analytics',
     'view_policies',
     'manage_policies',
+    'view_food_management',
+    'manage_food_vendors',
+    'manage_food_menus',
+    'view_food_orders',
+    'export_food_orders',
+  ],
+  FOOD_COMMITTEE: [
+    'view_food_management',
+    'manage_food_vendors',
+    'manage_food_menus',
+    'view_food_orders',
+    'export_food_orders',
   ],
 }
 
@@ -63,7 +80,7 @@ export function hasPermission(role: UserRole, permission: Permission): boolean {
  * Check if a user role can access the admin panel
  */
 export function canAccessAdmin(role: UserRole): boolean {
-  return role === 'ADMIN' || role === 'MANAGER'
+  return role === 'ADMIN' || role === 'MANAGER' || role === 'FOOD_COMMITTEE'
 }
 
 /**
