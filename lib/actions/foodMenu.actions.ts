@@ -259,7 +259,7 @@ export async function publishFoodMenu(menuId: string) {
           weekStartDate: menu.weekStartDate,
           weekEndDate: menu.weekEndDate,
           selectionCloseDate: menu.selectionCloseDate,
-          linkUrl: `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/food-orders`
+          linkUrl: 'https://dawf.edtmsys.com/food-orders'
         })
       })
     );
@@ -417,7 +417,7 @@ export async function sendSelectionReminders() {
             userName: user.name,
             vendorName: menu.vendor.name,
             selectionCloseDate: menu.selectionCloseDate,
-            linkUrl: `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/food-orders`
+            linkUrl: 'https://dawf.edtmsys.com/food-orders'
           })
         })
       );
