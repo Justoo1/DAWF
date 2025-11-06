@@ -94,14 +94,17 @@ export async function updateContribution(contributionId: string, values: Contrib
   }
 }
 
-export async function fetchContributions(page: number = 1, pageSize: number = 10) {
+export async function fetchContributions(page: number = 1, pageSize: number = 10, usePagination: boolean = true) {
   try {
     const skip = (page - 1) * pageSize
 
     // Get total count for pagination
     const totalCount = await prisma.contribution.count()
 
-    const contributions = await prisma.contribution.findMany({
+    let contributions;
+
+    if (usePagination) {
+      contributions = await prisma.contribution.findMany({
       include: {
         user: true
       },
@@ -111,6 +114,16 @@ export async function fetchContributions(page: number = 1, pageSize: number = 10
       skip,
       take: pageSize
     })
+    } else {
+      contributions = await prisma.contribution.findMany({
+          include: {
+          user: true
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      })
+    }
 
     const totalContributions = contributions.reduce((sum, contribution) => sum + contribution.amount, 0)
 

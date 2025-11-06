@@ -28,7 +28,7 @@ const Dashboard = async () => {
 
   // TODO: check for email verification
 
-  const [contributions, userInfo, upcomingEvents] = await Promise.all([fetchContributions(), fetchUserWithContributions(session.user.email), fetchUpcomingEvents()])
+  const [contributions, userInfo, upcomingEvents] = await Promise.all([fetchContributions(1,10,false), fetchUserWithContributions(session.user.email), fetchUpcomingEvents()])
 
   if (userInfo.error) {
     return (

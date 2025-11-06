@@ -22,7 +22,7 @@ const Dashboard = async () => {
   }
 
   const [contributionsData, eventsData, expensesData, membersData, userData] = await Promise.all([
-    fetchContributions(),
+    fetchContributions(1,10,false),
     fetchUpcomingEvents(),
     fetchExpenses(),
     fetchMembers(),
