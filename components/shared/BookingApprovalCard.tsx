@@ -102,7 +102,7 @@ const BookingApprovalCard = ({ booking, approverId, onApprovalComplete }: Bookin
       } else {
         toast({
           title: 'Success',
-          description: 'Booking rejected successfully'
+          description: 'Booking declined successfully'
         })
         setIsRejectDialogOpen(false)
         setRejectionReason('')

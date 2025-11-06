@@ -107,7 +107,7 @@ const ConferenceRoomsPage = async () => {
                     </div>
                     {booking.status === 'REJECTED' && booking.rejectionReason && (
                       <div className="mt-3 p-3 bg-red-900/20 border border-red-600/30 rounded-md">
-                        <p className="text-xs font-semibold text-red-400 mb-1">Rejection Reason:</p>
+                        <p className="text-xs font-semibold text-red-400 mb-1">Decline Reason:</p>
                         <p className="text-sm text-red-300">{booking.rejectionReason}</p>
                       </div>
                     )}
@@ -123,7 +123,7 @@ const ConferenceRoomsPage = async () => {
                         : 'bg-gray-600 text-white'
                     }`}
                   >
-                    {booking.status}
+                    {booking.status === 'REJECTED' ? 'DECLINED' : booking.status}
                   </span>
                 </div>
               </div>

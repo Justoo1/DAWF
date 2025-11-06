@@ -151,7 +151,7 @@ const ConferenceRoomsAdminPage = async () => {
                           : 'bg-gray-100 text-gray-800'
                       }`}
                     >
-                      {booking.status}
+                      {booking.status == "REJECTED" ? "DECLINED" : booking.status}
                     </span>
                   </div>
                 ))
