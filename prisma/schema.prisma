@@ -127,6 +127,8 @@ model User {
   isContributor          Boolean                 @default(true) // Track if employee contributes to the welfare fund
   canApproveBookings     Boolean                 @default(false) // Permission to approve/reject conference room bookings
   dateOfBirth            DateTime? // Birthday for automatic birthday tracking
+  exitDate               DateTime? // Date when employee left the company
+  welfareContributionsBeforeExit Float? // Total welfare contributions before leaving
   contributions          Contribution[]
   events                 Event[]
   expenses               Expense[]

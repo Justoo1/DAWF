@@ -66,6 +66,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     'manage_food_menus',
     'view_food_orders',
     'export_food_orders',
+    'view_employees',
   ],
 }
 

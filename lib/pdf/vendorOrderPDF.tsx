@@ -69,6 +69,17 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginBottom: 2,
   },
+  departmentHeader: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    backgroundColor: '#e0f2fe',
+    padding: 6,
+    marginTop: 8,
+    marginBottom: 5,
+    color: '#0369a1',
+    borderLeft: 3,
+    borderLeftColor: '#0369a1',
+  },
   footer: {
     position: 'absolute',
     bottom: 30,
@@ -103,6 +114,10 @@ interface OrderPDFProps {
     user: { name: string; department: string | null };
     menuItem: { itemName: string } | null;
   }>>;
+  selectionsByDayAndDept?: Record<string, Record<string, Array<{
+    user: { name: string; department: string | null };
+    menuItem: { itemName: string } | null;
+  }>>>;
   itemCounts: Array<{
     dayOfWeek: string;
     itemName: string;
@@ -121,6 +136,7 @@ const VendorOrderPDF: React.FC<OrderPDFProps> = ({
   weekStartDate,
   weekEndDate,
   selectionsByDay,
+  selectionsByDayAndDept,
   itemCounts,
   employeesWithSelections,
   actualMealOrders,
@@ -161,34 +177,55 @@ const VendorOrderPDF: React.FC<OrderPDFProps> = ({
           </Text>
         </View>
 
-        {/* Orders by Day */}
+        {/* Orders by Day - Grouped by Department */}
         {DAYS_OF_WEEK.map((day) => {
-          const dayItemCounts = itemCounts.filter((ic) => ic.dayOfWeek === day);
+          // Use department grouping if available, otherwise fall back to regular grouping
+          const dayDeptSelections = selectionsByDayAndDept?.[day];
+          const hasDeptGrouping = dayDeptSelections && Object.keys(dayDeptSelections).length > 0;
 
-          if (dayItemCounts.length === 0) return null;
+          if (!hasDeptGrouping && (!selectionsByDay[day] || selectionsByDay[day].length === 0)) {
+            return null;
+          }
 
           return (
-            <View key={day} style={styles.section}>
+            <View key={day} style={styles.section} break={true}>
               <Text style={styles.dayHeader}>{day}</Text>
 
-              {dayItemCounts.map((item, idx) => (
-                <View key={idx} style={styles.itemContainer}>
-                  <View style={styles.itemHeader}>
-                    <Text style={styles.itemName}>{item.itemName}</Text>
-                    <Text style={styles.itemCount}>
-                      {item.count} {item.count === 1 ? 'order' : 'orders'}
-                    </Text>
-                  </View>
-
-                  <View style={styles.employeeList}>
-                    {item.users.map((userName, userIdx) => (
-                      <Text key={userIdx} style={styles.employeeName}>
-                        • {userName}
-                      </Text>
+              {hasDeptGrouping ? (
+                // Render grouped by department
+                Object.entries(dayDeptSelections).sort(([a], [b]) => a.localeCompare(b)).map(([dept, deptSelections]) => (
+                  <View key={dept}>
+                    <Text style={styles.departmentHeader}>📍 {dept}</Text>
+                    {deptSelections.map((selection, idx) => (
+                      <View key={idx} style={styles.employeeList}>
+                        <Text style={styles.employeeName}>
+                          • {selection.user.name} - {selection.menuItem?.itemName || 'No Selection'}
+                        </Text>
+                      </View>
                     ))}
                   </View>
-                </View>
-              ))}
+                ))
+              ) : (
+                // Fallback to item count grouping
+                itemCounts.filter((ic) => ic.dayOfWeek === day).map((item, idx) => (
+                  <View key={idx} style={styles.itemContainer}>
+                    <View style={styles.itemHeader}>
+                      <Text style={styles.itemName}>{item.itemName}</Text>
+                      <Text style={styles.itemCount}>
+                        {item.count} {item.count === 1 ? 'order' : 'orders'}
+                      </Text>
+                    </View>
+
+                    <View style={styles.employeeList}>
+                      {item.users.map((userName, userIdx) => (
+                        <Text key={userIdx} style={styles.employeeName}>
+                          • {userName}
+                        </Text>
+                      ))}
+                    </View>
+                  </View>
+                ))
+              )}
             </View>
           );
         })}

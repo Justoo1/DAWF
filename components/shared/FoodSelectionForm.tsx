@@ -197,7 +197,7 @@ const FoodSelectionForm = ({ menu, userId, existingSelections }: FoodSelectionFo
                             {dayItems.map((item) => (
                               <SelectItem key={item.id} value={item.id!}>
                                 {item.itemName}
-                                {item.price && ` - ₦${item.price.toFixed(2)}`}
+                                {item.price && ` - ₵${item.price.toFixed(2)}`}
                                 {item.description && (
                                   <span className="text-xs text-gray-500 block">
                                     {item.description}

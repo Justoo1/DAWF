@@ -6,11 +6,18 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserValues } from '@/lib/validation'
 import { Trash2Icon } from 'lucide-react'
-import { deleteUser, revalidateUserPath, updateEmployeeStatus, updateContributorStatus, updateBookingApprovalPermission } from '@/lib/actions/users.action'
+import { deleteUser, revalidateUserPath, updateEmployeeStatus, updateContributorStatus, updateBookingApprovalPermission, updateUserRole, updateUserDepartment } from '@/lib/actions/users.action'
 import { Button } from '../ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Pagination,
   PaginationContent,
@@ -30,10 +37,14 @@ interface EmployeesProps {
       totalCount: number
       totalPages: number
     }
+    isAdmin: boolean
+    isFoodCommittee: boolean
 }
 
-const Employees = ({employees, pagination}: EmployeesProps) => {
+const Employees = ({employees, pagination, isAdmin, isFoodCommittee}: EmployeesProps) => {
     const [searchTerm, setSearchTerm] = useState('')
+    const [editingDepartment, setEditingDepartment] = useState<string | null>(null)
+    const [departmentValue, setDepartmentValue] = useState('')
     const { toast } = useToast()
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -187,10 +198,58 @@ const Employees = ({employees, pagination}: EmployeesProps) => {
     }
   }
 
+  const handleRoleChange = async (id: string | undefined, newRole: string) => {
+    if (!id) return
+    const result = await updateUserRole(id, newRole)
+    if (result.success) {
+      toast({
+        title: 'Success',
+        description: `Employee role updated to ${newRole}`,
+      })
+      revalidateUserPath('/admin/employees')
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: result.error,
+      })
+    }
+  }
+
+  const handleDepartmentEdit = (id: string, currentDepartment: string | null) => {
+    setEditingDepartment(id)
+    setDepartmentValue(currentDepartment || '')
+  }
+
+  const handleDepartmentSave = async (id: string) => {
+    const result = await updateUserDepartment(id, departmentValue)
+    if (result.success) {
+      toast({
+        title: 'Success',
+        description: 'Department updated successfully',
+      })
+      setEditingDepartment(null)
+      revalidateUserPath('/admin/employees')
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: result.error,
+      })
+    }
+  }
+
+  const handleDepartmentCancel = () => {
+    setEditingDepartment(null)
+    setDepartmentValue('')
+  }
+
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Employee</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Employee</CardTitle>
+        </div>
       </CardHeader>
       <CardContent>
         <Input
@@ -204,6 +263,8 @@ const Employees = ({employees, pagination}: EmployeesProps) => {
           <TableHeader>
             <TableRow>
               <TableHead>Employee Name</TableHead>
+              <TableHead>Department</TableHead>
+              <TableHead>Role</TableHead>
               <TableHead>Active Status</TableHead>
               <TableHead>Contributor Status</TableHead>
               <TableHead>Can Approve Bookings</TableHead>
@@ -217,12 +278,66 @@ const Employees = ({employees, pagination}: EmployeesProps) => {
               <TableRow key={record.id}>
                 <TableCell>{record.name}</TableCell>
                 <TableCell>
+                  {(isAdmin || isFoodCommittee) && editingDepartment === record.id ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={departmentValue}
+                        onChange={(e) => setDepartmentValue(e.target.value)}
+                        className="h-8 w-[150px]"
+                        placeholder="Department"
+                      />
+                      <Button size="sm" onClick={() => handleDepartmentSave(record.id!)} className="h-8 px-2">
+                        Save
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={handleDepartmentCancel} className="h-8 px-2">
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{record.department || 'N/A'}</span>
+                      {(isAdmin || isFoodCommittee) && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDepartmentEdit(record.id!, record.department)}
+                          className="h-6 px-2 text-xs"
+                        >
+                          Edit
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {isAdmin ? (
+                    <Select
+                      value={record.role}
+                      onValueChange={(value) => handleRoleChange(record.id, value)}
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="EMPLOYEE">Employee</SelectItem>
+                        <SelectItem value="MANAGER">Manager</SelectItem>
+                        <SelectItem value="ADMIN">Admin</SelectItem>
+                        <SelectItem value="FOOD_COMMITTEE">Food Committee</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Badge>{record.role}</Badge>
+                  )}
+                </TableCell>
+                <TableCell>
                   <div className="flex items-center gap-2">
-                    <Switch
-                      checked={record.isActive ?? true}
-                      onCheckedChange={() => handleStatusToggle(record.id, record.isActive)}
-                      aria-label="Toggle employee status"
-                    />
+                    {isAdmin && (
+                      <Switch
+                        checked={record.isActive ?? true}
+                        onCheckedChange={() => handleStatusToggle(record.id, record.isActive)}
+                        aria-label="Toggle employee status"
+                      />
+                    )}
                     <Badge variant={record.isActive ?? true ? 'default' : 'secondary'}>
                       {record.isActive ?? true ? 'Active' : 'Inactive'}
                     </Badge>
@@ -230,11 +345,13 @@ const Employees = ({employees, pagination}: EmployeesProps) => {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Switch
-                      checked={record.isContributor ?? true}
-                      onCheckedChange={() => handleContributorToggle(record.id, record.isContributor)}
-                      aria-label="Toggle contributor status"
-                    />
+                    {isAdmin && (
+                      <Switch
+                        checked={record.isContributor ?? true}
+                        onCheckedChange={() => handleContributorToggle(record.id, record.isContributor)}
+                        aria-label="Toggle contributor status"
+                      />
+                    )}
                     <Badge variant={record.isContributor ?? true ? 'default' : 'outline'}>
                       {record.isContributor ?? true ? 'Contributor' : 'Non-Contributor'}
                     </Badge>
@@ -242,11 +359,13 @@ const Employees = ({employees, pagination}: EmployeesProps) => {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Switch
-                      checked={record.canApproveBookings ?? false}
-                      onCheckedChange={() => handleApprovalPermissionToggle(record.id, record.canApproveBookings)}
-                      aria-label="Toggle booking approval permission"
-                    />
+                    {isAdmin && (
+                      <Switch
+                        checked={record.canApproveBookings ?? false}
+                        onCheckedChange={() => handleApprovalPermissionToggle(record.id, record.canApproveBookings)}
+                        aria-label="Toggle booking approval permission"
+                      />
+                    )}
                     <Badge variant={record.canApproveBookings ? 'default' : 'outline'}>
                       {record.canApproveBookings ? 'Can Approve' : 'Cannot Approve'}
                     </Badge>
@@ -255,13 +374,13 @@ const Employees = ({employees, pagination}: EmployeesProps) => {
                 <TableCell>{record.totalAmountContributed}</TableCell>
                 <TableCell>{record.totalContributionMonths}</TableCell>
                 <TableCell>
-
-                  <Button asChild size='icon' onClick={() => {
-                    handleDelete(record.id)
-                  }} className='bg-transparent hover:bg-red-600 cursor-pointer'>
-                    <Trash2Icon className="size-10 text-red-600 hover:text-white" />
-                  </Button>
-
+                  {isAdmin && (
+                    <Button asChild size='icon' onClick={() => {
+                      handleDelete(record.id)
+                    }} className='bg-transparent hover:bg-red-600 cursor-pointer'>
+                      <Trash2Icon className="size-10 text-red-600 hover:text-white" />
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

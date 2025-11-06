@@ -2,7 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 import prisma from '../prisma'
-import { ContributionStatus } from '@prisma/client';
+import { ContributionStatus, UserRole } from '@prisma/client';
+import { auth } from '@/lib/auth'
+import { headers } from 'next/headers'
 
 export async function fetchUserWithContributions(email: string) {
   try {
@@ -297,6 +299,24 @@ export async function revalidateUserPath(path: string) {
 
 export async function updateEmployeeStatus(userId: string, isActive: boolean) {
   try {
+    // Check if user is authenticated and has ADMIN role
+    const session = await auth.api.getSession({
+      headers: await headers()
+    })
+
+    if (!session?.user) {
+      return { success: false, error: 'Unauthorized: You must be logged in' }
+    }
+
+    const currentUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true }
+    })
+
+    if (!currentUser || currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only admins can update employee status' }
+    }
+
     await prisma.user.update({
       where: { id: userId },
       data: { isActive }
@@ -311,6 +331,24 @@ export async function updateEmployeeStatus(userId: string, isActive: boolean) {
 
 export async function updateContributorStatus(userId: string, isContributor: boolean) {
   try {
+    // Check if user is authenticated and has ADMIN role
+    const session = await auth.api.getSession({
+      headers: await headers()
+    })
+
+    if (!session?.user) {
+      return { success: false, error: 'Unauthorized: You must be logged in' }
+    }
+
+    const currentUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true }
+    })
+
+    if (!currentUser || currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only admins can update contributor status' }
+    }
+
     await prisma.user.update({
       where: { id: userId },
       data: { isContributor }
@@ -325,6 +363,24 @@ export async function updateContributorStatus(userId: string, isContributor: boo
 
 export async function updateBookingApprovalPermission(userId: string, canApproveBookings: boolean) {
   try {
+    // Check if user is authenticated and has ADMIN role
+    const session = await auth.api.getSession({
+      headers: await headers()
+    })
+
+    if (!session?.user) {
+      return { success: false, error: 'Unauthorized: You must be logged in' }
+    }
+
+    const currentUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true }
+    })
+
+    if (!currentUser || currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only admins can update booking approval permissions' }
+    }
+
     await prisma.user.update({
       where: { id: userId },
       data: { canApproveBookings }
@@ -333,6 +389,132 @@ export async function updateBookingApprovalPermission(userId: string, canApprove
     return { success: true }
   } catch (error) {
     console.error('Error updating booking approval permission:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }
+  }
+}
+
+export async function updateUserRole(userId: string, role: string) {
+  try {
+    // Check if user is authenticated and has ADMIN role
+    const session = await auth.api.getSession({
+      headers: await headers()
+    })
+
+    if (!session?.user) {
+      return { success: false, error: 'Unauthorized: You must be logged in' }
+    }
+
+    const currentUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true }
+    })
+
+    if (!currentUser || currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only admins can update user roles' }
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { role: role as UserRole }
+    })
+    revalidatePath('/admin/employees')
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating user role:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }
+  }
+}
+
+export async function updateUserDepartment(userId: string, department: string) {
+  try {
+    // Check if user is authenticated and has ADMIN or FOOD_COMMITTEE role
+    const session = await auth.api.getSession({
+      headers: await headers()
+    })
+
+    if (!session?.user) {
+      return { success: false, error: 'Unauthorized: You must be logged in' }
+    }
+
+    const currentUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true }
+    })
+
+    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'FOOD_COMMITTEE')) {
+      return { success: false, error: 'Unauthorized: Only admins and food committee can update departments' }
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { department }
+    })
+    revalidatePath('/admin/employees')
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating user department:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }
+  }
+}
+
+export async function createEmployee(data: {
+  name: string
+  email: string
+  department?: string
+  dateOfBirth?: Date
+  role?: string
+  isActive?: boolean
+  isContributor?: boolean
+  exitDate?: Date
+  welfareContributionsBeforeExit?: number
+}) {
+  try {
+    // Check if user is authenticated and has ADMIN role
+    const session = await auth.api.getSession({
+      headers: await headers()
+    })
+
+    if (!session?.user) {
+      return { success: false, error: 'Unauthorized: You must be logged in' }
+    }
+
+    const currentUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true }
+    })
+
+    if (!currentUser || currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only admins can add new employees' }
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email }
+    })
+
+    if (existingUser) {
+      return { success: false, error: 'An employee with this email already exists' }
+    }
+
+    const user = await prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        department: data.department,
+        dateOfBirth: data.dateOfBirth,
+        role: (data.role as UserRole) || 'EMPLOYEE',
+        isActive: data.isActive ?? true,
+        isContributor: data.isContributor ?? true,
+        exitDate: data.exitDate,
+        welfareContributionsBeforeExit: data.welfareContributionsBeforeExit,
+        emailVerified: false,
+        password: '',
+      }
+    })
+
+    revalidatePath('/admin/employees')
+    return { success: true, user }
+  } catch (error) {
+    console.error('Error creating employee:', error)
     return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }
   }
 }

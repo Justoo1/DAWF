@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import VendorOrderPDF from '@/lib/pdf/vendorOrderPDF'
+import SimpleVendorOrderPDF from '@/lib/pdf/simpleVendorOrderPDF'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Download, Loader2 } from 'lucide-react'
+import { Download, Loader2, FileText } from 'lucide-react'
 
 interface OrderSummaryData {
   menu: {
@@ -20,6 +21,10 @@ interface OrderSummaryData {
     user: { name: string; department: string | null }
     menuItem: { itemName: string } | null
   }>>
+  selectionsByDayAndDept?: Record<string, Record<string, Array<{
+    user: { name: string; department: string | null }
+    menuItem: { itemName: string } | null
+  }>>>
   itemCounts: Array<{
     dayOfWeek: string
     itemName: string
@@ -88,6 +93,7 @@ const ExportPDFPage = () => {
   }
 
   const fileName = `${data.menu.vendor.name.replace(/\s+/g, '_')}_Orders_${new Date(data.menu.weekStartDate).toISOString().slice(0, 10)}.pdf`
+  const simpleFileName = `${data.menu.vendor.name.replace(/\s+/g, '_')}_Vendor_Orders_${new Date(data.menu.weekStartDate).toISOString().slice(0, 10)}.pdf`
 
   return (
     <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
@@ -115,35 +121,80 @@ const ExportPDFPage = () => {
                 </div>
               </div>
 
-              <PDFDownloadLink
-                document={
-                  <VendorOrderPDF
-                    vendorName={data.menu.vendor.name}
-                    weekStartDate={data.menu.weekStartDate}
-                    weekEndDate={data.menu.weekEndDate}
-                    selectionsByDay={data.selectionsByDay}
-                    itemCounts={data.itemCounts}
-                    totalSelections={data.totalSelections}
-                    employeesWithSelections={data.employeesWithSelections}
-                    actualMealOrders={data.actualMealOrders}
-                  />
-                }
-                fileName={fileName}
-              >
-                {({ loading }) =>
-                  loading ? (
-                    <Button disabled>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Preparing PDF...
-                    </Button>
-                  ) : (
-                    <Button className="px-8">
-                      <Download className="mr-2 h-4 w-4" />
-                      Download PDF
-                    </Button>
-                  )
-                }
-              </PDFDownloadLink>
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-blue-800 mb-2">
+                    📋 Detailed Report (Internal Use)
+                  </h4>
+                  <p className="text-xs text-blue-700 mb-3">
+                    Complete order details with employee names for internal tracking
+                  </p>
+                  <PDFDownloadLink
+                    document={
+                      <VendorOrderPDF
+                        vendorName={data.menu.vendor.name}
+                        weekStartDate={data.menu.weekStartDate}
+                        weekEndDate={data.menu.weekEndDate}
+                        selectionsByDay={data.selectionsByDay}
+                        selectionsByDayAndDept={data.selectionsByDayAndDept}
+                        itemCounts={data.itemCounts}
+                        totalSelections={data.totalSelections}
+                        employeesWithSelections={data.employeesWithSelections}
+                        actualMealOrders={data.actualMealOrders}
+                      />
+                    }
+                    fileName={fileName}
+                  >
+                    {({ loading }) =>
+                      loading ? (
+                        <Button disabled variant="outline">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Preparing PDF...
+                        </Button>
+                      ) : (
+                        <Button variant="outline" className="px-8">
+                          <Download className="mr-2 h-4 w-4" />
+                          Download Detailed Report
+                        </Button>
+                      )
+                    }
+                  </PDFDownloadLink>
+                </div>
+
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-purple-800 mb-2">
+                    📧 Simple Format (For Vendor)
+                  </h4>
+                  <p className="text-xs text-purple-700 mb-3">
+                    Clean, simple format showing only items and quantities to send to vendor
+                  </p>
+                  <PDFDownloadLink
+                    document={
+                      <SimpleVendorOrderPDF
+                        vendorName={data.menu.vendor.name}
+                        weekStartDate={data.menu.weekStartDate}
+                        weekEndDate={data.menu.weekEndDate}
+                        itemCounts={data.itemCounts}
+                      />
+                    }
+                    fileName={simpleFileName}
+                  >
+                    {({ loading }) =>
+                      loading ? (
+                        <Button disabled>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Preparing PDF...
+                        </Button>
+                      ) : (
+                        <Button className="px-8">
+                          <FileText className="mr-2 h-4 w-4" />
+                          Download Vendor Format
+                        </Button>
+                      )
+                    }
+                  </PDFDownloadLink>
+                </div>
+              </div>
 
               <div className="pt-4">
                 <Button onClick={() => router.back()} variant="outline">

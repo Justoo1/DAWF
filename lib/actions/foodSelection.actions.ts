@@ -312,6 +312,21 @@ export async function getMenuOrderSummary(menuId: string) {
       return acc;
     }, {} as Record<string, typeof selections>);
 
+    // Group selections by day and department
+    const selectionsByDayAndDept = selections.reduce((acc, selection) => {
+      const day = selection.dayOfWeek;
+      const dept = selection.user.department || 'Unassigned';
+
+      if (!acc[day]) {
+        acc[day] = {};
+      }
+      if (!acc[day][dept]) {
+        acc[day][dept] = [];
+      }
+      acc[day][dept].push(selection);
+      return acc;
+    }, {} as Record<string, Record<string, typeof selections>>);
+
     // Calculate counts per item per day
     const itemCounts = selections.reduce((acc, selection) => {
       const key = `${selection.dayOfWeek}-${selection.menuItemId || 'NO_SELECTION'}`;
@@ -340,6 +355,7 @@ export async function getMenuOrderSummary(menuId: string) {
       menu,
       selections,
       selectionsByDay,
+      selectionsByDayAndDept,
       itemCounts: Object.values(itemCounts),
       totalSelections: selections.length, // Total selection records (all days)
       employeesWithSelections, // Unique employees who made at least one selection
