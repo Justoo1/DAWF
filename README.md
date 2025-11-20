@@ -361,12 +361,6 @@ npm run db:studio        # Open Prisma Studio
 - Check DNS records are correctly configured
 - Confirm `FROM_EMAIL` matches verified domain
 
-**Can't Access Admin Panel**
-- Manually update user role in database:
-  ```sql
-  UPDATE users SET role = 'ADMIN' WHERE email = 'your@email.com';
-  ```
-
 **Cron Jobs Not Running**
 - Ensure `vercel.json` is in root directory
 - Verify `CRON_SECRET` is set in environment variables
