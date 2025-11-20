@@ -361,12 +361,6 @@ npm run db:studio        # Open Prisma Studio
 - Check DNS records are correctly configured
 - Confirm `FROM_EMAIL` matches verified domain
 
-**Can't Access Admin Panel**
-- Manually update user role in database:
-  ```sql
-  UPDATE users SET role = 'ADMIN' WHERE email = 'your@email.com';
-  ```
-
 **Cron Jobs Not Running**
 - Ensure `vercel.json` is in root directory
 - Verify `CRON_SECRET` is set in environment variables
@@ -402,13 +396,15 @@ This project is proprietary software developed for DevOps Africa Limited.
 
 ## 👥 Team
 
-Developed for DevOps Africa Limited by the internal development team.
+Developed for DevOps Africa Limited by
+ - Justice Amankrah (Lead Developer)
+ - Joel Djokoto (UI/UX)
 
 ## 📞 Support
 
 For issues and questions:
-- **GitHub Issues**: [Create an issue](https://github.com/your-org/dwarf/issues)
-- **Email**: support@devopsafricalimited.com
+- **GitHub Issues**: [Create an issue](https://github.com/Justoo1/DAWF/issues)
+- **Email**: amankrahjay@gmail.com
 - **Documentation**: Check the `/docs` folder
 
 ## 🎯 Roadmap
