@@ -396,13 +396,15 @@ This project is proprietary software developed for DevOps Africa Limited.
 
 ## 👥 Team
 
-Developed for DevOps Africa Limited by the internal development team.
+Developed for DevOps Africa Limited by
+ - Justice Amankrah (Lead Developer)
+ - Joel Djokoto (UI/UX)
 
 ## 📞 Support
 
 For issues and questions:
-- **GitHub Issues**: [Create an issue](https://github.com/your-org/dwarf/issues)
-- **Email**: support@devopsafricalimited.com
+- **GitHub Issues**: [Create an issue](https://github.com/Justoo1/DAWF/issues)
+- **Email**: amankrahjay@gmail.com
 - **Documentation**: Check the `/docs` folder
 
 ## 🎯 Roadmap
