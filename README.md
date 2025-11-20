@@ -62,7 +62,7 @@ DAWF is a modern, full-stack web application built to manage employee welfare co
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-org/dwarf.git
+   git clone https://github.com/Justoo1/DAWF.git
    cd dwarf
    ```
 
