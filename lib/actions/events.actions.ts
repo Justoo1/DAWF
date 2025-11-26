@@ -349,3 +349,131 @@ export async function generateBirthdayEventsMultipleYears(startYear: number, end
   }
 }
 
+/**
+ * Automatically generate work anniversary events for all employees for a specific year
+ * This should be run at the start of each year (or manually triggered)
+ */
+export async function generateAnniversaryEvents(year?: number) {
+  try {
+    const targetYear = year || new Date().getFullYear()
+
+    // Get all active users with start dates
+    const users = await prisma.user.findMany({
+      where: {
+        startDate: {
+          not: null
+        },
+        isActive: true
+      },
+      select: {
+        id: true,
+        name: true,
+        startDate: true
+      }
+    })
+
+    if (users.length === 0) {
+      return {
+        success: true,
+        message: 'No users with start dates found',
+        created: 0,
+        skipped: 0,
+        errors: []
+      }
+    }
+
+    const results = {
+      created: 0,
+      skipped: 0,
+      errors: [] as string[]
+    }
+
+    for (const user of users) {
+      if (!user.startDate) continue
+
+      const startDate = new Date(user.startDate)
+      const anniversaryThisYear = new Date(targetYear, startDate.getMonth(), startDate.getDate())
+
+      // Calculate years of service
+      const yearsOfService = targetYear - startDate.getFullYear()
+
+      // Skip if anniversary year hasn't come yet (employee started after target year)
+      if (yearsOfService < 0) {
+        results.skipped++
+        continue
+      }
+
+      // Skip the first year (0 years of service)
+      if (yearsOfService === 0) {
+        results.skipped++
+        continue
+      }
+
+      // Set the event to start at 9 AM and end at 5 PM on anniversary
+      const eventStart = new Date(anniversaryThisYear)
+      eventStart.setHours(9, 0, 0, 0)
+
+      const eventEnd = new Date(anniversaryThisYear)
+      eventEnd.setHours(17, 0, 0, 0)
+
+      // Check if anniversary event already exists for this user and year
+      const existingEvent = await prisma.event.findFirst({
+        where: {
+          userId: user.id,
+          type: 'WORK_ANNIVERSARY',
+          year: targetYear,
+          month: startDate.getMonth() + 1
+        }
+      })
+
+      if (existingEvent) {
+        results.skipped++
+        continue
+      }
+
+      // Create the work anniversary event
+      try {
+        await prisma.event.create({
+          data: {
+            userId: user.id,
+            type: 'WORK_ANNIVERSARY',
+            title: `${user.name}'s ${yearsOfService} Year${yearsOfService > 1 ? 's' : ''} Work Anniversary`,
+            start: eventStart,
+            end: eventEnd,
+            year: targetYear,
+            month: startDate.getMonth() + 1,
+            quarter: Math.floor(startDate.getMonth() / 3) + 1,
+            description: `Celebrating ${user.name}'s ${yearsOfService} year${yearsOfService > 1 ? 's' : ''} with the company`,
+            location: 'Office',
+            status: 'ACTIVE',
+            emailNotificationSent: false
+          }
+        })
+        results.created++
+      } catch (error) {
+        console.error(`Failed to create anniversary event for ${user.name}:`, error)
+        results.errors.push(`Failed to create event for ${user.name}`)
+      }
+    }
+
+    revalidatePath('/admin/events')
+    revalidatePath('/admin/calendar')
+
+    return {
+      success: true,
+      message: `Generated work anniversary events for ${targetYear}`,
+      totalUsers: users.length,
+      created: results.created,
+      skipped: results.skipped,
+      errors: results.errors,
+      year: targetYear
+    }
+  } catch (error) {
+    console.error('Work anniversary event generation error:', error)
+    return {
+      success: false,
+      error: 'Failed to generate work anniversary events'
+    }
+  }
+}
+

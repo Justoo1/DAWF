@@ -31,6 +31,7 @@ const EmployeesPage = async({ searchParams }: EmployeesPageProps) => {
   }
 
   const isAdmin = currentUserResult.user.role === 'ADMIN'
+  const isManager = currentUserResult.user.role === 'MANAGER'
   const isFoodCommittee = currentUserResult.user.role === 'FOOD_COMMITTEE'
 
   const employees = await fetchUsers(currentPage, pageSize)
@@ -51,6 +52,7 @@ const EmployeesPage = async({ searchParams }: EmployeesPageProps) => {
         employees={employees.users}
         pagination={employees.pagination!}
         isAdmin={isAdmin}
+        isManager={isManager}
         isFoodCommittee={isFoodCommittee}
       />
     </main>

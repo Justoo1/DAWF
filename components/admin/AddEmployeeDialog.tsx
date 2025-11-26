@@ -35,6 +35,7 @@ export function AddEmployeeDialog() {
     email: '',
     department: '',
     dateOfBirth: '',
+    startDate: '',
     role: 'EMPLOYEE',
     isActive: true,
     isContributor: true,
@@ -52,6 +53,7 @@ export function AddEmployeeDialog() {
         email: formData.email,
         department: formData.department || undefined,
         dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined,
+        startDate: formData.startDate ? new Date(formData.startDate) : undefined,
         role: formData.role,
         isActive: formData.isActive,
         isContributor: formData.isContributor,
@@ -73,6 +75,7 @@ export function AddEmployeeDialog() {
           email: '',
           department: '',
           dateOfBirth: '',
+          startDate: '',
           role: 'EMPLOYEE',
           isActive: true,
           isContributor: true,
@@ -161,6 +164,19 @@ export function AddEmployeeDialog() {
                 value={formData.dateOfBirth}
                 onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
               />
+              <p className="text-xs text-gray-500">Used for automatic birthday event generation</p>
+            </div>
+
+            {/* Start Date */}
+            <div className="grid gap-2">
+              <Label htmlFor="startDate">Employment Start Date</Label>
+              <Input
+                id="startDate"
+                type="date"
+                value={formData.startDate}
+                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+              />
+              <p className="text-xs text-gray-500">Used for work anniversary event generation</p>
             </div>
 
             {/* Role */}
