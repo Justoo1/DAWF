@@ -28,7 +28,7 @@ import { createFoodMenu, updateFoodMenu } from '@/lib/actions/foodMenu.actions'
 import { useState } from 'react'
 import { X, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { FoodVendorValues } from '@/lib/validation'
+import { FoodVendorValues, FoodValues } from '@/lib/validation'
 
 interface MenuData {
   id: string
@@ -39,6 +39,7 @@ interface MenuData {
   selectionCloseDate: Date
   menuItems: Array<{
     dayOfWeek: string
+    foodId?: string | null
     itemName: string
     description: string | null
     price: number | null
@@ -49,6 +50,7 @@ interface MenuData {
 
 interface WeeklyMenuFormProps {
   vendors: FoodVendorValues[]
+  foods: FoodValues[]
   userId: string
   menu?: MenuData
   isEdit?: boolean
@@ -56,10 +58,11 @@ interface WeeklyMenuFormProps {
 
 const DAYS_OF_WEEK = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'] as const
 
-const WeeklyMenuForm = ({ vendors, userId, menu, isEdit }: WeeklyMenuFormProps) => {
+const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuFormProps) => {
   const { toast } = useToast()
   const router = useRouter()
   const [selectedDay, setSelectedDay] = useState<typeof DAYS_OF_WEEK[number]>('MONDAY')
+  const [selectedVendorId, setSelectedVendorId] = useState<string>(menu?.vendorId || "")
 
   const formatDateForInput = (date: Date) => {
     const d = new Date(date)
@@ -86,6 +89,7 @@ const WeeklyMenuForm = ({ vendors, userId, menu, isEdit }: WeeklyMenuFormProps) 
       selectionCloseDate: formatDateTimeForInput(menu.selectionCloseDate),
       menuItems: menu.menuItems.map(item => ({
         dayOfWeek: item.dayOfWeek as typeof DAYS_OF_WEEK[number],
+        foodId: item.foodId || undefined,
         itemName: item.itemName,
         description: item.description || "",
         price: item.price || undefined,
@@ -102,6 +106,9 @@ const WeeklyMenuForm = ({ vendors, userId, menu, isEdit }: WeeklyMenuFormProps) 
     }
   })
 
+  // Filter foods based on selected vendor
+  const availableFoods = foods.filter(food => food.vendorId === selectedVendorId)
+
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "menuItems"
@@ -110,12 +117,23 @@ const WeeklyMenuForm = ({ vendors, userId, menu, isEdit }: WeeklyMenuFormProps) 
   const addMenuItem = (day: typeof DAYS_OF_WEEK[number]) => {
     append({
       dayOfWeek: day,
+      foodId: undefined,
       itemName: "",
       description: "",
       price: undefined,
       isAvailable: true,
       displayOrder: fields.filter((f) => f.dayOfWeek === day).length
     })
+  }
+
+  const handleFoodSelect = (index: number, foodId: string) => {
+    const selectedFood = foods.find(f => f.id === foodId)
+    if (selectedFood) {
+      form.setValue(`menuItems.${index}.foodId`, foodId)
+      form.setValue(`menuItems.${index}.itemName`, selectedFood.name)
+      form.setValue(`menuItems.${index}.description`, selectedFood.description || "")
+      form.setValue(`menuItems.${index}.price`, selectedFood.price || undefined)
+    }
   }
 
   const getItemsForDay = (day: typeof DAYS_OF_WEEK[number]) => {
@@ -173,7 +191,13 @@ const WeeklyMenuForm = ({ vendors, userId, menu, isEdit }: WeeklyMenuFormProps) 
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Food Vendor *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(value)
+                    setSelectedVendorId(value)
+                  }}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a vendor" />
@@ -187,6 +211,9 @@ const WeeklyMenuForm = ({ vendors, userId, menu, isEdit }: WeeklyMenuFormProps) 
                     ))}
                   </SelectContent>
                 </Select>
+                <FormDescription>
+                  Select a vendor first to see available food items
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -315,17 +342,55 @@ const WeeklyMenuForm = ({ vendors, userId, menu, isEdit }: WeeklyMenuFormProps) 
                     </Button>
                   </div>
 
+                  <FormField
+                    control={form.control}
+                    name={`menuItems.${item.index}.foodId`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Select Food *</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value)
+                            handleFoodSelect(item.index, value)
+                          }}
+                          value={field.value || ""}
+                          disabled={!selectedVendorId}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={selectedVendorId ? "Select a food item" : "Select vendor first"} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {availableFoods.length > 0 ? (
+                              availableFoods.map((food) => (
+                                <SelectItem key={food.id} value={food.id!}>
+                                  {food.name} {food.price ? `- $${food.price.toFixed(2)}` : ''}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <div className="px-2 py-1 text-sm text-gray-500">No foods available for this vendor</div>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <div className="grid grid-cols-2 gap-3">
                     <FormField
                       control={form.control}
                       name={`menuItems.${item.index}.itemName`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Item Name *</FormLabel>
+                          <FormLabel>Item Name (Auto-filled) *</FormLabel>
                           <FormControl>
                             <Input
                               {...field}
-                              placeholder="e.g., Jollof with Chicken"
+                              placeholder="Select a food above"
+                              disabled
+                              className="bg-gray-50"
                             />
                           </FormControl>
                           <FormMessage />
@@ -338,7 +403,7 @@ const WeeklyMenuForm = ({ vendors, userId, menu, isEdit }: WeeklyMenuFormProps) 
                       name={`menuItems.${item.index}.price`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Price (Optional)</FormLabel>
+                          <FormLabel>Price (Auto-filled)</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -347,6 +412,8 @@ const WeeklyMenuForm = ({ vendors, userId, menu, isEdit }: WeeklyMenuFormProps) 
                               value={field.value || ''}
                               onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                               placeholder="0.00"
+                              disabled
+                              className="bg-gray-50"
                             />
                           </FormControl>
                           <FormMessage />
@@ -360,13 +427,14 @@ const WeeklyMenuForm = ({ vendors, userId, menu, isEdit }: WeeklyMenuFormProps) 
                     name={`menuItems.${item.index}.description`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description (Optional)</FormLabel>
+                        <FormLabel>Description (Auto-filled)</FormLabel>
                         <FormControl>
                           <Textarea
                             {...field}
-                            placeholder="Describe the dish..."
-                            className="resize-none"
+                            placeholder="Select a food to see description..."
+                            className="resize-none bg-gray-50"
                             rows={2}
+                            disabled
                           />
                         </FormControl>
                         <FormMessage />

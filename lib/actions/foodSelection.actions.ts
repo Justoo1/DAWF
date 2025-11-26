@@ -555,3 +555,93 @@ export async function getEmployeesWithoutSelections(menuId: string) {
     return { error: 'Failed to fetch employees' };
   }
 }
+
+// ============================================
+// USER ORDER HISTORY
+// ============================================
+
+interface OrderHistoryFilters {
+  startDate?: Date;
+  endDate?: Date;
+  userId: string;
+}
+
+export async function fetchUserOrderHistory(filters: OrderHistoryFilters) {
+  try {
+    const { userId, startDate, endDate } = filters;
+
+    interface MenuWhereClause {
+      isActive: boolean;
+      weekStartDate?: {
+        gte?: Date;
+        lte?: Date;
+      };
+    }
+
+    const menuWhere: MenuWhereClause = {
+      isActive: true
+    };
+
+    // Add date filters if provided
+    if (startDate || endDate) {
+      menuWhere.weekStartDate = {};
+      if (startDate) {
+        menuWhere.weekStartDate.gte = startDate;
+      }
+      if (endDate) {
+        menuWhere.weekStartDate.lte = endDate;
+      }
+    }
+
+    const selections = await prisma.foodSelection.findMany({
+      where: {
+        userId,
+        menu: menuWhere
+      },
+      include: {
+        menuItem: {
+          include: {
+            food: true
+          }
+        },
+        menu: {
+          include: {
+            vendor: true
+          }
+        }
+      },
+      orderBy: [
+        { menu: { weekStartDate: 'desc' } },
+        { dayOfWeek: 'asc' }
+      ]
+    });
+
+    // Group selections by menu
+    type MenuSelection = typeof selections[0];
+    type GroupedSelections = {
+      menu: MenuSelection['menu'];
+      selections: MenuSelection[];
+    };
+
+    const selectionsByMenu = selections.reduce((acc, selection) => {
+      const menuId = selection.menuId;
+      if (!acc[menuId]) {
+        acc[menuId] = {
+          menu: selection.menu,
+          selections: []
+        };
+      }
+      acc[menuId].selections.push(selection);
+      return acc;
+    }, {} as Record<string, GroupedSelections>);
+
+    return {
+      success: true,
+      selectionsByMenu: Object.values(selectionsByMenu),
+      totalOrders: Object.keys(selectionsByMenu).length
+    };
+  } catch (error) {
+    console.error('User order history fetch error:', error);
+    return { error: 'Failed to fetch order history' };
+  }
+}

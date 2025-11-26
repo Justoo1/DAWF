@@ -144,6 +144,13 @@ export function Sidebar({ isOpen = false, onClose, userRole = 'EMPLOYEE' }: Side
               </Link>
             )}
 
+            {hasPermission(userRole, 'manage_food_vendors') && (
+              <Link href="/admin/food-management/foods" className={cn("block py-2.5 px-4 rounded transition duration-200 hover:bg-green-700 hover:text-white", pathName.startsWith("/admin/food-management/foods") && "bg-green-700 text-white")}>
+                <UtensilsCrossed className="inline-block mr-2" size={20} />
+                Food Items
+              </Link>
+            )}
+
             {hasPermission(userRole, 'manage_food_menus') && (
               <Link href="/admin/food-management/menus" className={cn("block py-2.5 px-4 rounded transition duration-200 hover:bg-green-700 hover:text-white", pathName.startsWith("/admin/food-management/menus") && "bg-green-700 text-white")}>
                 <MenuSquare className="inline-block mr-2" size={20} />
@@ -151,12 +158,6 @@ export function Sidebar({ isOpen = false, onClose, userRole = 'EMPLOYEE' }: Side
               </Link>
             )}
 
-            {hasPermission(userRole, 'view_food_orders') && (
-              <Link href="/admin/food-management/menus" className={cn("block py-2.5 px-4 rounded transition duration-200 hover:bg-green-700 hover:text-white", pathName.includes("/admin/food-management/orders") && "bg-green-700 text-white")}>
-                <UtensilsCrossed className="inline-block mr-2" size={20} />
-                View Orders
-              </Link>
-            )}
           </>
         )}
       </nav>

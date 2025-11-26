@@ -243,10 +243,35 @@ export type FoodVendorValues = Omit<FoodVendor, 'contactName' | 'phone' | 'email
   updatedAt: Date
 }
 
+// Food Schema
+export const FoodSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(2, { message: "Food name must be at least 2 characters" }),
+  description: z.string().optional(),
+  price: z.number().positive().optional(),
+  category: z.string().optional(),
+  vendorId: z.string(),
+  isSpecialOrder: z.boolean().default(false),
+  isActive: z.boolean().default(true)
+})
+export type Food = z.infer<typeof FoodSchema>
+
+export const FoodCreateSchema = FoodSchema.omit({ id: true })
+
+export type FoodValues = Omit<Food, 'description' | 'price' | 'category'> & {
+  description: string | null
+  price: number | null
+  category: string | null
+  createdAt: Date
+  updatedAt: Date
+  vendor?: FoodVendorValues
+}
+
 // Food Menu Item Schema
 export const FoodMenuItemSchema = z.object({
   id: z.string().optional(),
   menuId: z.string(),
+  foodId: z.string().optional(),
   dayOfWeek: z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']),
   itemName: z.string().min(2, { message: "Item name must be at least 2 characters" }),
   description: z.string().optional(),
@@ -256,12 +281,18 @@ export const FoodMenuItemSchema = z.object({
 })
 export type FoodMenuItem = z.infer<typeof FoodMenuItemSchema>
 
-export const FoodMenuItemCreateSchema = FoodMenuItemSchema.omit({ id: true, menuId: true })
+export const FoodMenuItemCreateSchema = FoodMenuItemSchema.omit({ id: true, menuId: true }).extend({
+  foodId: z.string().optional()
+})
 
-export type FoodMenuItemValues = Omit<FoodMenuItem, 'description' | 'price'> & {
+export type FoodMenuItemValues = Omit<FoodMenuItem, 'description' | 'price' | 'foodId'> & {
   description: string | null
   price: number | null
+  foodId: string | null
   createdAt: Date
+  food?: (FoodValues & {
+    vendor?: FoodVendorValues
+  }) | null
 }
 
 // Weekly Food Menu Schema

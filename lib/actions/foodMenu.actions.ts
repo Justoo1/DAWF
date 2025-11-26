@@ -78,6 +78,13 @@ export async function fetchActiveFoodMenus() {
         vendor: true,
         menuItems: {
           where: { isAvailable: true },
+          include: {
+            food: {
+              include: {
+                vendor: true
+              }
+            }
+          },
           orderBy: [{ dayOfWeek: 'asc' }, { displayOrder: 'asc' }]
         }
       },
@@ -102,6 +109,7 @@ interface CreateMenuData {
   selectionCloseDate: string;
   menuItems: Array<{
     dayOfWeek: 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY';
+    foodId?: string;
     itemName: string;
     description?: string;
     price?: number;
@@ -124,6 +132,7 @@ export async function createFoodMenu(data: CreateMenuData, createdBy: string) {
         menuItems: {
           create: data.menuItems.map((item) => ({
             dayOfWeek: item.dayOfWeek,
+            foodId: item.foodId || null,
             itemName: item.itemName,
             description: item.description || null,
             price: item.price || null,
@@ -178,6 +187,7 @@ export async function updateFoodMenu(menuId: string, data: CreateMenuData) {
         menuItems: {
           create: data.menuItems.map((item) => ({
             dayOfWeek: item.dayOfWeek,
+            foodId: item.foodId || null,
             itemName: item.itemName,
             description: item.description || null,
             price: item.price || null,
@@ -248,7 +258,7 @@ export async function publishFoodMenu(menuId: string) {
       linkUrl: '/food-orders'
     });
 
-    // Send email notifications
+    // Send email notifications to all active users
     const emailPromises = users.map((user) =>
       sendEmail({
         to: user.email,
@@ -264,7 +274,16 @@ export async function publishFoodMenu(menuId: string) {
       })
     );
 
-    await Promise.allSettled(emailPromises);
+    // Use Promise.allSettled to ensure all emails are sent even if some fail
+    const emailResults = await Promise.allSettled(emailPromises);
+
+    // Log any failed emails for debugging
+    const failedEmails = emailResults.filter(result => result.status === 'rejected');
+    if (failedEmails.length > 0) {
+      console.error(`Failed to send ${failedEmails.length} out of ${users.length} emails:`, failedEmails);
+    } else {
+      console.log(`Successfully sent ${users.length} email notifications`);
+    }
 
     revalidatePath('/admin/food-management/menus');
     revalidatePath('/food-orders');
@@ -409,6 +428,7 @@ export async function sendSelectionReminders() {
         })
       );
 
+      // Send email reminders to users who haven't made selections
       const emailPromises = usersWithoutSelections.map((user) =>
         sendEmail({
           to: user.email,
@@ -422,7 +442,15 @@ export async function sendSelectionReminders() {
         })
       );
 
-      await Promise.allSettled([...notificationPromises, ...emailPromises]);
+      const results = await Promise.allSettled([...notificationPromises, ...emailPromises]);
+
+      // Log any failed emails for debugging
+      const failedEmails = results.filter(result => result.status === 'rejected');
+      if (failedEmails.length > 0) {
+        console.error(`Failed to send ${failedEmails.length} reminder emails for menu ${menu.id}:`, failedEmails);
+      } else {
+        console.log(`Successfully sent ${usersWithoutSelections.length} reminder emails for menu ${menu.id}`);
+      }
 
       // Mark reminder as sent
       await prisma.weeklyFoodMenu.update({
