@@ -27,6 +27,8 @@ import { createBulkFoodSelections } from '@/lib/actions/foodSelection.actions'
 import { useState, useEffect } from 'react'
 import { WeeklyFoodMenuValues, FoodMenuItemValues } from '@/lib/validation'
 import { Calendar, Clock } from 'lucide-react'
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 interface FoodSelectionFormProps {
   menu: WeeklyFoodMenuValues
@@ -43,6 +45,7 @@ const DAYS_OF_WEEK = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'] as
 const FoodSelectionForm = ({ menu, userId, existingSelections }: FoodSelectionFormProps) => {
   const { toast } = useToast()
   const [isSelectionOpen, setIsSelectionOpen] = useState(true)
+  const [showSpecialOrders, setShowSpecialOrders] = useState(false)
 
   useEffect(() => {
     const now = new Date()
@@ -50,12 +53,19 @@ const FoodSelectionForm = ({ menu, userId, existingSelections }: FoodSelectionFo
     setIsSelectionOpen(isOpen)
   }, [menu.selectionOpenDate, menu.selectionCloseDate])
 
-  // Group menu items by day
+  // Group menu items by day and filter by special order preference
   const itemsByDay = menu.menuItems.reduce((acc, item) => {
-    if (!acc[item.dayOfWeek]) {
-      acc[item.dayOfWeek] = []
+    // Filter based on showSpecialOrders toggle
+    const itemFood = item.food
+    const isSpecialOrderItem = itemFood?.isSpecialOrder || false
+
+    // Only include items that match the current filter
+    if (isSpecialOrderItem === showSpecialOrders) {
+      if (!acc[item.dayOfWeek]) {
+        acc[item.dayOfWeek] = []
+      }
+      acc[item.dayOfWeek].push(item)
     }
-    acc[item.dayOfWeek].push(item)
     return acc
   }, {} as Record<string, FoodMenuItemValues[]>)
 
@@ -153,6 +163,28 @@ const FoodSelectionForm = ({ menu, userId, existingSelections }: FoodSelectionFo
             </p>
           </div>
         )}
+      </div>
+
+      {/* Special Order Toggle */}
+      <div className="bg-white border rounded-lg p-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label htmlFor="special-order-toggle" className="text-base font-medium">
+              {showSpecialOrders ? 'Special Orders' : 'Regular Orders'}
+            </Label>
+            <p className="text-sm text-gray-500">
+              {showSpecialOrders
+                ? 'Showing special dietary options (e.g., veggie-only meals)'
+                : 'Showing regular menu items'}
+            </p>
+          </div>
+          <Switch
+            id="special-order-toggle"
+            checked={showSpecialOrders}
+            onCheckedChange={setShowSpecialOrders}
+            disabled={!isSelectionOpen}
+          />
+        </div>
       </div>
 
       {!isSelectionOpen && (

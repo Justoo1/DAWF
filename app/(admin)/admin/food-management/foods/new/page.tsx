@@ -1,19 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import WeeklyMenuForm from '@/components/admin/WeeklyMenuForm'
+import FoodForm from '@/components/admin/FoodForm'
 import { fetchAllFoodVendors } from '@/lib/actions/foodVendor.actions'
-import { fetchAllFoods } from '@/lib/actions/food.actions'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 
-const NewMenuPage = async () => {
+const NewFoodPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) redirect('/sign-in')
 
-  const [vendorsData, foodsData] = await Promise.all([
-    fetchAllFoodVendors(),
-    fetchAllFoods()
-  ])
+  const vendorsData = await fetchAllFoodVendors()
 
   if (vendorsData.error || !vendorsData.vendors || vendorsData.vendors.length === 0) {
     return (
@@ -25,22 +21,8 @@ const NewMenuPage = async () => {
                 {vendorsData.error || 'No vendors available'}
               </p>
               <p className="text-gray-600">
-                Please add at least one vendor before creating a menu.
+                Please add at least one vendor before creating a food item.
               </p>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-    )
-  }
-
-  if (foodsData.error) {
-    return (
-      <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
-        <div className="mx-auto max-w-4xl space-y-6">
-          <Card>
-            <CardContent className="text-center py-12">
-              <p className="text-red-500 mb-4">Error loading foods: {foodsData.error}</p>
             </CardContent>
           </Card>
         </div>
@@ -50,19 +32,15 @@ const NewMenuPage = async () => {
 
   return (
     <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <h1 className="text-2xl font-semibold text-gray-800">Create Weekly Food Menu</h1>
+      <div className="mx-auto max-w-4xl space-y-6">
+        <h1 className="text-2xl font-semibold text-gray-800">Create New Food Item</h1>
 
         <Card>
           <CardHeader>
-            <CardTitle>Menu Details</CardTitle>
+            <CardTitle>Food Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <WeeklyMenuForm
-              vendors={vendorsData.vendors}
-              foods={foodsData.foods || []}
-              userId={session.user.id}
-            />
+            <FoodForm vendors={vendorsData.vendors} />
           </CardContent>
         </Card>
       </div>
@@ -70,4 +48,4 @@ const NewMenuPage = async () => {
   )
 }
 
-export default NewMenuPage
+export default NewFoodPage

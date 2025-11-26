@@ -359,8 +359,29 @@ model FoodVendor {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @default(now())
   menus       WeeklyFoodMenu[]
+  foods       Food[]
 
   @@map("food_vendors")
+}
+
+model Food {
+  id             String         @id @default(cuid())
+  name           String
+  description    String?
+  price          Float?
+  category       String? // e.g., "Main Course", "Soup", "Rice Dish", etc.
+  vendorId       String
+  vendor         FoodVendor     @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  isSpecialOrder Boolean        @default(false) // For special dietary needs (e.g., veggie-only orders)
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @default(now())
+  menuItems      FoodMenuItem[]
+
+  @@index([vendorId])
+  @@index([isActive])
+  @@index([isSpecialOrder])
+  @@map("foods")
 }
 
 model WeeklyFoodMenu {
@@ -390,8 +411,10 @@ model FoodMenuItem {
   id           String          @id @default(cuid())
   menuId       String
   menu         WeeklyFoodMenu  @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  foodId       String? // Reference to Food model (optional for backward compatibility)
+  food         Food?           @relation(fields: [foodId], references: [id])
   dayOfWeek    DayOfWeek
-  itemName     String // "Jollof with Chicken"
+  itemName     String // "Jollof with Chicken" - kept for backward compatibility
   description  String?
   price        Float? // Optional pricing
   isAvailable  Boolean         @default(true)
@@ -400,6 +423,7 @@ model FoodMenuItem {
   selections   FoodSelection[]
 
   @@index([menuId, dayOfWeek, displayOrder])
+  @@index([foodId])
   @@map("food_menu_items")
 }
 

@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import WeeklyMenuForm from '@/components/admin/WeeklyMenuForm'
 import { fetchFoodMenuById } from '@/lib/actions/foodMenu.actions'
 import { fetchAllFoodVendors } from '@/lib/actions/foodVendor.actions'
+import { fetchAllFoods } from '@/lib/actions/food.actions'
 import { notFound, redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
@@ -14,9 +15,10 @@ const EditMenuPage = async ({ params }: { params: Promise<{ id: string }> }) => 
   if (!session) redirect('/sign-in')
 
   const { id } = await params
-  const [menuData, vendorsData] = await Promise.all([
+  const [menuData, vendorsData, foodsData] = await Promise.all([
     fetchFoodMenuById(id),
-    fetchAllFoodVendors()
+    fetchAllFoodVendors(),
+    fetchAllFoods()
   ])
 
   if (menuData.error || !menuData.menu) {
@@ -28,6 +30,16 @@ const EditMenuPage = async ({ params }: { params: Promise<{ id: string }> }) => 
       <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
         <div className="mx-auto max-w-6xl">
           <div className="text-red-500">Error loading vendors: {vendorsData.error}</div>
+        </div>
+      </main>
+    )
+  }
+
+  if (foodsData.error) {
+    return (
+      <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+        <div className="mx-auto max-w-6xl">
+          <div className="text-red-500">Error loading foods: {foodsData.error}</div>
         </div>
       </main>
     )
@@ -71,6 +83,7 @@ const EditMenuPage = async ({ params }: { params: Promise<{ id: string }> }) => 
           <CardContent>
             <WeeklyMenuForm
               vendors={vendorsData.vendors}
+              foods={foodsData.foods || []}
               userId={session.user.id}
               menu={menu}
               isEdit
