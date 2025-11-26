@@ -462,6 +462,7 @@ export async function createEmployee(data: {
   email: string
   department?: string
   dateOfBirth?: Date
+  startDate?: Date
   role?: string
   isActive?: boolean
   isContributor?: boolean
@@ -501,6 +502,7 @@ export async function createEmployee(data: {
         email: data.email,
         department: data.department,
         dateOfBirth: data.dateOfBirth,
+        startDate: data.startDate,
         role: (data.role as UserRole) || 'EMPLOYEE',
         isActive: data.isActive ?? true,
         isContributor: data.isContributor ?? true,
@@ -515,6 +517,67 @@ export async function createEmployee(data: {
     return { success: true, user }
   } catch (error) {
     console.error('Error creating employee:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }
+  }
+}
+
+export async function updateEmployeeDates(userId: string, data: {
+  startDate?: Date | null
+  dateOfBirth?: Date | null
+  exitDate?: Date | null
+}) {
+  try {
+    // Check if user is authenticated and has MANAGER or ADMIN role
+    const session = await auth.api.getSession({
+      headers: await headers()
+    })
+
+    if (!session?.user) {
+      return { success: false, error: 'Unauthorized: You must be logged in' }
+    }
+
+    const currentUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true }
+    })
+
+    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'MANAGER')) {
+      return { success: false, error: 'Unauthorized: Only admins and managers can update employee dates' }
+    }
+
+    // Permission checks:
+    // - Managers can update startDate and exitDate
+    // - Admins can update startDate, exitDate, and dateOfBirth
+    const updateData: { startDate?: Date | null; dateOfBirth?: Date | null; exitDate?: Date | null } = {}
+
+    // Both managers and admins can update startDate
+    if (data.startDate !== undefined) {
+      updateData.startDate = data.startDate
+    }
+
+    // Both managers and admins can update exitDate
+    if (data.exitDate !== undefined) {
+      updateData.exitDate = data.exitDate
+    }
+
+    // Only admins can update dateOfBirth
+    if (data.dateOfBirth !== undefined) {
+      if (currentUser.role === 'ADMIN') {
+        updateData.dateOfBirth = data.dateOfBirth
+      } else {
+        return { success: false, error: 'Unauthorized: Only admins can update date of birth' }
+      }
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: updateData
+    })
+
+    revalidatePath('/admin/employees')
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating employee dates:', error)
     return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }
   }
 }

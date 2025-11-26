@@ -11,6 +11,7 @@ import { Button } from '../ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
+import { EditEmployeeDatesDialog } from './EditEmployeeDatesDialog'
 import {
   Select,
   SelectContent,
@@ -38,10 +39,11 @@ interface EmployeesProps {
       totalPages: number
     }
     isAdmin: boolean
+    isManager: boolean
     isFoodCommittee: boolean
 }
 
-const Employees = ({employees, pagination, isAdmin, isFoodCommittee}: EmployeesProps) => {
+const Employees = ({employees, pagination, isAdmin, isManager, isFoodCommittee}: EmployeesProps) => {
     const [searchTerm, setSearchTerm] = useState('')
     const [editingDepartment, setEditingDepartment] = useState<string | null>(null)
     const [departmentValue, setDepartmentValue] = useState('')
@@ -374,13 +376,25 @@ const Employees = ({employees, pagination, isAdmin, isFoodCommittee}: EmployeesP
                 <TableCell>{record.totalAmountContributed}</TableCell>
                 <TableCell>{record.totalContributionMonths}</TableCell>
                 <TableCell>
-                  {isAdmin && (
-                    <Button asChild size='icon' onClick={() => {
-                      handleDelete(record.id)
-                    }} className='bg-transparent hover:bg-red-600 cursor-pointer'>
-                      <Trash2Icon className="size-10 text-red-600 hover:text-white" />
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {(isAdmin || isManager) && (
+                      <EditEmployeeDatesDialog
+                        userId={record.id!}
+                        employeeName={record.name}
+                        currentStartDate={record.startDate}
+                        currentDateOfBirth={record.dateOfBirth}
+                        currentExitDate={record.exitDate}
+                        isAdmin={isAdmin}
+                      />
+                    )}
+                    {isAdmin && (
+                      <Button asChild size='icon' onClick={() => {
+                        handleDelete(record.id)
+                      }} className='bg-transparent hover:bg-red-600 cursor-pointer'>
+                        <Trash2Icon className="size-10 text-red-600 hover:text-white" />
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

@@ -7,10 +7,10 @@ import { useToast } from '@/hooks/use-toast'
 import React, { useState } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
 import { Button } from '../ui/button'
-import { PenBoxIcon, Trash2Icon, Cake, Loader2 } from 'lucide-react'
+import { PenBoxIcon, Trash2Icon, Cake, Loader2, Award } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
-import { deleteEvent, generateBirthdayEvents } from '@/lib/actions/events.actions'
+import { deleteEvent, generateBirthdayEvents, generateAnniversaryEvents } from '@/lib/actions/events.actions'
 import EventAdd from './AddEvent'
 import {
   AlertDialog,
@@ -39,8 +39,11 @@ interface Props {
 const AllEvents = ({ events }: Props) => {
     const [searchTerm, setSearchTerm] = useState('')
     const [generatingBirthdays, setGeneratingBirthdays] = useState(false)
+    const [generatingAnniversaries, setGeneratingAnniversaries] = useState(false)
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
+    const [selectedAnniversaryYear, setSelectedAnniversaryYear] = useState(new Date().getFullYear().toString())
     const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const [isAnniversaryDialogOpen, setIsAnniversaryDialogOpen] = useState(false)
     const { toast } = useToast()
 
     // Generate year options (current year to 5 years in the future)
@@ -112,19 +115,55 @@ const AllEvents = ({ events }: Props) => {
     }
   }
 
+  const handleGenerateAnniversaryEvents = async () => {
+    setGeneratingAnniversaries(true)
+    try {
+      const year = parseInt(selectedAnniversaryYear)
+      const result = await generateAnniversaryEvents(year)
+
+      if (result.success) {
+        toast({
+          title: 'Success!',
+          description: `Generated ${result.created} work anniversary events for ${result.year}. ${result.skipped! > 0 ? `Skipped ${result.skipped} existing events.` : ''}`,
+        })
+        setIsAnniversaryDialogOpen(false)
+        // Reload the page to show new events
+        setTimeout(() => {
+          window.location.reload()
+        }, 1500)
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: result.error || 'Failed to generate work anniversary events',
+        })
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'An unexpected error occurred'
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: message,
+      })
+    } finally {
+      setGeneratingAnniversaries(false)
+    }
+  }
+
   return (
     <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
         <div className="mx-auto max-w-7xl lg:p-8 bg-white rounded-md shadow-sm">
         <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle>Events</CardTitle>
-        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <AlertDialogTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <Cake className="h-4 w-4" />
-              Generate Birthday Events
-            </Button>
-          </AlertDialogTrigger>
+        <div className="flex gap-2">
+          <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Cake className="h-4 w-4" />
+                Generate Birthday Events
+              </Button>
+            </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Generate Birthday Events</AlertDialogTitle>
@@ -174,6 +213,65 @@ const AllEvents = ({ events }: Props) => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <AlertDialog open={isAnniversaryDialogOpen} onOpenChange={setIsAnniversaryDialogOpen}>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <Award className="h-4 w-4" />
+              Generate Anniversary Events
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Generate Work Anniversary Events</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will automatically create work anniversary events for all active employees who have a start date set in their profile.
+                Select the year for which you want to generate the events. Existing anniversary events will be skipped.
+                Note: Only anniversaries of 1 year or more will be created.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <div className="py-4">
+              <Label htmlFor="anniversary-year-select" className="text-sm font-medium">
+                Select Year
+              </Label>
+              <Select value={selectedAnniversaryYear} onValueChange={setSelectedAnniversaryYear}>
+                <SelectTrigger id="anniversary-year-select" className="mt-2">
+                  <SelectValue placeholder="Select year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {yearOptions.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                      {year === currentYear && ' (Current Year)'}
+                      {year === currentYear + 1 && ' (Next Year)'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-2">
+                {parseInt(selectedAnniversaryYear) === currentYear
+                  ? 'Generate events for the current year'
+                  : `Generate events for ${selectedAnniversaryYear}`}
+              </p>
+            </div>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={generatingAnniversaries}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleGenerateAnniversaryEvents} disabled={generatingAnniversaries}>
+                {generatingAnniversaries ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating for {selectedAnniversaryYear}...
+                  </>
+                ) : (
+                  `Generate Events for ${selectedAnniversaryYear}`
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        </div>
       </CardHeader>
       <CardContent>
         <Input

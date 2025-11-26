@@ -25,6 +25,9 @@ export type UserValues = Omit<z.infer<typeof UserSchema>, 'password' | "departme
   isActive?: boolean
   isContributor?: boolean
   canApproveBookings?: boolean
+  dateOfBirth?: Date | null
+  startDate?: Date | null
+  exitDate?: Date | null
 }
 
 // Contribution Schema
@@ -44,7 +47,7 @@ export const EventSchema = z.object({
   id: z.string().optional(),
   userId: z.string(),
   type: z.enum([
-    'BIRTHDAY', 'FUNERAL', 'CHILDBIRTH', 'MARRIAGE', 'OTHER',
+    'BIRTHDAY', 'WORK_ANNIVERSARY', 'FUNERAL', 'CHILDBIRTH', 'MARRIAGE', 'OTHER',
     'TEAM_BUILDING', 'TRAINING', 'MEETING', 'WORKSHOP',
     'CONFERENCE', 'TOWN_HALL', 'CELEBRATION'
   ]),
@@ -106,7 +109,7 @@ export type EventValues = Omit<z.infer<typeof EventSchema>, "description" | "loc
 
 export const EventCreateSchema = z.object({
   type: z.enum([
-    'BIRTHDAY', 'FUNERAL', 'CHILDBIRTH', 'MARRIAGE', 'OTHER',
+    'BIRTHDAY', 'WORK_ANNIVERSARY', 'FUNERAL', 'CHILDBIRTH', 'MARRIAGE', 'OTHER',
     'TEAM_BUILDING', 'TRAINING', 'MEETING', 'WORKSHOP',
     'CONFERENCE', 'TOWN_HALL', 'CELEBRATION'
   ]),
