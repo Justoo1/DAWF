@@ -117,7 +117,7 @@ const FoodsPage = async () => {
                         </div>
                         {food.price && (
                           <span className="text-sm font-medium text-green-600">
-                            ${food.price.toFixed(2)}
+                            ¢{food.price.toFixed(2)}
                           </span>
                         )}
                       </div>
