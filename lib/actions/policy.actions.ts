@@ -34,7 +34,6 @@ export async function fetchPolicyBySlug(slug: string) {
   try {
     const policy = await prisma.policy.findFirst({
       where: {
-        slug,
         isActive: true,
       },
     })
