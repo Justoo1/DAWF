@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#008a45",
+              "background-light": "#f5f8f7",
+              "background-dark": "#0f2319",
+            },
+            fontFamily: {
+              "display": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<title>Create Department Modal</title>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen relative overflow-hidden">
+<!-- Background: Dashboard (Dimmed) -->
+<div class="fixed inset-0 z-0 opacity-40 pointer-events-none select-none">
+<div class="layout-container flex h-full grow flex-col">
+<div class="px-4 md:px-40 flex flex-1 justify-center py-5">
+<div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/10 px-10 py-3">
+<div class="flex items-center gap-4 text-primary">
+<span class="material-symbols-outlined text-3xl">domain</span>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Departments</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<div class="bg-primary/10 rounded-full size-10" data-alt="User avatar placeholder"></div>
+</div>
+</header>
+<div class="pb-3 mt-4">
+<div class="flex border-b border-primary/10 px-4 gap-8">
+<div class="border-b-[3px] border-primary pb-[13px] pt-4"><p class="text-sm font-bold">All Departments</p></div>
+</div>
+</div>
+<div class="px-4 py-3">
+<div class="rounded-xl border border-primary/10 bg-white dark:bg-slate-900 h-64 w-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Backdrop Overlay -->
+<div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-10 flex items-center justify-center p-4">
+<!-- Modal Container -->
+<div class="bg-white dark:bg-slate-900 w-full max-w-[600px] rounded-xl shadow-2xl flex flex-col max-h-[921px] overflow-hidden border border-primary/10">
+<!-- Modal Header -->
+<div class="px-6 py-5 border-b border-primary/10 flex items-center justify-between bg-white dark:bg-slate-900 sticky top-0 z-20">
+<h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">Create New Department</h2>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="flex-1 overflow-y-auto p-6 space-y-6">
+<!-- Field 1: Department Name -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Department Name</label>
+<input class="w-full h-12 px-4 rounded-lg border border-primary/20 bg-background-light dark:bg-slate-800 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all" placeholder="e.g. Creative Design" type="text"/>
+</div>
+<!-- Field 2: Manager Dropdown -->
+<!-- Field 3: Assign Employees Section -->
+<div class="space-y-4">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Assign Employees</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full h-11 pl-10 pr-4 rounded-lg border border-primary/10 bg-background-light dark:bg-slate-800 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all" placeholder="Find employees to add..." type="text"/>
+</div>
+</div>
+<!-- Selected Employees List -->
+<div class="space-y-3">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Selected (3)</p>
+<!-- Employee Row 1 -->
+<div class="flex items-center gap-3 p-3 bg-primary/5 dark:bg-primary/10 rounded-lg border border-primary/10">
+<div class="size-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-primary">person</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold">Alex Rivera</p>
+<p class="text-xs text-slate-500">alex.r@company.com</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-xs font-medium text-primary">Senior Engineer</span>
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="w-4 h-4 rounded text-primary focus:ring-primary border-primary/30" type="checkbox"/>
+<span class="text-xs font-medium">Manager</span>
+</label>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+</div>
+<!-- Employee Row 2 -->
+<div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+<div class="size-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-400">person</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold">Sarah Chen</p>
+<p class="text-xs text-slate-500">sarah.c@company.com</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">Marketing Lead</span>
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="w-4 h-4 rounded text-primary focus:ring-primary border-primary/30" type="checkbox"/>
+<span class="text-xs font-medium">Manager</span>
+</label>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+</div>
+<!-- Employee Row 3 -->
+<div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+<div class="size-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-400">person</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold">James Wilson</p>
+<p class="text-xs text-slate-500">james.w@company.com</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">Sales Rep</span>
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="w-4 h-4 rounded text-primary focus:ring-primary border-primary/30" type="checkbox"/>
+<span class="text-xs font-medium">Manager</span>
+</label>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="px-6 py-4 border-t border-primary/10 flex items-center justify-end gap-3 bg-background-light/50 dark:bg-slate-800/30">
+<button class="px-5 h-11 rounded-lg text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    Cancel
+                </button>
+<button class="px-6 h-11 rounded-lg bg-primary text-white font-bold text-sm hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">add_circle</span>
+                    Create Department
+                </button>
+</div>
+</div>
+</div>
+</body></html>

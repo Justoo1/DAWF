@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#008a45",
+                        "background-light": "#f5f8f7",
+                        "background-dark": "#0f2319",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Departments - Employee Welfare System</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="p-6 flex items-center gap-3">
+<div class="size-10 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">shield_person</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-white text-sm font-bold leading-tight">Welfare System</h1>
+<p class="text-primary text-xs font-medium">Admin Panel</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-6 overflow-y-auto">
+<div>
+<p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">General</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span class="text-sm font-medium">Employee List</span>
+</a>
+</div>
+</div>
+<div>
+<p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Leave Management</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span>
+<span class="text-sm font-medium">Leave Requests</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg" href="#">
+<span class="material-symbols-outlined text-[20px]">corporate_fare</span>
+<span class="text-sm font-bold">Departments</span>
+</a>
+</div>
+</div>
+<div>
+<p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Organization</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">description</span>
+<span class="text-sm font-medium">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">payments</span>
+<span class="text-sm font-medium">Payroll</span>
+</a>
+</div>
+</div>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="text-sm font-medium">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- Header/Top Bar -->
+<header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8">
+<div class="flex items-center gap-4">
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Departments</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
+<input class="pl-10 pr-4 py-2 w-64 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/50 transition-all" placeholder="Search departments..." type="text"/>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                        Create Department
+                    </button>
+<div class="h-8 w-[1px] bg-slate-200 dark:bg-slate-700 mx-2"></div>
+<button class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="size-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-primary/20">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="User profile avatar circle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoDnqz0TNS175Sxy4r85iQPB3QNBEz8iGiabB8kbvfl-kLhBvDW7Ey5BuIPlDsEW8DuzIWwGqIRHfTn3ugP_KoVjHavLSq6leM5_ZfFhqk3un6NWutNU_chC7iH0nfIqh7HTXVYrB4_VRN-anvGF_mnpNdiK3hk0P-OOxNQ7Qm0IDP-eA6zfZqBB647DslOFBqetFFrnxc40-qu5Lz8g8YjH4TeCgt2rLNFtE-VGI6cvMt8dy5Yz8Rg6M89a5KLiN5lQYe50TuSC4P"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="flex-1 overflow-y-auto p-8">
+<div class="mb-6 flex flex-col gap-1">
+<h3 class="text-2xl font-extrabold text-slate-900 dark:text-white">Organizational Units</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Overview and management of all active company departments</p>
+</div>
+<!-- Table Card -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Department Name</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Manager</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Total Employees</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+</div>
+<span class="text-sm font-semibold text-slate-900 dark:text-white">Engineering</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Manager avatar" class="size-8 rounded-full border border-slate-200" data-alt="Portrait of Engineering Manager avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJnf_VG5GObG3KrCuBXPKzCT5eaw8UdbwyjCzyObfEYGLbNzgk_7SKJbouEai-sFloQuntzbsUlDEclPa9Iv991yik8MKzMr8xxUjeHA4Fn_BMGCTml6RueBztlTqQ8QIa7MJeKCQruEhjFItlostzYT23oVLx5f-Hf2SavTP0AkP4q_qH2zLlkKT0_qCiIDkn33y9gd44OLPnnF4-22Wh7vgDMUziRSdFa9ve2C-5QUz5gt-t2SD97RwFERygUrkBsVBNxbsCuIIR"/>
+<span class="text-sm text-slate-600 dark:text-slate-400 font-medium">Alex Rivers</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="text-sm font-bold text-primary">124</span>
+<div class="flex -space-x-2">
+<img class="size-5 rounded-full border border-white" data-alt="Employee mini avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_Re3b954QGodrgsxg2A81CmqPugDNCzO9ggw9bsZtUHUsW05VsjN1itKRUWBe10NVez2ISj2mOo5mBR3Ceuqt7g7bCFqQwZWCyHyTl9TJCSASsK5NThr4Pytwj0J8bI2Q1bZQX5s6aQix6-3DLgFenN7G23vllIXPJVWUHBAwnfA4fpdHdWgXJbxqEKQLOy7BSnJqr0Esfpx2wHe4nf-DBUf9GnaqxIFUT5IUH60Mh9rp3P4Siw4jeyDKhovUJn7UW9ByBAA36LYD"/>
+<img class="size-5 rounded-full border border-white" data-alt="Employee mini avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAY2MF2V8fbjFXkPYZmPk0luCgiajhPg1Q9GJQumWu7QJtxFoATehmOiqLhFUdoFf9cpJdTD2XGHKYB_G5BHyq2TSAsMucZUe-gq7jL_GwOSHmxdGLZdoXX5oXKClkwI773A9ZrqZ2PSJeG1h0OfqRJ6wkFy3sKnX0z2EWC0NgxrCiVPwojNhlekBD4QiyEswxjbe-Gry6T_dhjKwcb0_JE1ZNs4vVNTEhI7B4je5-XrCaXBpIlo9035eL70a888uvjAMRC938e8Ofj"/>
+<div class="size-5 rounded-full bg-slate-200 flex items-center justify-center text-[8px] font-bold">+122</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary">
+                                            Active
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">campaign</span>
+</div>
+<span class="text-sm font-semibold text-slate-900 dark:text-white">Marketing</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Manager avatar" class="size-8 rounded-full border border-slate-200" data-alt="Portrait of Marketing Manager avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-Xlt38RNPdjw0MIuZvpqm6YlZAeVoBlUAg4rG3AV4S4-HfmZahauYQeAsHHZ0zK5YmZGXAEuteOg4FTjDxHe94r1-nsGaabLQCZ1MLBFxd4fAJSITftW9TQlnBIgPnCLDZbP0gEREUxryy5efN26dJYXxrj5MABcfgpNgdRcWVyK5Y2rDzX4e1dvLWV12XMLbBKraZJ2mgJJ-Yzn-DXGPGyZfYkzDnUfW2zhA4nQSC6-PFcMckW9IrJtLAKgaoIEEgyE6FIf0qIDF"/>
+<span class="text-sm text-slate-600 dark:text-slate-400 font-medium">Sarah Jenkins</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="text-sm font-bold text-primary">42</span>
+<div class="flex -space-x-2">
+<img class="size-5 rounded-full border border-white" data-alt="Employee mini avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCy_no6cBzQ7OSQjdwADCdzBGW8mzK_vuLnLDHHoViCCwrMWkP4l5jMfJgffm_Jfi2SIOtQWoJAsoxjmVRfx8CQLnWaghB3aI1IRF-EdPJe_qAyLqJudV4MCvVLVXrBXbYtMxrnk8Z9l3ML0Ma0E43Q1m-OdnYodtDo9I_R5DOzbGsqwIdKLSANDX9ABCdQjHsy8cjezqXhNDdPiLug2SvQQGajMOlKzpyOkT_Dc9xjhHQRsOWSYn639qLh5DoYV38vHJU-ArhmoD0T"/>
+<img class="size-5 rounded-full border border-white" data-alt="Employee mini avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQ9bhTEuqYWWrBrH_CXo7B-5nCtzddUleLlyDt2zEN8y7uyidJO6xpm5LrdEQa7go6SoolY2i0fGBW13LTUJ6MHAdalti-OGJ9rek5TEgxhZ7tuXHIH3VojNjqj1_nDZlJlJL8TjCrCvZ5-x_o4QGYZKiMatj0vNyez3_Gchpkyz984iRoBtPkKgs60paIFSoFkNRaCLhqsS9MJ5e3i73l16Qowf8ZNx8vODpPmPQBWdjiOkJnfWxFxycpu8dw9qUOugcgm4JLwNrq"/>
+<div class="size-5 rounded-full bg-slate-200 flex items-center justify-center text-[8px] font-bold">+40</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary">
+                                            Active
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">badge</span>
+</div>
+<span class="text-sm font-semibold text-slate-900 dark:text-white">Human Resources</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Manager avatar" class="size-8 rounded-full border border-slate-200" data-alt="Portrait of HR Manager avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACOrgMeLBXjqG0iG_hIXazUxakhOsZ92WBPOcxP2f0dgwl8Z4exrm3BubXTjsJ9RZp87KjWk3VP-kdvOcDPO5Zxv8fuNgrU7j1dDjbIjEZ9HcPVg8Z9LzXzZp1ANC0uAjCKGAvC-Fs3Z-1TRMZWmNuVFZrODmBcbnYJ7IynjbkE2_NWT8KsXwA7RiqPpDjM7nI1r-aQO6PcDbiS1za4Ly6V_opAwjS44vfmWfgfqasnfSRO5OHaU7WwDKDlFo_S8WAlXSQy68j5E-X"/>
+<span class="text-sm text-slate-600 dark:text-slate-400 font-medium">Michael Chen</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="text-sm font-bold text-primary">18</span>
+<div class="flex -space-x-2">
+<img class="size-5 rounded-full border border-white" data-alt="Employee mini avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIt9NLg2P9PcdcfxJg2BhJZLRUHsqVzBJiwSzkG6IyzZKfc3rn8KTKrIukXFxmHsHQ9FPM8HGZ_YcsOH0Vgt4e1Hy0kc4602zMiEAosWgXuZ9bNEx_Y1sQ7RbfdRvlG2HNk7QHisoeRIli8nJxDhaLWhyNJwdHCJSTlzA_9RCvRCOn_2p5tPkj59ahsb-pezBVEuUl-PWLsxRD9EY2hK4mtzDh7AVoUZ4LK-Y9ujLwtF1IFQiAa8zq1Kq-lC1U5PybMWKW0SCvhHcS"/>
+<img class="size-5 rounded-full border border-white" data-alt="Employee mini avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhi8dY042xjMUdq5ESsSbsDS0HzyY-Vmk03tdxOdpV9ign7JSHXcDgERrmUQDqGY0Bu4b8jOD-pYXjjOcCUWCIElu31IdxXzEuBXslD98yH5Pp6K0w9Ao4w4_mw9YwdLMnJLFUQ7d9bbioCm6eykRioMSxYV3gux6YSFbW4S05PKjZuGJc_Xn2iI19ERJJE6jGXs1AJ6ZTfpmDIOfYBaY9oeWLYOwfGLUWXV9SHcrGid9Ou0sq1Zl8P8BwBBfqEyp5fHBUlJPlIj9s"/>
+<div class="size-5 rounded-full bg-slate-200 flex items-center justify-center text-[8px] font-bold">+16</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary">
+                                            Active
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">payments</span>
+</div>
+<span class="text-sm font-semibold text-slate-900 dark:text-white">Finance &amp; Accounts</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Manager avatar" class="size-8 rounded-full border border-slate-200" data-alt="Portrait of Finance Manager avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAgGBfd_dFaEgIvCxvJR6JdFZRUIRgRBzlMGtqbdBtYC5c3cVrwge2tOdNqw9Rx6wzZol3g0ayjsFIzTNsCjumR5TZuKM4CwxWpsSdukwUnzW0jLNZkLQmSB8OIiRnc9AH0_ux90awT9oBbi27gkALQDhOvarKPEE36twhuteytc87OoiE7mZKPBYj1tQs5wzdcjqQpcxNSqqOYYvLCqDO77OvuJt11UJaaNX1EN34Oz6_weP1NxOGOvnTQ3VATRKzyeXZGsAi3Z9p"/>
+<span class="text-sm text-slate-600 dark:text-slate-400 font-medium">Elena Rodriguez</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="text-sm font-bold text-primary">31</span>
+<div class="flex -space-x-2">
+<img class="size-5 rounded-full border border-white" data-alt="Employee mini avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6V6aHUU0tiHrr_Hl8gTnAMSEg4HV2oQimy4oHMlTz2UYVgxkG0knlxySS8eF99uvWm5aFFcQ9wA8LmeaBU0VL0Y1q4TSjGOKf2xwwmbYEFc70oVwwTWEQB0EwhQWYjGBH5RKXIVDbyVgc52ct6_rdRP5f0J8AIGDaHN_rMUdvXlQjil9tGdrVMAZL0XTnN0CkuykGTaLXaXGKaxYcJbsL9bDJbWIANtUjXjySVxfnGaHnaEBaVuWocHDUd08T8460SFqBNJLIWBmy"/>
+<img class="size-5 rounded-full border border-white" data-alt="Employee mini avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5WoY-5u_26fcK2eKouj1AZeK9QSdtnzFwtxQ9szYSe1pFgtNbEnLnfbaJ5HXRhYhEndq6OGmUt4W4SobOGEqUGji6HVpWVaRoIJ615nvF3ipuQLLfql1A2AVmabZoH7d2VUs8r3saHjluJGX7fnC_ElxPpTm5fpHTWzZrqMC_IGbjPh4-vlw8R3CYlsGojATq1BGZuYWamHxZcy2B_TcxD0qBQguRiIogJ-o8DkfvrXQO9v8_oNaQu8cJoY_yvZaAGKPjwykGUWgb"/>
+<div class="size-5 rounded-full bg-slate-200 flex items-center justify-center text-[8px] font-bold">+29</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary">
+                                            Active
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination-like Footer -->
+<div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<p class="text-sm text-slate-500">Showing 4 departments</p>
+<div class="flex gap-2">
+<button class="px-3 py-1 border border-slate-200 dark:border-slate-700 rounded text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 disabled:opacity-50" disabled="">Previous</button>
+<button class="px-3 py-1 border border-slate-200 dark:border-slate-700 rounded text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50">Next</button>
+</div>
+</div>
+</div>
+<!-- Stats Summary Section -->
+<div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl p-6 flex items-center gap-4">
+<div class="size-12 rounded-full bg-primary text-white flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">corporate_fare</span>
+</div>
+<div>
+<p class="text-xs font-bold text-primary uppercase tracking-widest">Total Depts</p>
+<h4 class="text-2xl font-black text-slate-900 dark:text-white">12</h4>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 flex items-center gap-4 shadow-sm">
+<div class="size-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">groups</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Employees</p>
+<h4 class="text-2xl font-black text-slate-900 dark:text-white">452</h4>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 flex items-center gap-4 shadow-sm">
+<div class="size-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">person_check</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Active Managers</p>
+<h4 class="text-2xl font-black text-slate-900 dark:text-white">12</h4>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#008a45",
+                        "background-light": "#f5f8f7",
+                        "background-dark": "#0f2319",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<title>Leave Management - Manage Employees</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="flex min-h-screen">
+<!-- Side Navigation -->
+<aside class="w-72 border-r border-primary/10 bg-white dark:bg-background-dark/50 flex flex-col h-screen sticky top-0 overflow-y-auto">
+<div class="p-6 flex items-center gap-3 shrink-0">
+<div class="h-10 w-10 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">event_available</span>
+</div>
+<h1 class="font-bold text-sm tracking-wider uppercase text-slate-700 dark:text-slate-200">HR Portal</h1>
+</div>
+<nav class="flex-1 px-4 pb-6 space-y-6">
+<!-- General Section -->
+<div>
+<p class="px-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-2">General</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span> Dashboard
+                        </a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">policy</span> Policies
+                        </a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">assessment</span> Reports
+                        </a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">analytics</span> Analytics
+                        </a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">book_online</span> Bookings
+                        </a>
+</div>
+</div>
+<!-- Welfare Section -->
+<div>
+<p class="px-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-2">Welfare</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">volunteer_activism</span> Contributors
+                        </a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">person_add_alt</span> Add Contributor
+                        </a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">payments</span> Expenses
+                        </a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">add_card</span> Add Expenses
+                        </a>
+</div>
+</div>
+<!-- Events Section -->
+<div>
+<p class="px-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-2">Events</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">event</span> Events
+                        </a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">event_upcoming</span> Add events
+                        </a>
+</div>
+</div>
+<!-- Leave Management Section -->
+<div>
+<p class="px-4 text-[10px] font-bold text-primary uppercase tracking-[0.15em] mb-2">Leave Management</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg bg-primary text-white shadow-sm shadow-primary/20 transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">group</span> Manage Employees
+                        </a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">description</span> Manage Request
+                        </a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">add_circle</span> Create Leave
+                        </a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all text-sm font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">domain</span> Departments
+                        </a>
+</div>
+</div>
+</nav>
+<div class="p-4 border-t border-primary/10 shrink-0">
+<div class="flex items-center gap-3 px-4 py-3">
+<div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-sm">settings</span>
+</div>
+<span class="text-sm font-medium text-slate-600 dark:text-slate-400">Settings</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 p-8 lg:p-12 max-w-7xl mx-auto w-full">
+<header class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<h2 class="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Manage Employees</h2>
+<button class="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-[20px]">person_add</span>
+                    Add New Employee
+                </button>
+</header>
+<!-- Filters Area -->
+<section class="bg-white dark:bg-slate-900 rounded-lg border border-primary/10 p-4 mb-6 shadow-sm">
+<div class="flex flex-wrap items-center gap-4">
+<div class="flex-1 min-w-[300px] relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/60">search</span>
+<input class="w-full pl-10 pr-4 py-2.5 bg-background-light dark:bg-background-dark/50 border border-primary/10 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none text-sm" placeholder="Search employees by name, ID or email..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<div class="relative">
+<select class="appearance-none bg-background-light dark:bg-background-dark/50 border border-primary/10 rounded-lg pl-4 pr-10 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-primary outline-none cursor-pointer">
+<option>All Departments</option>
+<option>Engineering</option>
+<option>Marketing</option>
+<option>Design</option>
+<option>Human Resources</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">expand_more</span>
+</div>
+<div class="relative">
+<select class="appearance-none bg-background-light dark:bg-background-dark/50 border border-primary/10 rounded-lg pl-4 pr-10 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-primary outline-none cursor-pointer">
+<option>Status: Active</option>
+<option>Status: Inactive</option>
+<option>Status: All</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">filter_list</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Data Table -->
+<section class="bg-white dark:bg-slate-900 rounded-lg border border-primary/10 shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-background-light dark:bg-background-dark/30 border-b border-primary/10">
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Employee Name</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Department</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Leave Requested</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Latest / Upcoming Leave</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-primary/5">
+<!-- Row 1 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 overflow-hidden border border-primary/20">
+<img class="w-full h-full object-cover" data-alt="Corporate headshot of employee Sarah Jenkins" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBQKSjs0Cet7ugBh1MWYI27m8EpPehWIpQNh6Aosglxj1m-p9oD9j2Y-PS-Bjczc-RkxtVr3NpvXA8bZ_fxEEOPvCnLDKojyQXQHSJBcQS2ejJ2HHoBdyZAW1H94LLY8i5gl86yzDOZQ4leviCwe2IQUT8uWFIMN6fdPPiY7sn0DWilzi24Ynw3C8U2WDJpWWJDR_GWdDOuM9irYo1hdOqb-ZIZ3eS1pl4h17RyHvPqeu-bAmZPABy-NFPeNzs9ahkde8nyBDWSYiI"/>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100 text-sm">Sarah Jenkins</p>
+<p class="text-xs text-slate-500">sarah.j@company.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-tight">Engineering</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold">08</span>
+<span class="text-xs text-slate-500">Total days</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1">
+<p class="text-sm font-medium text-slate-700 dark:text-slate-300">Oct 12 - Oct 15, 2023</p>
+<div>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 uppercase tracking-wide">Approved</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-primary/10 rounded-full transition-colors text-slate-400 group-hover:text-primary">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 overflow-hidden border border-primary/20">
+<img class="w-full h-full object-cover" data-alt="Corporate headshot of employee David Chen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfvNbbsGsP1gxYzqvmWg8Ty9I4ewF1oDmRKuh_FOJozUsuEhqxvr2LgLHwTp35FIgzQIGJ4A56qB7cvhjQphJcFDpRGMw6JOk6QtduX_uU3R3G2vv2YurAWDjZs5fqJDVJYql1XlgbXBsbERpAwwYvzuozMGlZ8AnWvLQZ9gvm1-QSguu5oV1kn7wwavSVSTQmZSKeKBbL3dfga3C5aNBl6cPQC43JbvwRYIpiiX4INOKVgY7ycuCkRYKUUpH7gSp6_nmI0b9Spufs"/>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100 text-sm">David Chen</p>
+<p class="text-xs text-slate-500">david.c@company.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-tight">Marketing</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold">03</span>
+<span class="text-xs text-slate-500">Total days</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1">
+<p class="text-sm font-medium text-slate-700 dark:text-slate-300">Nov 01 - Nov 03, 2023</p>
+<div>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 uppercase tracking-wide">Pending</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-primary/10 rounded-full transition-colors text-slate-400 group-hover:text-primary">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 overflow-hidden border border-primary/20">
+<img class="w-full h-full object-cover" data-alt="Corporate headshot of employee Elena Rodriguez" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2XSqd8pO8hK2NvPyFy1CUO6kSnBN7JbuC4UyLj397QFSfaaC89zhp-0-O1HHo01tMQiVLftFiUy5C_OvX8nsHWZMvIbcMMgKZRnUW07aq9ZJprPtD8xQB5DIoebE38h64za8kTPzF-8U10AlnlWfhTS--J8T4LgTVPjG6v01LsQkhRNZUchHLPmZyAJHshZMv7QqPK0vAIyRAx5oSbgWNtgqA7pX_saTsXCpW-fGhwmAUdFmmU6oPv-ltOLJpbEUhi3qARdb2gtdG"/>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100 text-sm">Elena Rodriguez</p>
+<p class="text-xs text-slate-500">elena.r@company.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-tight">Design</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold">12</span>
+<span class="text-xs text-slate-500">Total days</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1">
+<p class="text-sm font-medium text-slate-700 dark:text-slate-300">Oct 28 - Oct 30, 2023</p>
+<div>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 uppercase tracking-wide">Approved</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-primary/10 rounded-full transition-colors text-slate-400 group-hover:text-primary">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 overflow-hidden border border-primary/20">
+<img class="w-full h-full object-cover" data-alt="Corporate headshot of employee Marcus Thorne" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALI5KWtPDX6VZKvHSHVOJIPNMGP_hpE-imIeR0RG6L9Id__E1-Mjr0_56aJxB5GErGTKeaFaxl-wc5UXTBUsEgIsddAYVtCxQN9QtsJhXI-ekTJlIV7qq8JLBuFCMgAbISSDNGIuJ0tb5nC0U45QVumcsT2591ulet-ZemVwvfKUDI2uKc5HiLm9p0LNYthwNaQkkdm7hMoXZemCyFV4qyH6eO34QgbzYKSWEJYfsjh02ypocUti-ZYa06B59ehKdegYLWd7K8KhLj"/>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100 text-sm">Marcus Thorne</p>
+<p class="text-xs text-slate-500">marcus.t@company.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-tight">Engineering</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold">00</span>
+<span class="text-xs text-slate-500">Total days</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1 text-slate-400 italic text-xs">
+                                        No upcoming leave scheduled
+                                    </div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-primary/10 rounded-full transition-colors text-slate-400 group-hover:text-primary">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination footer -->
+<div class="px-6 py-4 bg-background-light dark:bg-background-dark/30 border-t border-primary/10 flex items-center justify-between">
+<p class="text-xs text-slate-500 font-medium">Showing <span class="text-slate-900 dark:text-slate-100">4</span> of <span class="text-slate-900 dark:text-slate-100">128</span> employees</p>
+<div class="flex items-center gap-2">
+<button class="p-1.5 rounded-lg border border-primary/10 bg-white dark:bg-slate-900 text-slate-400 hover:text-primary transition-colors disabled:opacity-50">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-bold">1</button>
+<button class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 text-xs font-bold">2</button>
+<button class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 text-xs font-bold">3</button>
+<button class="p-1.5 rounded-lg border border-primary/10 bg-white dark:bg-slate-900 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+</div>
+</body></html>

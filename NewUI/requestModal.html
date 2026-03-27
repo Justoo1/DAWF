@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#008744",
+                        "background-light": "#f5f8f7",
+                        "background-dark": "#0f2319",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Leave Management - Request Leave</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<!-- Main Background (Manage Requests Table) -->
+<div class="relative flex h-screen w-full flex-col overflow-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Navbar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/10 px-10 py-3 bg-white/80 backdrop-blur-md">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-6">
+<span class="material-symbols-outlined text-3xl">holiday_village</span>
+</div>
+<h2 class="text-slate-900 font-bold text-lg leading-tight tracking-[-0.015em]">Leave Management</h2>
+</div>
+<div class="flex items-center gap-9">
+<a class="text-slate-600 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-slate-600 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Employees</a>
+<a class="text-primary text-sm font-bold leading-normal" href="#">Requests</a>
+<a class="text-slate-600 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Reports</a>
+</div>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<label class="flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-primary flex border-none bg-primary/10 items-center justify-center pl-4 rounded-l-lg" data-icon="search">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 rounded-lg text-slate-900 focus:outline-0 focus:ring-0 border-none bg-primary/10 placeholder:text-primary/60 px-4 rounded-l-none pl-2 text-base font-normal" placeholder="Search" value=""/>
+</div>
+</label>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" data-alt="Profile picture of a professional manager" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBx6ycuI5XiA-vTgGTv9liBOvzu0BTz3C_B2H0iXJsyvcP2sKSK2hqGKfyKx3ZHyEmUO9wtO1lZ36N_DbNF3X52z_CBFkT6VMvlhpbbAm-cny1TdB5sl3goTcyXk3vzVgTzezPIxvYPUUhJtjvxxDjH3a6lCTK2pwHaOATJvLYyHxOOL_2ETkqWazBd3mpDyI6WrDMDg--I2NgNO86U-mYWZ_UjhV5CAmInbVujCAl4Kn8oICPl8s9hxI2JwfYahNz6bslzVHWJJn1P");'></div>
+</div>
+</header>
+<!-- Main Content Area (Background State) -->
+<main class="flex-1 overflow-y-auto px-10 py-8 opacity-40 grayscale-[20%] pointer-events-none">
+<div class="max-w-5xl mx-auto">
+<div class="flex flex-wrap justify-between gap-3 pb-6">
+<div class="flex flex-col gap-1">
+<h1 class="text-slate-900 text-4xl font-black leading-tight tracking-[-0.033em]">Manage Requests</h1>
+<p class="text-primary font-medium">Review and approve employee leave applications</p>
+</div>
+<button class="flex items-center justify-center rounded-lg h-10 px-6 bg-primary text-white text-sm font-bold tracking-[0.015em] shadow-lg shadow-primary/20">
+                            New Request
+                        </button>
+</div>
+<div class="overflow-hidden rounded-lg border border-primary/10 bg-white shadow-sm">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-slate-50 border-b border-primary/5">
+<th class="px-6 py-4 text-sm font-bold text-slate-700">Employee</th>
+<th class="px-6 py-4 text-sm font-bold text-slate-700">Leave Type</th>
+<th class="px-6 py-4 text-sm font-bold text-slate-700">Duration</th>
+<th class="px-6 py-4 text-sm font-bold text-slate-700">Status</th>
+<th class="px-6 py-4 text-sm font-bold text-primary text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-primary/5">
+<tr>
+<td class="px-6 py-5 text-sm font-medium text-slate-900">Sarah Jenkins</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">Annual Leave</span>
+</td>
+<td class="px-6 py-5 text-sm text-slate-600">Oct 12 - Oct 15</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-wider">Pending</span>
+</td>
+<td class="px-6 py-5 text-right text-primary font-bold text-sm">Review</td>
+</tr>
+<tr>
+<td class="px-6 py-5 text-sm font-medium text-slate-900">Marcus Thorne</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 rounded-full bg-red-50 text-red-600 text-xs font-bold">Sick Leave</span>
+</td>
+<td class="px-6 py-5 text-sm text-slate-600">Oct 05 - Oct 06</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">Approved</span>
+</td>
+<td class="px-6 py-5 text-right text-primary font-bold text-sm">Details</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
+<div class="w-full max-w-[540px] bg-white rounded-lg shadow-2xl overflow-hidden border border-primary/10 animate-in fade-in zoom-in duration-200">
+<!-- Modal Header -->
+<div class="px-8 py-6 border-b border-primary/5 flex justify-between items-center">
+<div>
+<h2 class="text-2xl font-black text-slate-900 tracking-tight">Request Leave</h2>
+<p class="text-slate-500 text-sm mt-1 font-medium">Create a new leave application for an employee</p>
+</div>
+<button class="text-slate-400 hover:text-slate-600 transition-colors">
+<span class="material-symbols-outlined text-2xl">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="px-8 py-6 flex flex-col gap-6">
+<!-- Employee Selection -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-slate-800">Employee Selection</label>
+<div class="relative">
+<select class="w-full appearance-none rounded-lg border-2 border-primary/10 bg-slate-50 py-3 px-4 text-slate-900 focus:border-primary focus:ring-0 transition-all cursor-pointer font-medium">
+<option disabled="" value="">Select employee</option>
+<option selected="" value="sarah">Sarah Jenkins</option>
+<option value="marcus">Marcus Thorne</option>
+<option value="elena">Elena Rodriguez</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-primary">
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Available Leave Balance -->
+<div class="bg-primary/5 border border-primary/20 rounded-lg p-4 flex flex-col gap-2">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-lg">info</span>
+<span class="text-xs font-bold uppercase tracking-wider">Available Leave Balance</span>
+</div>
+<div class="flex justify-between items-center text-sm font-bold text-slate-700">
+<div class="flex flex-col items-center flex-1 border-r border-primary/10">
+<span class="text-primary text-lg">18</span>
+<span class="text-[10px] text-slate-400 uppercase tracking-tighter">Annual</span>
+</div>
+<div class="flex flex-col items-center flex-1 border-r border-primary/10">
+<span class="text-primary text-lg">12</span>
+<span class="text-[10px] text-slate-400 uppercase tracking-tighter">Sick</span>
+</div>
+<div class="flex flex-col items-center flex-1">
+<span class="text-primary text-lg">5</span>
+<span class="text-[10px] text-slate-400 uppercase tracking-tighter">Casual</span>
+</div>
+</div>
+</div>
+<!-- Leave Type & Number of Days -->
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-slate-800">Leave Type</label>
+<div class="relative">
+<select class="w-full appearance-none rounded-lg border-2 border-primary/10 bg-slate-50 py-3 px-4 text-slate-900 focus:border-primary focus:ring-0 transition-all font-medium">
+<option value="annual">Annual Leave</option>
+<option value="sick">Sick Leave</option>
+<option value="casual">Casual Leave</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-primary">
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-slate-800">Number of Days</label>
+<input class="w-full rounded-lg border-2 border-primary/10 bg-slate-50 py-3 px-4 text-slate-900 focus:border-primary focus:ring-0 transition-all font-medium" type="number" value="3"/>
+</div>
+</div>
+<!-- Date Range -->
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-slate-800">Start Date</label>
+<div class="relative">
+<input class="w-full rounded-lg border-2 border-primary/10 bg-slate-50 py-3 px-4 text-slate-900 focus:border-primary focus:ring-0 transition-all font-medium" type="date" value="2023-10-20"/>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-primary/40">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-slate-800">End Date</label>
+<div class="relative">
+<input class="w-full rounded-lg border-2 border-primary/10 bg-slate-50 py-3 px-4 text-slate-900 focus:border-primary focus:ring-0 transition-all font-medium" type="date" value="2023-10-23"/>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-primary/40">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="px-8 py-6 bg-slate-50 border-t border-primary/5 flex justify-end gap-4">
+<button class="px-6 py-3 rounded-lg text-slate-600 font-bold text-sm hover:bg-slate-200 transition-colors">
+                        Cancel
+                    </button>
+<button class="px-8 py-3 rounded-lg bg-primary text-white font-bold text-sm shadow-lg shadow-primary/30 hover:bg-primary/90 transition-all active:scale-95">
+                        Submit Request
+                    </button>
+</div>
+</div>
+</div>
+</div>
+</body></html>
