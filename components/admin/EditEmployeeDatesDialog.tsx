@@ -101,8 +101,8 @@ export function EditEmployeeDatesDialog({
           Edit Dates
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[min(90vh,920px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[500px]">
+        <DialogHeader className="border-b border-border/60 px-6 py-4 text-left">
           <DialogTitle>Edit Employee Dates</DialogTitle>
           <DialogDescription>
             {isAdmin
@@ -111,51 +111,56 @@ export function EditEmployeeDatesDialog({
             }
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            {/* Date of Birth - Only visible to Admins */}
-            {isAdmin && (
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-6">
+            <div className="grid gap-4">
+              {/* Date of Birth - Only visible to Admins */}
+              {isAdmin && (
+                <div className="grid gap-2">
+                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                  <Input
+                    id="dateOfBirth"
+                    type="date"
+                    className="h-11 rounded-lg"
+                    value={formData.dateOfBirth}
+                    onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">Used for automatic birthday event generation</p>
+                </div>
+              )}
+
+              {/* Start Date - Visible to both Admins and Managers */}
               <div className="grid gap-2">
-                <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                <Label htmlFor="startDate">Employment Start Date</Label>
                 <Input
-                  id="dateOfBirth"
+                  id="startDate"
                   type="date"
-                  value={formData.dateOfBirth}
-                  onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                  className="h-11 rounded-lg"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                 />
-                <p className="text-xs text-gray-500">Used for automatic birthday event generation</p>
+                <p className="text-xs text-muted-foreground">Used for work anniversary event generation</p>
               </div>
-            )}
 
-            {/* Start Date - Visible to both Admins and Managers */}
-            <div className="grid gap-2">
-              <Label htmlFor="startDate">Employment Start Date</Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-              />
-              <p className="text-xs text-gray-500">Used for work anniversary event generation</p>
-            </div>
-
-            {/* Exit Date - Visible to both Admins and Managers */}
-            <div className="grid gap-2">
-              <Label htmlFor="exitDate">Exit Date</Label>
-              <Input
-                id="exitDate"
-                type="date"
-                value={formData.exitDate}
-                onChange={(e) => setFormData({ ...formData, exitDate: e.target.value })}
-              />
-              <p className="text-xs text-gray-500">Date when employee left the company</p>
+              {/* Exit Date - Visible to both Admins and Managers */}
+              <div className="grid gap-2">
+                <Label htmlFor="exitDate">Exit Date</Label>
+                <Input
+                  id="exitDate"
+                  type="date"
+                  className="h-11 rounded-lg"
+                  value={formData.exitDate}
+                  onChange={(e) => setFormData({ ...formData, exitDate: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">Date when employee left the company</p>
+              </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="border-t border-border/60 bg-muted/30 px-6 py-4 sm:justify-end">
             <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} className="gap-2 shadow-sm">
               {loading ? 'Saving...' : 'Save Changes'}
             </Button>
           </DialogFooter>

@@ -27,7 +27,7 @@ const EditMenuPage = async ({ params }: { params: Promise<{ id: string }> }) => 
 
   if (vendorsData.error || !vendorsData.vendors) {
     return (
-      <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+      <main className="admin-main">
         <div className="mx-auto max-w-6xl">
           <div className="text-red-500">Error loading vendors: {vendorsData.error}</div>
         </div>
@@ -37,7 +37,7 @@ const EditMenuPage = async ({ params }: { params: Promise<{ id: string }> }) => 
 
   if (foodsData.error) {
     return (
-      <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+      <main className="admin-main">
         <div className="mx-auto max-w-6xl">
           <div className="text-red-500">Error loading foods: {foodsData.error}</div>
         </div>
@@ -50,7 +50,7 @@ const EditMenuPage = async ({ params }: { params: Promise<{ id: string }> }) => 
   // Only allow editing if menu is in DRAFT status
   if (menu.status !== 'DRAFT') {
     return (
-      <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+      <main className="admin-main">
         <div className="mx-auto max-w-6xl">
           <Card>
             <CardContent className="py-12 text-center">
@@ -69,7 +69,7 @@ const EditMenuPage = async ({ params }: { params: Promise<{ id: string }> }) => 
   }
 
   return (
-    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+    <main className="admin-main">
       <div className="mx-auto max-w-6xl space-y-6">
         <div>
           <h1 className="text-2xl font-semibold text-gray-800">Edit Weekly Menu</h1>

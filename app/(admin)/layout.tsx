@@ -7,14 +7,34 @@ import { authClient } from '@/lib/auth-client'
 import { fetchUserWithContributions } from '@/lib/actions/users.action'
 import { UserRole } from '@/lib/permissions'
 
+const SIDEBAR_COLLAPSED_KEY = 'dawf-admin-sidebar-collapsed'
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean | null>(null)
   const [userRole, setUserRole] = useState<UserRole>('EMPLOYEE')
   const { data: session } = authClient.useSession()
+
+  useEffect(() => {
+    try {
+      setSidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true')
+    } catch {
+      setSidebarCollapsed(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (sidebarCollapsed === null) return
+    try {
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(sidebarCollapsed))
+    } catch {
+      /* ignore */
+    }
+  }, [sidebarCollapsed])
 
   useEffect(() => {
     const loadUserRole = async () => {
@@ -29,12 +49,23 @@ export default function RootLayout({
   }, [session])
 
   return (
-    <div className="flex h-full lg:h-screen bg-zinc-950/80">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} userRole={userRole} />
-        <div className="flex-1 flex flex-col overflow-hidden">
-        <Header onMenuClick={() => setSidebarOpen(true)} />
+    <div className="flex min-h-screen w-full bg-background lg:min-h-screen">
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        userRole={userRole}
+        collapsed={sidebarCollapsed ?? false}
+      />
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <Header
+          onMenuClick={() => setSidebarOpen(true)}
+          sidebarCollapsed={sidebarCollapsed ?? false}
+          onToggleSidebarCollapse={() =>
+            setSidebarCollapsed((c) => !(c ?? false))
+          }
+        />
         {children}
-        </div>
+      </div>
     </div>
   )
 }

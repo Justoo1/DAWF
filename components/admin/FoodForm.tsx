@@ -114,7 +114,7 @@ const FoodForm = ({ vendors, food, isEdit }: FoodFormProps) => {
               <FormLabel>Vendor *</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 rounded-lg">
                     <SelectValue placeholder="Select a vendor" />
                   </SelectTrigger>
                 </FormControl>
@@ -141,6 +141,7 @@ const FoodForm = ({ vendors, food, isEdit }: FoodFormProps) => {
                 <Input
                   {...field}
                   placeholder="e.g., Jollof Rice with Chicken"
+                  className="h-11 rounded-lg"
                 />
               </FormControl>
               <FormMessage />
@@ -158,6 +159,7 @@ const FoodForm = ({ vendors, food, isEdit }: FoodFormProps) => {
                 <Input
                   {...field}
                   placeholder="e.g., Main Course, Soup, Side Dish"
+                  className="h-11 rounded-lg"
                 />
               </FormControl>
               <FormDescription>
@@ -182,6 +184,7 @@ const FoodForm = ({ vendors, food, isEdit }: FoodFormProps) => {
                   value={field.value || ''}
                   onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                   placeholder="0.00"
+                  className="h-11 rounded-lg"
                 />
               </FormControl>
               <FormDescription>
@@ -202,7 +205,7 @@ const FoodForm = ({ vendors, food, isEdit }: FoodFormProps) => {
                 <Textarea
                   {...field}
                   placeholder="Describe the food item..."
-                  className="resize-none"
+                  className="resize-none rounded-lg min-h-[120px]"
                   rows={3}
                 />
               </FormControl>

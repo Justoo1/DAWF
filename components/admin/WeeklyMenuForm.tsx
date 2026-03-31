@@ -199,7 +199,7 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-11 rounded-lg">
                       <SelectValue placeholder="Select a vendor" />
                     </SelectTrigger>
                   </FormControl>
@@ -229,6 +229,7 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
                   <FormControl>
                     <Input
                       type="date"
+                      className="h-11 rounded-lg"
                       {...field}
                     />
                   </FormControl>
@@ -246,6 +247,7 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
                   <FormControl>
                     <Input
                       type="date"
+                      className="h-11 rounded-lg"
                       {...field}
                     />
                   </FormControl>
@@ -265,6 +267,7 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
                   <FormControl>
                     <Input
                       type="datetime-local"
+                      className="h-11 rounded-lg"
                       {...field}
                     />
                   </FormControl>
@@ -285,6 +288,7 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
                   <FormControl>
                     <Input
                       type="datetime-local"
+                      className="h-11 rounded-lg"
                       {...field}
                     />
                   </FormControl>
@@ -357,7 +361,7 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
                           disabled={!selectedVendorId}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-11 rounded-lg">
                               <SelectValue placeholder={selectedVendorId ? "Select a food item" : "Select vendor first"} />
                             </SelectTrigger>
                           </FormControl>
@@ -390,7 +394,7 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
                               {...field}
                               placeholder="Select a food above"
                               disabled
-                              className="bg-gray-50"
+                              className="bg-gray-50 h-11 rounded-lg"
                             />
                           </FormControl>
                           <FormMessage />
@@ -413,7 +417,7 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
                               onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                               placeholder="0.00"
                               disabled
-                              className="bg-gray-50"
+                              className="bg-gray-50 h-11 rounded-lg"
                             />
                           </FormControl>
                           <FormMessage />
@@ -432,7 +436,7 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
                           <Textarea
                             {...field}
                             placeholder="Select a food to see description..."
-                            className="resize-none bg-gray-50"
+                            className="resize-none bg-gray-50 rounded-lg min-h-[44px]"
                             rows={2}
                             disabled
                           />

@@ -1,208 +1,294 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
-import { Search, Trash2, User, X } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useEffect, useMemo, useState } from "react";
+import { Search, Trash2, User, PlusCircle, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
+import { fetchUsersIdAndName } from "@/lib/actions/users.action";
+import { createDepartment, addEmployeesToDepartment } from "@/lib/actions/department.actions";
 
 type Employee = {
-  id: string
-  name: string
-  email: string
-  title: string
-}
-
-const mockEmployees: Employee[] = [
-  { id: "alex", name: "Alex Rivera", email: "alex.r@company.com", title: "Senior Engineer" },
-  { id: "sarah", name: "Sarah Chen", email: "sarah.c@company.com", title: "Marketing Lead" },
-  { id: "james", name: "James Wilson", email: "james.w@company.com", title: "Sales Rep" },
-  { id: "michael", name: "Michael Chen", email: "michael.c@company.com", title: "HR Manager" },
-  { id: "elena", name: "Elena Rodriguez", email: "elena.r@company.com", title: "Finance Manager" },
-]
+  id: string;
+  name: string;
+  email: string;
+  title?: string;
+};
 
 export default function CreateDepartmentModal() {
-  const { toast } = useToast()
-  const [open, setOpen] = useState(false)
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [departmentName, setDepartmentName] = useState("");
+  const [search, setSearch] = useState("");
+  
+  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
+  const [selected, setSelected] = useState<Employee[]>([]);
+  const [managerId, setManagerId] = useState<string>("");
 
-  const [departmentName, setDepartmentName] = useState("")
-  const [search, setSearch] = useState("")
-  const [selected, setSelected] = useState<Employee[]>(mockEmployees.slice(0, 3))
-  const [managerId, setManagerId] = useState<string>(mockEmployees[0]?.id ?? "")
+  useEffect(() => {
+    if (open && allEmployees.length === 0) {
+      setIsLoading(true);
+      fetchUsersIdAndName().then((res) => {
+        if (res.success && res.users) {
+          const formatted = res.users
+            .filter(u => u.isActive)
+            .map((u) => ({
+              id: u.id,
+              name: u.name || "Unnamed",
+              email: u.email,
+              title: "Employee" // Placeholder as title isn't tracked in User
+            }));
+          setAllEmployees(formatted);
+        }
+        setIsLoading(false);
+      });
+    }
+  }, [open, allEmployees.length]);
 
-  const selectedCount = selected.length
+  const selectedCount = selected.length;
 
   const filteredEmployees = useMemo(() => {
-    const query = search.trim().toLowerCase()
-    if (!query) return selected
-    return selected.filter((emp) => {
-      return (
-        emp.name.toLowerCase().includes(query) ||
-        emp.email.toLowerCase().includes(query) ||
-        emp.title.toLowerCase().includes(query)
-      )
-    })
-  }, [search, selected])
+    const query = search.trim().toLowerCase();
+    
+    // Show unselected employees filtering by search
+    if (query) {
+      return allEmployees.filter((emp) => {
+        return (
+          emp.name.toLowerCase().includes(query) ||
+          emp.email.toLowerCase().includes(query)
+        );
+      }).slice(0, 10); // Show max 10 results
+    }
+    return [];
+  }, [search, allEmployees]);
+
+  const toggleEmployee = (emp: Employee) => {
+    setSelected((prev) => {
+      const exists = prev.find((p) => p.id === emp.id);
+      if (exists) {
+        const next = prev.filter((p) => p.id !== emp.id);
+        if (managerId === emp.id) setManagerId(next[0]?.id ?? "");
+        return next;
+      } else {
+        const next = [...prev, emp];
+        if (!managerId) setManagerId(emp.id);
+        return next;
+      }
+    });
+    setSearch(""); // clear search on selection
+  };
 
   const removeEmployee = (id: string) => {
     setSelected((prev) => {
-      const next = prev.filter((emp) => emp.id !== id)
-      if (managerId === id) setManagerId(next[0]?.id ?? "")
-      return next
-    })
-  }
+      const next = prev.filter((emp) => emp.id !== id);
+      if (managerId === id) setManagerId(next[0]?.id ?? "");
+      return next;
+    });
+  };
+
+  const handleCreate = async () => {
+    if (!departmentName.trim()) {
+      toast({ title: "Error", description: "Department name is required", variant: "destructive" });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      const deptRes = await createDepartment({ 
+        name: departmentName.trim(), 
+        managerId: managerId || null,
+        employeeIds: selected.map(e => e.id)
+      });
+
+      if (!deptRes.success) {
+        throw new Error(deptRes.error || "Failed to create department");
+      }
+
+      toast({
+        title: "Department created",
+        description: `${departmentName.trim()} with ${selectedCount} employee(s)`,
+      });
+      
+      setOpen(false);
+      // Reset form
+      setDepartmentName("");
+      setSelected([]);
+      setManagerId("");
+      setSearch("");
+    } catch (error: any) {
+      toast({
+        title: "Creation failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors"
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="gap-2 shadow-sm">
+          <PlusCircle className="h-4 w-4" />
+          Create Department
+        </Button>
+      </DialogTrigger>
+      <DialogContent
+        className={cn(
+          "flex max-h-[min(90vh,920px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[600px]"
+        )}
       >
-        Create Department
-      </button>
+        <DialogHeader className="border-b border-border/60 px-6 py-4 text-left">
+          <DialogTitle>Create new department</DialogTitle>
+          <DialogDescription>
+            Name the unit, add employees, and appoint a manager from your team.
+          </DialogDescription>
+        </DialogHeader>
 
-      {open && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-[600px] rounded-xl shadow-2xl flex flex-col max-h-[921px] overflow-hidden border border-primary/10">
-            <div className="px-6 py-5 border-b border-primary/10 flex items-center justify-between bg-white dark:bg-slate-900 sticky top-0 z-20">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                Create New Department
-              </h2>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-                aria-label="Close"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-6">
+          <div className="space-y-2">
+            <Label htmlFor="dept-name">Department name</Label>
+            <Input
+              id="dept-name"
+              value={departmentName}
+              onChange={(e) => setDepartmentName(e.target.value)}
+              placeholder="e.g. Creative Design"
+              className="h-11 rounded-lg"
+              disabled={isSubmitting}
+            />
+          </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  Department Name
-                </label>
-                <input
-                  value={departmentName}
-                  onChange={(e) => setDepartmentName(e.target.value)}
-                  className="w-full h-12 px-4 rounded-lg border border-primary/20 bg-zinc-100/60 dark:bg-slate-800 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-                  placeholder="e.g. Creative Design"
-                  type="text"
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Assign employees</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="h-11 rounded-lg pl-10"
+                  placeholder="Find employees to add…"
+                  type="search"
+                  disabled={isSubmitting || isLoading}
                 />
+                {isLoading && (
+                  <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                )}
               </div>
-
-              <div className="space-y-4">
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    Assign Employees
-                  </label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
-                    <input
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      className="w-full h-11 pl-10 pr-4 rounded-lg border border-primary/10 bg-zinc-100/60 dark:bg-slate-800 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-                      placeholder="Find employees to add..."
-                      type="text"
-                    />
-                  </div>
+              
+              {/* Dropdown for search results */}
+              {search.trim() && filteredEmployees.length > 0 && (
+                <div className="border border-border rounded-lg bg-background shadow-sm overflow-hidden mt-1">
+                  {filteredEmployees.map(emp => (
+                    <button
+                      key={emp.id}
+                      type="button"
+                      onClick={() => toggleEmployee(emp)}
+                      className="w-full text-left px-4 py-3 text-sm hover:bg-muted/50 border-b last:border-b-0 flex flex-col transition-colors"
+                    >
+                      <span className="font-semibold">{emp.name}</span>
+                      <span className="text-xs text-muted-foreground">{emp.email}</span>
+                    </button>
+                  ))}
                 </div>
-
-                <div className="space-y-3">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    Selected ({selectedCount})
-                  </p>
-
-                  {filteredEmployees.map((emp, index) => {
-                    const primary = index === 0
-                    return (
-                      <div
-                        key={emp.id}
-                        className={
-                          primary
-                            ? "flex items-center gap-3 p-3 bg-primary/5 dark:bg-primary/10 rounded-lg border border-primary/10"
-                            : "flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700"
-                        }
-                      >
-                        <div
-                          className={
-                            primary
-                              ? "h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden text-primary"
-                              : "h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-400"
-                          }
-                        >
-                          <User className="h-5 w-5" />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold truncate">{emp.name}</p>
-                          <p className="text-xs text-slate-500 truncate">{emp.email}</p>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                          <span
-                            className={
-                              primary
-                                ? "text-xs font-medium text-primary"
-                                : "text-xs font-medium text-slate-600 dark:text-slate-400"
-                            }
-                          >
-                            {emp.title}
-                          </span>
-
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              checked={managerId === emp.id}
-                              onChange={() => setManagerId(emp.id)}
-                              className="w-4 h-4 rounded text-primary focus:ring-primary border-primary/30"
-                              type="checkbox"
-                            />
-                            <span className="text-xs font-medium">Manager</span>
-                          </label>
-
-                          <button
-                            type="button"
-                            onClick={() => removeEmployee(emp.id)}
-                            className="text-slate-400 hover:text-red-500 transition-colors"
-                            aria-label={`Remove ${emp.name}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
+              )}
             </div>
 
-            <div className="px-6 py-4 border-t border-primary/10 flex items-center justify-end gap-3 bg-zinc-100/40 dark:bg-slate-800/30">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="px-5 h-11 rounded-lg text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false)
-                  toast({
-                    title: "Department created",
-                    description: departmentName.trim()
-                      ? `${departmentName} • ${selectedCount} employee(s)`
-                      : `${selectedCount} employee(s)`,
-                  })
-                }}
-                className="px-6 h-11 rounded-lg bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 shadow-lg shadow-primary/20 transition-colors flex items-center gap-2"
-              >
-                Create Department
-              </button>
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Selected ({selectedCount})
+              </p>
+
+              {selected.map((emp, index) => {
+                const primary = managerId === emp.id;
+                return (
+                  <div
+                    key={emp.id}
+                    className={cn(
+                      "flex flex-wrap items-center gap-3 rounded-lg border p-3",
+                      primary
+                        ? "border-primary/25 bg-primary/5"
+                        : "border-border/60 bg-muted/30"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full",
+                        primary
+                          ? "bg-primary/15 text-primary"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      <User className="h-5 w-5" />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{emp.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{emp.email}</p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-4">
+                      <label className="flex cursor-pointer items-center gap-2">
+                        <Checkbox
+                          checked={managerId === emp.id}
+                          onCheckedChange={(checked) => {
+                            if (checked) setManagerId(emp.id);
+                            else if (managerId === emp.id)
+                              setManagerId(selected[0]?.id ?? "");
+                          }}
+                          disabled={isSubmitting}
+                          aria-label={`Set ${emp.name} as manager`}
+                        />
+                        <span className="text-xs font-medium">Manager</span>
+                      </label>
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeEmployee(emp.id)}
+                        disabled={isSubmitting}
+                        aria-label={`Remove ${emp.name}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
-      )}
-    </>
-  )
+
+        <DialogFooter className="border-t border-border/60 bg-muted/30 px-6 py-4 sm:justify-end">
+          <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={handleCreate} disabled={isSubmitting || !departmentName.trim()}>
+            {isSubmitting ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating...</>
+            ) : "Create Department"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }

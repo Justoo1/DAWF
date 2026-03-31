@@ -686,7 +686,7 @@ export default function Reports() {
   }
 
   return (
-    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
+    <main className="admin-main">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Reports & Analytics</h1>

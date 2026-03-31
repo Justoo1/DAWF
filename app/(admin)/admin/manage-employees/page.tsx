@@ -3,8 +3,19 @@ import EmployeeLeaveActions from "@/components/admin/EmployeeLeaveActions"
 import { fetchUser, fetchUsers } from "@/lib/actions/users.action"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
-import Link from "next/link"
-import { ChevronLeft, ChevronRight, Search } from "lucide-react"
+import { AdminPageContent } from "@/components/admin/layout/AdminPageContent"
+import { AdminPageHeader } from "@/components/admin/layout/AdminPageHeader"
+import { ManageEmployeesToolbar } from "@/components/admin/layout/ManageEmployeesToolbar"
+import { AdminTableCard } from "@/components/admin/layout/AdminTableCard"
+import { AdminPaginationBar } from "@/components/admin/layout/AdminPaginationBar"
+import {
+  adminTableClassName,
+  adminTbodyRowClass,
+  adminTdClass,
+  adminThClass,
+  adminTheadRowClass,
+} from "@/lib/admin-ui"
+import { cn } from "@/lib/utils"
 
 interface ManageEmployeesPageProps {
   searchParams: Promise<{
@@ -12,7 +23,7 @@ interface ManageEmployeesPageProps {
   }>
 }
 
-const pageHref = (page: number) => `/admin/manage-employees?page=${page}`
+
 
 export default async function ManageEmployeesPage({ searchParams }: ManageEmployeesPageProps) {
   const params = await searchParams
@@ -54,80 +65,59 @@ export default async function ManageEmployeesPage({ searchParams }: ManageEmploy
   ).sort((a, b) => a.localeCompare(b))
 
   return (
-    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-zinc-100 dark:bg-zinc-950 p-8 lg:p-12">
-      <div className="max-w-7xl mx-auto w-full">
-        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h2 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-            Manage Employees
-          </h2>
-          {isAdmin && (
-            <div className="[&>button]:bg-primary [&>button]:text-primary-foreground [&>button:hover]:bg-primary/90">
-              <AddEmployeeDialog />
-            </div>
-          )}
-        </header>
-
-        <section className="bg-white dark:bg-zinc-900 rounded-lg border border-primary/10 p-4 mb-6 shadow-sm">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex-1 min-w-[280px] relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/60 h-5 w-5" />
-              <input
-                className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 dark:bg-zinc-950/40 border border-primary/10 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
-                placeholder="Search employees by name, ID or email..."
-                type="text"
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <select className="appearance-none bg-zinc-50 dark:bg-zinc-950/40 border border-primary/10 rounded-lg pl-4 pr-10 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-primary outline-none cursor-pointer">
-                  <option>All Departments</option>
-                  {departments.map((dept) => (
-                    <option key={dept}>{dept}</option>
-                  ))}
-                </select>
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                  ▾
-                </span>
+    <main className="admin-main">
+      <AdminPageContent>
+        <AdminPageHeader
+          title="Manage Employees"
+          description="Leave balances, requests, and employee directory."
+          action={
+            isAdmin ? (
+              <div className="[&_button]:shadow-sm">
+                <AddEmployeeDialog />
               </div>
+            ) : null
+          }
+        />
 
-              <div className="relative">
-                <select className="appearance-none bg-zinc-50 dark:bg-zinc-950/40 border border-primary/10 rounded-lg pl-4 pr-10 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-primary outline-none cursor-pointer">
-                  <option>Status: Active</option>
-                  <option>Status: Inactive</option>
-                  <option>Status: All</option>
-                </select>
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                  ▾
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
+        <ManageEmployeesToolbar departments={departments} />
 
-        <section className="bg-white dark:bg-zinc-900 rounded-lg border border-primary/10 shadow-sm overflow-visible">
-          <div className="w-full">
-            <table className="w-full table-auto text-left border-collapse">
-              <thead>
-                <tr className="bg-zinc-50 dark:bg-zinc-950/40 border-b border-primary/10">
-                  <th className="px-4 lg:px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Employee Name
-                  </th>
-                  <th className="hidden md:table-cell px-4 lg:px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-44">
-                    Department
-                  </th>
-                  <th className="hidden lg:table-cell px-4 lg:px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-56 text-center">
-                    Leave Requested
-                  </th>
-                  <th className="hidden xl:table-cell px-4 lg:px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-56">
-                    Latest / Upcoming Leave
-                  </th>
-                  <th className="px-4 lg:px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-right w-16">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-primary/5">
+        <AdminTableCard
+          title="Employees"
+          footer={
+            <AdminPaginationBar
+              page={currentPage}
+              totalPages={totalPages}
+              totalCount={employeesResult.pagination?.totalCount ?? employees.length}
+              pageSize={pageSize}
+              entityLabel="employees"
+              hrefTemplate="/admin/manage-employees?page={page}"
+            />
+          }
+        >
+          <table className={adminTableClassName()}>
+            <thead>
+              <tr className={adminTheadRowClass}>
+                <th className={adminThClass}>Employee Name</th>
+                <th className={cn(adminThClass, "hidden w-44 md:table-cell")}>
+                  Department
+                </th>
+                <th
+                  className={cn(
+                    adminThClass,
+                    "hidden w-56 text-center lg:table-cell"
+                  )}
+                >
+                  Leave Requested
+                </th>
+                <th
+                  className={cn(adminThClass, "hidden w-56 xl:table-cell")}
+                >
+                  Latest / Upcoming Leave
+                </th>
+                <th className={cn(adminThClass, "w-16 text-right")}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
                 {employees.map((employee) => {
                   const initials = (employee.name || employee.email || "?")
                     .split(" ")
@@ -138,53 +128,59 @@ export default async function ManageEmployeesPage({ searchParams }: ManageEmploy
                   const isActive = !!employee.isActive
 
                   return (
-                    <tr key={employee.id} className="hover:bg-primary/5 transition-colors group">
-                      <td className="px-4 lg:px-6 py-4">
+                    <tr key={employee.id} className={adminTbodyRowClass}>
+                      <td className={adminTdClass}>
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 overflow-hidden border border-primary/20 flex items-center justify-center text-primary font-bold text-xs">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-xs font-bold text-primary">
                             {initials}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                            <p className="text-sm font-semibold text-foreground">
                               {employee.name || "Unnamed"}
                             </p>
-                            <p className="text-xs text-slate-500 truncate">{employee.email}</p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {employee.email}
+                            </p>
                           </div>
                         </div>
                       </td>
-                      <td className="hidden md:table-cell px-4 lg:px-6 py-4">
-                        <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-tight">
+                      <td className={cn(adminTdClass, "hidden md:table-cell")}>
+                        <span className="inline-flex max-w-full rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-tight text-primary">
                           {employee.department || "N/A"}
                         </span>
                       </td>
-                      <td className="hidden lg:table-cell px-4 lg:px-6 py-4 text-center">
+                      <td
+                        className={cn(adminTdClass, "hidden text-center lg:table-cell")}
+                      >
                         <div className="inline-flex items-center gap-2">
                           <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold">
                             00
                           </span>
-                          <span className="text-xs text-slate-500">Total days</span>
+                          <span className="text-xs text-muted-foreground">
+                            Total days
+                          </span>
                         </div>
                       </td>
-                      <td className="hidden xl:table-cell px-4 lg:px-6 py-4">
+                      <td className={cn(adminTdClass, "hidden xl:table-cell")}>
                         <div className="flex flex-col gap-1">
-                          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          <p className="text-sm font-medium text-muted-foreground">
                             —
                           </p>
                           <div>
                             <span
-                              className={[
-                                "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide",
+                              className={cn(
+                                "inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
                                 isActive
-                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                  : "bg-slate-200 text-slate-700 dark:bg-zinc-800 dark:text-slate-300",
-                              ].join(" ")}
+                                  ? "bg-primary/15 text-primary"
+                                  : "bg-muted text-muted-foreground"
+                              )}
                             >
                               {isActive ? "Active" : "Inactive"}
                             </span>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 lg:px-6 py-4 text-right">
+                      <td className={cn(adminTdClass, "text-right")}>
                         <EmployeeLeaveActions
                           employee={{
                             id: employee.id,
@@ -200,56 +196,8 @@ export default async function ManageEmployeesPage({ searchParams }: ManageEmploy
                 })}
               </tbody>
             </table>
-          </div>
-
-          <div className="px-6 py-4 border-t border-primary/10 flex items-center justify-between">
-            <p className="text-sm text-slate-500">
-              Page <span className="font-semibold text-slate-700 dark:text-slate-200">{currentPage}</span> of{" "}
-              <span className="font-semibold text-slate-700 dark:text-slate-200">{totalPages}</span>
-            </p>
-            <div className="flex items-center gap-2">
-              <Link
-                href={pageHref(Math.max(1, currentPage - 1))}
-                aria-disabled={currentPage <= 1}
-                className={[
-                  "p-1.5 rounded-lg border border-primary/10 bg-white dark:bg-zinc-900 text-slate-400 hover:text-primary transition-colors",
-                  currentPage <= 1 ? "pointer-events-none opacity-50" : "",
-                ].join(" ")}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Link>
-
-              {Array.from({ length: Math.min(3, totalPages) }).map((_, idx) => {
-                const page = idx + 1
-                const active = page === currentPage
-                return (
-                  <Link
-                    key={page}
-                    href={pageHref(page)}
-                    className={[
-                      "px-3 py-1.5 rounded-lg text-xs font-bold",
-                      active ? "bg-primary text-primary-foreground" : "text-slate-600 dark:text-slate-400 hover:bg-primary/5",
-                    ].join(" ")}
-                  >
-                    {page}
-                  </Link>
-                )
-              })}
-
-              <Link
-                href={pageHref(Math.min(totalPages, currentPage + 1))}
-                aria-disabled={currentPage >= totalPages}
-                className={[
-                  "p-1.5 rounded-lg border border-primary/10 bg-white dark:bg-zinc-900 text-slate-400 hover:text-primary transition-colors",
-                  currentPage >= totalPages ? "pointer-events-none opacity-50" : "",
-                ].join(" ")}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        </section>
-      </div>
+        </AdminTableCard>
+      </AdminPageContent>
     </main>
   )
 }

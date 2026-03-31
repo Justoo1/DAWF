@@ -137,7 +137,7 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
               <FormLabel>Event Category</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 rounded-lg">
                     <SelectValue placeholder="Select event category" />
                   </SelectTrigger>
                 </FormControl>
@@ -158,7 +158,7 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
               <FormLabel>Event Type</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 rounded-lg">
                     <SelectValue placeholder="Select event type" />
                   </SelectTrigger>
                 </FormControl>
@@ -202,6 +202,7 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
                         type="text" 
                         {...field} 
                         placeholder="Event Title" 
+                        className="h-11 rounded-lg"
                     />
                     </FormControl>
                     <FormMessage />
@@ -219,6 +220,7 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
                         type="text" 
                         {...field} 
                         placeholder="Event Location" 
+                        className="h-11 rounded-lg"
                     />
                     </FormControl>
                     <FormMessage />
@@ -237,6 +239,7 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
                     <Textarea 
                         {...field} 
                         placeholder="Describe the event" 
+                        className="resize-none rounded-lg min-h-[120px]"
                     />
                     </FormControl>
                     <FormMessage />
@@ -254,7 +257,7 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
                     defaultValue={field.value}
                     >
                     <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-11 rounded-lg">
                         <SelectValue placeholder="Select Status" />
                         </SelectTrigger>
                     </FormControl>
@@ -282,6 +285,7 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
                         value={field.value}
                         onChange={(e) => field.onChange(e.target.value)}
                         placeholder="Select start date and time"
+                        className="h-11 rounded-lg"
                     />
                     </FormControl>
                     <FormMessage />
@@ -302,6 +306,7 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
                         value={field.value}
                         onChange={(e) => field.onChange(e.target.value)}
                         placeholder="Select start date and time"
+                        className="h-11 rounded-lg"
                     />
                     </FormControl>
                     <FormMessage />
@@ -325,6 +330,7 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
                     {...field} 
                     min={2020}
                     max={new Date().getFullYear()}
+                    className="h-11 rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -344,6 +350,7 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
                     {...field} 
                     min={1}
                     max={new Date().getMonth() + 1}
+                    className="h-11 rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -362,7 +369,7 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
                   value={field.value.toString()}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-11 rounded-lg">
                       <SelectValue placeholder="Select Quarter" />
                     </SelectTrigger>
                   </FormControl>
@@ -395,6 +402,7 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                       min={1}
                       placeholder="Enter maximum number of attendees"
+                      className="h-11 rounded-lg"
                     />
                   </FormControl>
                   <FormMessage />
@@ -406,6 +414,7 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
 
         <Button
           type="submit"
+          className="h-11 rounded-lg shadow-sm"
           disabled={form.formState.isSubmitting}
         >
           {update ? form.formState.isSubmitting ? 'Updating...' : 'Update Event' : form.formState.isSubmitting ? 'Adding...' : 'Add Event'}

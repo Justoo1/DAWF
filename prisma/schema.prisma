@@ -113,6 +113,18 @@ enum DayOfWeek {
   FRIDAY
 }
 
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum AccrualType {
+  WORKING_DAYS
+  CALENDAR_DAYS
+}
+
 // ============================================
 // MODELS
 // ============================================
@@ -138,6 +150,10 @@ model User {
   eventAttendees         EventAttendee[]
   conferenceRoomBookings ConferenceRoomBooking[]
   foodSelections         FoodSelection[]
+  managedDepartments     Department[] @relation("DepartmentManager")
+  leaveBalances          LeaveBalance[]
+  leaveRequests          LeaveRequest[]
+  approvedLeaveRequests  LeaveRequest[] @relation("LeaveApprover")
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @default(now())
 
@@ -446,4 +462,77 @@ model FoodSelection {
   @@index([menuId, dayOfWeek])
   @@index([userId])
   @@map("food_selections")
+}
+
+// ============================================
+// DEPARTMENT MODELS
+// ============================================
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  managerId   String?  // Reference to User who manages the dept
+  manager     User?    @relation("DepartmentManager", fields: [managerId], references: [id])
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("departments")
+}
+
+// ============================================
+// LEAVE MANAGEMENT MODELS
+// ============================================
+
+model LeavePolicy {
+  id               String   @id @default(cuid())
+  name             String   // e.g. "Annual Leave"
+  defaultDays      Int
+  accrualType      AccrualType @default(WORKING_DAYS)
+  isFlexible       Boolean  @default(true)
+  isActive         Boolean  @default(true)
+  
+  balances         LeaveBalance[]
+  requests         LeaveRequest[]
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  @@map("leave_policies")
+}
+
+model LeaveBalance {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policyId         String
+  policy           LeavePolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  daysAllocated    Float
+  daysUsed         Float    @default(0)
+  year             Int
+  
+  @@unique([userId, policyId, year])
+  @@index([userId, year])
+  @@map("leave_balances")
+}
+
+model LeaveRequest {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policyId         String
+  policy           LeavePolicy @relation(fields: [policyId], references: [id])
+  startDate        DateTime
+  endDate          DateTime
+  days             Float
+  status           LeaveStatus @default(PENDING)
+  reason           String?
+  approvedById     String?
+  manager          User?    @relation("LeaveApprover", fields: [approvedById], references: [id])
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  @@index([userId, status])
+  @@index([policyId])
+  @@map("leave_requests")
 }

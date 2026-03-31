@@ -1,6 +1,7 @@
 import AllEvents from '@/components/admin/Events'
 import QuickActions from '@/components/admin/QuickActions'
 import { fetchAllEvents } from '@/lib/actions/events.actions'
+import { AdminPageContent } from "@/components/admin/layout/AdminPageContent"
 
 const EventsPage = async () => {
     const data = await fetchAllEvents()
@@ -13,9 +14,11 @@ const EventsPage = async () => {
     }
 
   return (
-    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
-      <AllEvents events={data.events!} />
-      <QuickActions />
+    <main className="admin-main">
+      <AdminPageContent>
+        <AllEvents events={data.events!} />
+        <QuickActions />
+      </AdminPageContent>
     </main>
   )
 }

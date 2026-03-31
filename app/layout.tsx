@@ -2,16 +2,17 @@ import type { Metadata, Viewport } from "next";
 // import {
 //   ClerkProvider
 // } from '@clerk/nextjs'
-import { Kodchasan } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster"
 import { ProfileChecker } from "@/components/auth/ProfileChecker"
 import "./globals.css";
 // import '@fullcalendar/common/main.css'
 // import '@fullcalendar/daygrid/main.css'
 
-const kodchasan = Kodchasan({
+const fontSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["200","300", "400", "500", "600", "700"]
+  variable: "--font-sans",
+  display: "swap",
 });
 
 
@@ -81,10 +82,10 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/assets/images/logo.png" />
       </head>
       <body
-        className={`${kodchasan.className} antialiased bg-bg-img bg-cover bg-black object-cover bg-center bg-blend-luminosity bg-no-repeat`}
+        className={`${fontSans.variable} font-sans antialiased min-h-screen bg-background`}
       >
         <ProfileChecker />
-        <div className="bg-zinc-950/80 min-h-screen">
+        <div className="min-h-screen bg-background">
           {children}
         </div>
         <Toaster />

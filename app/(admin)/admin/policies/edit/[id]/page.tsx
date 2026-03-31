@@ -40,7 +40,7 @@ const EditPolicyPage = async ({ params }: EditPolicyPageProps) => {
   }
 
   return (
-    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+    <main className="admin-main">
       <div className="max-w-4xl mx-auto">
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">Edit Policy</h2>
 

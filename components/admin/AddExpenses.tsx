@@ -91,7 +91,7 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
               control={control}
               render={({ field }) => (
                 <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 rounded-lg">
                     <SelectValue placeholder="Select Employee" />
                   </SelectTrigger>
                   <SelectContent>
@@ -111,7 +111,7 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
               control={control}
               render={({ field }) => (
                 <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 rounded-lg">
                     <SelectValue placeholder="Select expense type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -136,6 +136,7 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
                   placeholder="Amount"
                   {...field}
                   onChange={(e) => field.onChange(Number(e.target.value))}
+                  className="h-11 rounded-lg"
                 />
               )}
             />
@@ -149,6 +150,7 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
                   type="date"
                   {...field}
                   value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
+                  className="h-11 rounded-lg"
                 />
               )}
             />
@@ -161,6 +163,7 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
                 <Input
                   placeholder="Recipient"
                   {...field}
+                  className="h-11 rounded-lg"
                 />
               )}
             />
@@ -173,6 +176,7 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
                 <Textarea
                   placeholder="Description (optional)"
                   {...field}
+                  className="resize-none rounded-lg min-h-[120px]"
                 />
               )}
             />
@@ -193,7 +197,7 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
           })}>
             Add Expense
           </Button>)}
-          <Button type="submit" disabled={submitStatus === 'loading'}>
+          <Button type="submit" disabled={submitStatus === 'loading'} className="h-11 rounded-lg shadow-sm">
             {submitStatus === 'loading' ? 'Submitting...' : 'Submit Expenses'}
           </Button>
         </div>

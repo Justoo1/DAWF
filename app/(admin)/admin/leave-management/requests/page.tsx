@@ -66,7 +66,7 @@ export default async function LeaveRequestsPage({ searchParams }: LeaveRequestsP
   const currentTab = (params.tab as TabKey) || "pending"
 
   return (
-    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-zinc-100 dark:bg-zinc-950 p-8 lg:p-12">
+    <main className="admin-main">
       <div className="max-w-7xl mx-auto w-full">
         <header className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col">

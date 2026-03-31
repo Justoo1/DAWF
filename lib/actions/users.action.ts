@@ -154,12 +154,27 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
     // Get total count for pagination
     const totalCount = await prisma.user.count()
 
-    // Fetch users with their contributions, events, and expenses
+    // Fetch users with only the requested fields and exact relation aggregates
     const users = await prisma.user.findMany({
-      include: {
-        contributions: true,
-        events: true,
-        expenses: true,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        department: true,
+        role: true,
+        isActive: true,
+        isContributor: true,
+        createdAt: true,
+        _count: {
+          select: {
+            contributions: true,
+            events: true,
+            expenses: true,
+          }
+        },
+        contributions: {
+          select: { amount: true }
+        }
       },
       skip,
       take: pageSize,
@@ -168,17 +183,18 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
       }
     });
 
-    // Map the users to the UserValues type
+    // Map the users to keep the API contract consistent but drastically smaller payload
     const userValues = users.map((user) => ({
       ...user,
-      contributionsCount: user.contributions.length,
-      eventsCount: user.events.length,
-      expensesCount: user.expenses.length,
+      contributionsCount: user._count.contributions,
+      eventsCount: user._count.events,
+      expensesCount: user._count.expenses,
       totalAmountContributed: user.contributions.reduce((sum, contribution) => sum + contribution.amount, 0),
-      totalContributionMonths: user.contributions.length,
-      contributions: user.contributions,
-      events: user.events,
-      expenses: user.expenses,
+      totalContributionMonths: user._count.contributions,
+      // We clear out the full nested object since the UI does not read thousands of relational rows
+      contributions: [], 
+      events: [],
+      expenses: [],
     }));
 
     return {

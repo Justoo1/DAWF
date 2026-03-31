@@ -28,7 +28,7 @@ const OrdersViewPage = async ({ params }: { params: Promise<{ menuId: string }> 
   const DAYS_OF_WEEK = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'] as const
 
   return (
-    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+    <main className="admin-main">
       <div className="mx-auto max-w-7xl space-y-6">
         <div className="flex justify-between items-center">
           <div>

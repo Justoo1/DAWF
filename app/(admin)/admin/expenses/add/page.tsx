@@ -13,7 +13,7 @@ const ExpensesAddPage = async () => {
     return <div>No users found</div>
   }
   return (
-    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+    <main className="admin-main">
       <div className="mx-auto max-w-7xl lg:p-8 bg-white rounded-md shadow-sm">
       <AddExpensesPage employees={employees.users} />
       </div>

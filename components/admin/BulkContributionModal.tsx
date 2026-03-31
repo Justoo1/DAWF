@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -138,45 +139,48 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-emerald-600 hover:bg-emerald-700">
-          <PlusCircle className="mr-2 h-4 w-4" />
+        <Button className="gap-2 shadow-sm bg-emerald-600 hover:bg-emerald-700">
+          <PlusCircle className="h-4 w-4" />
           Bulk Add Contributions
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[min(90vh,920px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[700px]">
+        <DialogHeader className="border-b border-border/60 px-6 py-4 text-left">
           <DialogTitle>Bulk Add Contributions</DialogTitle>
           <DialogDescription>
             Add contributions for multiple employees across selected months. Each contribution will be GH₵{amount}.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Month Range Selection */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="startMonth">Start Month</Label>
-              <Input
-                id="startMonth"
-                type="month"
-                value={startMonth}
-                onChange={(e) => setStartMonth(e.target.value)}
-                max={currentMonth}
-                required
-              />
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-6">
+            {/* Month Range Selection */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startMonth">Start Month</Label>
+                <Input
+                  id="startMonth"
+                  type="month"
+                  className="h-11 rounded-lg"
+                  value={startMonth}
+                  onChange={(e) => setStartMonth(e.target.value)}
+                  max={currentMonth}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endMonth">End Month</Label>
+                <Input
+                  id="endMonth"
+                  type="month"
+                  className="h-11 rounded-lg"
+                  value={endMonth}
+                  onChange={(e) => setEndMonth(e.target.value)}
+                  max={currentMonth}
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="endMonth">End Month</Label>
-              <Input
-                id="endMonth"
-                type="month"
-                value={endMonth}
-                onChange={(e) => setEndMonth(e.target.value)}
-                max={currentMonth}
-                required
-              />
-            </div>
-          </div>
 
           {/* Amount */}
           <div className="space-y-2">
@@ -184,13 +188,14 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
             <Input
               id="amount"
               type="number"
+              className="h-11 rounded-lg"
               step="0.01"
               min="0"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               required
             />
-            <p className="text-sm text-gray-500">Default: GH₵100 per employee per month</p>
+            <p className="text-sm text-muted-foreground">Default: GH₵100 per employee per month</p>
           </div>
 
           {/* Employee Selection */}
@@ -269,8 +274,9 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
             </div>
           )}
 
-          {/* Actions */}
-          <div className="flex justify-end gap-3">
+            {/* Actions */}
+            </div>
+          <DialogFooter className="border-t border-border/60 bg-muted/30 px-6 py-4 sm:justify-end">
             <Button
               type="button"
               variant="outline"
@@ -282,18 +288,18 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
             <Button
               type="submit"
               disabled={loading || selectedUsers.length === 0}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-emerald-600 hover:bg-emerald-700 gap-2"
             >
               {loading ? (
                 <>
-                  <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader className="h-4 w-4 animate-spin" />
                   Creating...
                 </>
               ) : (
                 'Create Contributions'
               )}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

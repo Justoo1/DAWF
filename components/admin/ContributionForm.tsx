@@ -131,7 +131,7 @@ const ContributionForm = ({ employees, contribution, update }: ContributionFormP
                 defaultValue={field.value}
               >
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 rounded-lg">
                     <SelectValue placeholder="Select Employee" />
                   </SelectTrigger>
                 </FormControl>
@@ -163,6 +163,7 @@ const ContributionForm = ({ employees, contribution, update }: ContributionFormP
                     type="number" 
                     {...field} 
                     placeholder="Contribution Amount" 
+                    className="h-11 rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -180,6 +181,7 @@ const ContributionForm = ({ employees, contribution, update }: ContributionFormP
                   <Input 
                     type="month" 
                     {...field} 
+                    className="h-11 rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -201,6 +203,7 @@ const ContributionForm = ({ employees, contribution, update }: ContributionFormP
                     {...field} 
                     min={2020}
                     max={new Date().getFullYear()}
+                    className="h-11 rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -219,7 +222,7 @@ const ContributionForm = ({ employees, contribution, update }: ContributionFormP
                   value={field.value.toString()}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-11 rounded-lg">
                       <SelectValue placeholder="Select Quarter" />
                     </SelectTrigger>
                   </FormControl>
@@ -246,7 +249,7 @@ const ContributionForm = ({ employees, contribution, update }: ContributionFormP
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-11 rounded-lg">
                       <SelectValue placeholder="Select Status" />
                     </SelectTrigger>
                   </FormControl>
@@ -264,6 +267,7 @@ const ContributionForm = ({ employees, contribution, update }: ContributionFormP
 
         <Button 
           type="submit" 
+          className="h-11 rounded-lg shadow-sm"
           disabled={form.formState.isSubmitting}
         >
           {update ? form.formState.isSubmitting ? 'Updating...' : 'Update' : form.formState.isSubmitting ? 'Adding...' : 'Add'}

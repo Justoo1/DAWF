@@ -391,3 +391,39 @@ export type FoodSelectionValues = Omit<FoodSelection, 'menuItemId' | 'notes'> & 
   }
   menuItem: FoodMenuItemValues | null
 }
+
+// ============================================
+// DEPARTMENT SCHEMAS
+// ============================================
+
+export const DepartmentSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(2, { message: "Department name must be at least 2 characters" }),
+  managerId: z.string().optional().nullable(),
+  isActive: z.boolean().default(true)
+})
+export type Department = z.infer<typeof DepartmentSchema>
+
+// ============================================
+// LEAVE MANAGEMENT SCHEMAS
+// ============================================
+
+export const LeavePolicySchema = z.object({
+  name: z.string().min(2, { message: "Policy name is required" }),
+  defaultDays: z.number().int().positive(),
+  accrualType: z.enum(['WORKING_DAYS', 'CALENDAR_DAYS']).default('WORKING_DAYS'),
+  isFlexible: z.boolean().default(true),
+  isActive: z.boolean().default(true)
+})
+export type LeavePolicy = z.infer<typeof LeavePolicySchema>
+
+export const LeaveRequestSchema = z.object({
+  policyId: z.string({ required_error: "Leave policy is required" }),
+  userId: z.string({ required_error: "User is required" }),
+  startDate: z.string().transform((str) => new Date(str)),
+  endDate: z.string().transform((str) => new Date(str)),
+  days: z.number().positive(),
+  reason: z.string().optional(),
+  status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']).default('PENDING')
+})
+export type LeaveRequest = z.infer<typeof LeaveRequestSchema>

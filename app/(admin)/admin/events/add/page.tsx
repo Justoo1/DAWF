@@ -23,7 +23,7 @@ const AddEventPage = async () => {
     }
 
   return (
-      <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+      <main className="admin-main">
       <div className="mx-auto max-w-7xl lg:p-8 bg-white rounded-md shadow-sm">
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">Add Event</h2>
         <EventAdd userId={data.user!.id} />

@@ -1,39 +1,157 @@
 "use client";
 
-import Link from 'next/link'
-import { Home, Users, FileText, BarChart, PlusSquare, ChartBar, ListCheckIcon, PlusIcon, Calendar, CalendarPlus, BookOpen, X, DoorOpen, UtensilsCrossed, Store, MenuSquare, Settings, PlusCircle, Building2 } from 'lucide-react'
-import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { hasPermission, type UserRole } from '@/lib/permissions'
+import Link from "next/link";
+import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
+import {
+  Home,
+  Users,
+  FileText,
+  BarChart,
+  ChartBar,
+  ListCheckIcon,
+  Calendar,
+  BookOpen,
+  X,
+  DoorOpen,
+  UtensilsCrossed,
+  Store,
+  MenuSquare,
+  Settings,
+  Building2,
+  Layers,
+  CalendarDays,
+  Inbox,
+} from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import { hasPermission, type UserRole } from "@/lib/permissions";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SidebarProps {
-  isOpen?: boolean
-  onClose?: () => void
-  userRole?: UserRole
+  isOpen?: boolean;
+  onClose?: () => void;
+  userRole?: UserRole;
+  collapsed?: boolean;
 }
 
-export function Sidebar({ isOpen = false, onClose, userRole = 'EMPLOYEE' }: SidebarProps) {
-  const pathName = usePathname()
+function NavItem({
+  href,
+  label,
+  icon: Icon,
+  active,
+  collapsed,
+  showTooltips,
+}: {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  active: boolean;
+  collapsed: boolean;
+  showTooltips: boolean;
+}) {
   const linkBase =
-    "flex items-center gap-3 px-4 py-2 rounded-lg transition-all text-sm font-semibold"
+    "flex items-center gap-3 px-4 py-2 rounded-lg transition-all text-sm font-semibold";
   const linkInactive =
-    "text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary"
+    "text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary";
   const linkActive =
-    "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+    "bg-primary text-primary-foreground shadow-sm shadow-primary/20";
+  const linkClass = cn(
+    linkBase,
+    active ? linkActive : linkInactive,
+    collapsed && "md:justify-center md:gap-0 md:px-2 md:py-2.5"
+  );
+  const inner = (
+    <>
+      <Icon size={20} className="shrink-0" />
+      <span className={cn("truncate", collapsed && "md:sr-only")}>{label}</span>
+    </>
+  );
+
+  if (showTooltips) {
+    return (
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <Link href={href} className={linkClass}>
+            {inner}
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent side="right" sideOffset={8}>
+          {label}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+  return (
+    <Link href={href} className={linkClass}>
+      {inner}
+    </Link>
+  );
+}
+
+function SectionLabel({
+  children,
+  collapsed,
+  accent,
+}: {
+  children: ReactNode;
+  collapsed: boolean;
+  accent?: boolean;
+}) {
+  return (
+    <p
+      className={cn(
+        "px-4 text-[10px] font-bold uppercase tracking-[0.15em] mb-2 transition-opacity motion-safe:duration-200",
+        accent
+          ? "text-primary"
+          : "text-slate-400 dark:text-slate-500",
+        collapsed && "md:sr-only md:h-0 md:mb-0 md:overflow-hidden md:opacity-0"
+      )}
+    >
+      {children}
+    </p>
+  );
+}
+
+export function Sidebar({
+  isOpen = false,
+  onClose,
+  userRole = "EMPLOYEE",
+  collapsed = false,
+}: SidebarProps) {
+  const pathName = usePathname();
+  const [isMd, setIsMd] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const update = () => setIsMd(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  const showTooltips = collapsed && isMd;
 
   const isActive = (href: string) => {
-    if (href === "/admin") return pathName === "/admin"
-    return pathName === href || pathName.startsWith(`${href}/`)
-  }
+    if (href === "/admin") return pathName === "/admin";
+    return pathName === href || pathName.startsWith(`${href}/`);
+  };
+
+  const peopleSectionActive =
+    isActive("/admin/employees") ||
+    isActive("/admin/leave-management/departments");
 
   const leaveManagementActive =
-    isActive("/admin/manage-employees") ||
-    isActive("/admin/employees") ||
-    isActive("/admin/leave-management")
+    isActive("/admin/leave-management") || isActive("/admin/manage-employees");
 
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
@@ -41,293 +159,306 @@ export function Sidebar({ isOpen = false, onClose, userRole = 'EMPLOYEE' }: Side
         />
       )}
 
-      {/* Sidebar */}
-      <div className={cn(
-        "w-72 border-r border-primary/10 bg-white dark:bg-zinc-950/60 fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out overflow-auto flex flex-col h-screen",
-        "md:relative md:translate-x-0",
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        <div className="p-6 flex items-center gap-3 shrink-0">
-          <div className="h-10 w-10 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-            <Calendar size={20} />
-          </div>
-          <h1 className="font-bold text-sm tracking-wider uppercase text-slate-700 dark:text-slate-200">
-            HR Portal
-          </h1>
-          <button
-            onClick={onClose}
-            className="ml-auto p-2 rounded-lg hover:bg-primary/10 transition-colors md:hidden text-slate-600 dark:text-slate-400"
-            aria-label="Close sidebar"
+      <TooltipProvider delayDuration={showTooltips ? 0 : 300}>
+        <div
+          className={cn(
+            "w-72 shrink-0 border-r border-primary/10 bg-white dark:bg-zinc-950/60 fixed inset-y-0 left-0 z-50 flex flex-col h-screen overflow-hidden",
+            "transition-[width] motion-safe:duration-300 motion-safe:ease-in-out",
+            "md:relative md:translate-x-0",
+            isOpen ? "translate-x-0" : "-translate-x-full",
+            collapsed ? "md:w-16" : "md:w-72"
+          )}
+        >
+          <div
+            className={cn(
+              "p-6 flex items-center gap-2 shrink-0 min-h-[4.5rem] border-b border-primary/5",
+              collapsed && "md:px-3"
+            )}
           >
-            <X size={20} />
-          </button>
-        </div>
-
-        <nav className="flex-1 px-4 pb-6 space-y-6">
-          {(hasPermission(userRole, 'view_dashboard') ||
-            hasPermission(userRole, 'view_policies') ||
-            hasPermission(userRole, 'view_reports') ||
-            hasPermission(userRole, 'view_analytics') ||
-            hasPermission(userRole, 'view_conference_rooms')) && (
-            <div>
-              <p className="px-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-2">
-                General
-              </p>
-              <div className="space-y-1">
-                {hasPermission(userRole, 'view_dashboard') && (
-                  <Link
-                    href="/admin"
-                    className={cn(linkBase, isActive("/admin") ? linkActive : linkInactive)}
-                  >
-                    <Home size={20} />
-                    Dashboard
-                  </Link>
-                )}
-
-                {hasPermission(userRole, 'view_policies') && (
-                  <Link
-                    href="/admin/policies"
-                    className={cn(linkBase, isActive("/admin/policies") ? linkActive : linkInactive)}
-                  >
-                    <BookOpen size={20} />
-                    Policies
-                  </Link>
-                )}
-
-                {hasPermission(userRole, 'view_reports') && (
-                  <Link
-                    href="/admin/reports"
-                    className={cn(linkBase, isActive("/admin/reports") ? linkActive : linkInactive)}
-                  >
-                    <ChartBar size={20} />
-                    Reports
-                  </Link>
-                )}
-
-                {hasPermission(userRole, 'view_analytics') && (
-                  <Link
-                    href="/admin/analytics"
-                    className={cn(linkBase, isActive("/admin/analytics") ? linkActive : linkInactive)}
-                  >
-                    <BarChart size={20} />
-                    Analytics
-                  </Link>
-                )}
-
-                {hasPermission(userRole, 'view_conference_rooms') && (
-                  <Link
-                    href="/admin/conference-rooms"
-                    className={cn(linkBase, isActive("/admin/conference-rooms") ? linkActive : linkInactive)}
-                  >
-                    <DoorOpen size={20} />
-                    Bookings
-                  </Link>
-                )}
-              </div>
+            <div className="h-10 w-10 bg-primary rounded-lg flex items-center justify-center text-primary-foreground shrink-0">
+              <Calendar size={20} />
             </div>
-          )}
+            <h1
+              className={cn(
+                "font-bold text-sm tracking-wider uppercase text-slate-700 dark:text-slate-200 truncate flex-1 min-w-0",
+                collapsed && "md:hidden"
+              )}
+            >
+              HR Portal
+            </h1>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-primary/10 transition-colors md:hidden text-slate-600 dark:text-slate-400 ml-auto shrink-0"
+              aria-label="Close sidebar"
+              type="button"
+            >
+              <X size={20} />
+            </button>
+          </div>
 
-          {(hasPermission(userRole, 'view_contributions') ||
-            hasPermission(userRole, 'manage_contributions') ||
-            hasPermission(userRole, 'view_expenses') ||
-            hasPermission(userRole, 'manage_expenses')) && (
-            <div>
-              <p className="px-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-2">
-                Welfare
-              </p>
-              <div className="space-y-1">
-                {hasPermission(userRole, 'view_contributions') && (
-                  <Link
-                    href="/admin/contribution"
-                    className={cn(linkBase, isActive("/admin/contribution") ? linkActive : linkInactive)}
-                  >
-                    <ListCheckIcon size={20} />
-                    Contributors
-                  </Link>
-                )}
-
-                {hasPermission(userRole, 'manage_contributions') && (
-                  <Link
-                    href="/admin/contribution/add"
-                    className={cn(linkBase, isActive("/admin/contribution/add") ? linkActive : linkInactive)}
-                  >
-                    <PlusSquare size={20} />
-                    Add Contributor
-                  </Link>
-                )}
-
-                {hasPermission(userRole, 'view_expenses') && (
-                  <Link
-                    href="/admin/expenses"
-                    className={cn(linkBase, isActive("/admin/expenses") ? linkActive : linkInactive)}
-                  >
-                    <FileText size={20} />
-                    Expenses
-                  </Link>
-                )}
-
-                {hasPermission(userRole, 'manage_expenses') && (
-                  <Link
-                    href="/admin/expenses/add"
-                    className={cn(linkBase, isActive("/admin/expenses/add") ? linkActive : linkInactive)}
-                  >
-                    <PlusIcon size={20} />
-                    Add Expenses
-                  </Link>
-                )}
+          <nav className="flex-1 px-4 pb-6 space-y-6 overflow-y-auto overflow-x-hidden">
+            {(hasPermission(userRole, "view_dashboard") ||
+              hasPermission(userRole, "view_policies") ||
+              hasPermission(userRole, "view_reports") ||
+              hasPermission(userRole, "view_analytics") ||
+              hasPermission(userRole, "view_conference_rooms")) && (
+              <div>
+                <div className="space-y-1">
+                  {hasPermission(userRole, "view_dashboard") && (
+                    <NavItem
+                      href="/admin"
+                      label="Dashboard"
+                      icon={Home}
+                      active={isActive("/admin")}
+                      collapsed={collapsed}
+                      showTooltips={showTooltips}
+                    />
+                  )}
+                  {hasPermission(userRole, "view_policies") && (
+                    <NavItem
+                      href="/admin/policies"
+                      label="Policies"
+                      icon={BookOpen}
+                      active={isActive("/admin/policies")}
+                      collapsed={collapsed}
+                      showTooltips={showTooltips}
+                    />
+                  )}
+                  {hasPermission(userRole, "view_reports") && (
+                    <NavItem
+                      href="/admin/reports"
+                      label="Reports"
+                      icon={ChartBar}
+                      active={isActive("/admin/reports")}
+                      collapsed={collapsed}
+                      showTooltips={showTooltips}
+                    />
+                  )}
+                  {hasPermission(userRole, "view_analytics") && (
+                    <NavItem
+                      href="/admin/analytics"
+                      label="Analytics"
+                      icon={BarChart}
+                      active={isActive("/admin/analytics")}
+                      collapsed={collapsed}
+                      showTooltips={showTooltips}
+                    />
+                  )}
+                  {hasPermission(userRole, "view_conference_rooms") && (
+                    <NavItem
+                      href="/admin/conference-rooms"
+                      label="Bookings"
+                      icon={DoorOpen}
+                      active={isActive("/admin/conference-rooms")}
+                      collapsed={collapsed}
+                      showTooltips={showTooltips}
+                    />
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {(hasPermission(userRole, 'view_events') || hasPermission(userRole, 'manage_events')) && (
-            <div>
-              <p className="px-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-2">
-                Events
-              </p>
-              <div className="space-y-1">
-                {hasPermission(userRole, 'view_events') && (
-                  <Link
+            {hasPermission(userRole, "view_employees") && (
+              <div>
+                <SectionLabel collapsed={collapsed} accent={peopleSectionActive}>
+                  People
+                </SectionLabel>
+                <div className="space-y-1">
+                  <NavItem
+                    href="/admin/employees"
+                    label="Employees"
+                    icon={Users}
+                    active={isActive("/admin/employees")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                  <NavItem
+                    href="/admin/leave-management/departments"
+                    label="Departments"
+                    icon={Building2}
+                    active={isActive("/admin/leave-management/departments")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                </div>
+              </div>
+            )}
+
+            {hasPermission(userRole, "view_employees") && (
+              <div>
+                <SectionLabel collapsed={collapsed} accent={leaveManagementActive}>
+                  Leave Management
+                </SectionLabel>
+                <div className="space-y-1">
+                  <NavItem
+                    href="/admin/leave-management/create"
+                    label="Leave Types"
+                    icon={Layers}
+                    active={isActive("/admin/leave-management/create")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                  <NavItem
+                    href="/admin/manage-employees"
+                    label="Leaves"
+                    icon={CalendarDays}
+                    active={isActive("/admin/manage-employees")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                  <NavItem
+                    href="/admin/leave-management/requests"
+                    label="Leave Requests"
+                    icon={Inbox}
+                    active={isActive("/admin/leave-management/requests")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                </div>
+              </div>
+            )}
+
+            {(hasPermission(userRole, "view_contributions") ||
+              hasPermission(userRole, "manage_contributions") ||
+              hasPermission(userRole, "view_expenses") ||
+              hasPermission(userRole, "manage_expenses")) && (
+              <div>
+                <SectionLabel collapsed={collapsed}>Welfare</SectionLabel>
+                <div className="space-y-1">
+                  {hasPermission(userRole, "view_contributions") && (
+                    <NavItem
+                      href="/admin/contribution"
+                      label="Contributors"
+                      icon={ListCheckIcon}
+                      active={isActive("/admin/contribution")}
+                      collapsed={collapsed}
+                      showTooltips={showTooltips}
+                    />
+                  )}
+                  {hasPermission(userRole, "view_expenses") && (
+                    <NavItem
+                      href="/admin/expenses"
+                      label="Expenses"
+                      icon={FileText}
+                      active={isActive("/admin/expenses")}
+                      collapsed={collapsed}
+                      showTooltips={showTooltips}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {hasPermission(userRole, "view_events") && (
+              <div>
+                <SectionLabel collapsed={collapsed}>Events</SectionLabel>
+                <div className="space-y-1">
+                  <NavItem
                     href="/admin/events"
-                    className={cn(linkBase, isActive("/admin/events") ? linkActive : linkInactive)}
-                  >
-                    <Calendar size={20} />
-                    Events
-                  </Link>
-                )}
-
-                {hasPermission(userRole, 'manage_events') && (
-                  <Link
-                    href="/admin/events/add"
-                    className={cn(linkBase, isActive("/admin/events/add") ? linkActive : linkInactive)}
-                  >
-                    <CalendarPlus size={20} />
-                    Add events
-                  </Link>
-                )}
+                    label="Events"
+                    icon={Calendar}
+                    active={isActive("/admin/events")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {hasPermission(userRole, 'view_employees') && (
-            <div>
-              <p
+            {hasPermission(userRole, "view_food_management") && (
+              <div>
+                <SectionLabel
+                  collapsed={collapsed}
+                  accent={isActive("/admin/food-management")}
+                >
+                  Food Management
+                </SectionLabel>
+                <div className="space-y-1">
+                  {hasPermission(userRole, "manage_food_vendors") && (
+                    <NavItem
+                      href="/admin/food-management/vendors"
+                      label="Food Vendors"
+                      icon={Store}
+                      active={isActive("/admin/food-management/vendors")}
+                      collapsed={collapsed}
+                      showTooltips={showTooltips}
+                    />
+                  )}
+                  {hasPermission(userRole, "manage_food_vendors") && (
+                    <NavItem
+                      href="/admin/food-management/foods"
+                      label="Food Items"
+                      icon={UtensilsCrossed}
+                      active={isActive("/admin/food-management/foods")}
+                      collapsed={collapsed}
+                      showTooltips={showTooltips}
+                    />
+                  )}
+                  {hasPermission(userRole, "manage_food_menus") && (
+                    <NavItem
+                      href="/admin/food-management/menus"
+                      label="Weekly Menus"
+                      icon={MenuSquare}
+                      active={isActive("/admin/food-management/menus")}
+                      collapsed={collapsed}
+                      showTooltips={showTooltips}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+          </nav>
+
+          <div className="p-4 border-t border-primary/10 shrink-0">
+            {showTooltips ? (
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <div
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 rounded-lg cursor-default",
+                      collapsed && "md:justify-center md:px-2"
+                    )}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                      <Settings size={16} />
+                    </div>
+                    <span
+                      className={cn(
+                        "text-sm font-medium text-slate-600 dark:text-slate-400",
+                        collapsed && "md:sr-only"
+                      )}
+                    >
+                      Settings
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={8}>
+                  Settings
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <div
                 className={cn(
-                  "px-4 text-[10px] font-bold uppercase tracking-[0.15em] mb-2",
-                  leaveManagementActive
-                    ? "text-primary"
-                    : "text-slate-400 dark:text-slate-500"
+                  "flex items-center gap-3 px-4 py-3",
+                  collapsed && "md:justify-center md:px-2"
                 )}
               >
-                Leave Management
-              </p>
-              <div className="space-y-1">
-                <Link
-                  href="/admin/manage-employees"
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                  <Settings size={16} />
+                </div>
+                <span
                   className={cn(
-                    linkBase,
-                    isActive("/admin/manage-employees") || isActive("/admin/employees")
-                      ? linkActive
-                      : linkInactive
+                    "text-sm font-medium text-slate-600 dark:text-slate-400",
+                    collapsed && "md:sr-only"
                   )}
                 >
-                  <Users size={20} />
-                  Manage Employees
-                </Link>
-
-                <Link
-                  href="/admin/leave-management/requests"
-                  className={cn(
-                    linkBase,
-                    isActive("/admin/leave-management/requests") ? linkActive : linkInactive
-                  )}
-                >
-                  <FileText size={20} />
-                  Manage Request
-                </Link>
-
-                <Link
-                  href="/admin/leave-management/create"
-                  className={cn(
-                    linkBase,
-                    isActive("/admin/leave-management/create") ? linkActive : linkInactive
-                  )}
-                >
-                  <PlusCircle size={20} />
-                  Create Leave
-                </Link>
-
-                <Link
-                  href="/admin/leave-management/departments"
-                  className={cn(
-                    linkBase,
-                    isActive("/admin/leave-management/departments") ? linkActive : linkInactive
-                  )}
-                >
-                  <Building2 size={20} />
-                  Departments
-                </Link>
+                  Settings
+                </span>
               </div>
-            </div>
-          )}
-
-          {hasPermission(userRole, 'view_food_management') && (
-            <div>
-              <p
-                className={cn(
-                  "px-4 text-[10px] font-bold uppercase tracking-[0.15em] mb-2",
-                  isActive("/admin/food-management")
-                    ? "text-primary"
-                    : "text-slate-400 dark:text-slate-500"
-                )}
-              >
-                Food Management
-              </p>
-              <div className="space-y-1">
-                {hasPermission(userRole, 'manage_food_vendors') && (
-                  <Link
-                    href="/admin/food-management/vendors"
-                    className={cn(linkBase, isActive("/admin/food-management/vendors") ? linkActive : linkInactive)}
-                  >
-                    <Store size={20} />
-                    Food Vendors
-                  </Link>
-                )}
-
-                {hasPermission(userRole, 'manage_food_vendors') && (
-                  <Link
-                    href="/admin/food-management/foods"
-                    className={cn(linkBase, isActive("/admin/food-management/foods") ? linkActive : linkInactive)}
-                  >
-                    <UtensilsCrossed size={20} />
-                    Food Items
-                  </Link>
-                )}
-
-                {hasPermission(userRole, 'manage_food_menus') && (
-                  <Link
-                    href="/admin/food-management/menus"
-                    className={cn(linkBase, isActive("/admin/food-management/menus") ? linkActive : linkInactive)}
-                  >
-                    <MenuSquare size={20} />
-                    Weekly Menus
-                  </Link>
-                )}
-              </div>
-            </div>
-          )}
-        </nav>
-
-        <div className="p-4 border-t border-primary/10 shrink-0">
-          <div className="flex items-center gap-3 px-4 py-3">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-              <Settings size={16} />
-            </div>
-            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-              Settings
-            </span>
+            )}
           </div>
         </div>
-    </div>
+      </TooltipProvider>
     </>
-  )
+  );
 }

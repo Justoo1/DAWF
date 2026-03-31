@@ -88,6 +88,7 @@ const FoodVendorForm = ({ vendor, isEdit }: FoodVendorFormProps) => {
                 <Input
                   {...field}
                   placeholder="e.g., Mama's Kitchen"
+                  className="h-11 rounded-lg"
                 />
               </FormControl>
               <FormMessage />
@@ -105,6 +106,7 @@ const FoodVendorForm = ({ vendor, isEdit }: FoodVendorFormProps) => {
                 <Input
                   {...field}
                   placeholder="e.g., John Doe"
+                  className="h-11 rounded-lg"
                 />
               </FormControl>
               <FormMessage />
@@ -124,6 +126,7 @@ const FoodVendorForm = ({ vendor, isEdit }: FoodVendorFormProps) => {
                     {...field}
                     type="tel"
                     placeholder="+234 xxx xxx xxxx"
+                    className="h-11 rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -142,6 +145,7 @@ const FoodVendorForm = ({ vendor, isEdit }: FoodVendorFormProps) => {
                     {...field}
                     type="email"
                     placeholder="vendor@example.com"
+                    className="h-11 rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -160,7 +164,7 @@ const FoodVendorForm = ({ vendor, isEdit }: FoodVendorFormProps) => {
                 <Textarea
                   {...field}
                   placeholder="Brief description about the vendor..."
-                  className="resize-none"
+                  className="resize-none rounded-lg min-h-[120px]"
                   rows={3}
                 />
               </FormControl>

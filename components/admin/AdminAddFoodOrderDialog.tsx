@@ -228,7 +228,7 @@ const AdminAddFoodOrderDialog = ({ menu }: AdminAddFoodOrderDialogProps) => {
                             role="combobox"
                             aria-expanded={comboboxOpen}
                             className={cn(
-                              "w-full justify-between",
+                              "w-full justify-between h-11 rounded-lg",
                               !field.value && "text-muted-foreground"
                             )}
                           >
@@ -362,7 +362,7 @@ const AdminAddFoodOrderDialog = ({ menu }: AdminAddFoodOrderDialogProps) => {
                                 value={field.value || undefined}
                               >
                                 <FormControl>
-                                  <SelectTrigger>
+                                  <SelectTrigger className="h-11 rounded-lg">
                                     <SelectValue placeholder="Choose a meal" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -395,7 +395,7 @@ const AdminAddFoodOrderDialog = ({ menu }: AdminAddFoodOrderDialogProps) => {
                                 <Textarea
                                   {...field}
                                   placeholder="Any special requests..."
-                                  className="resize-none"
+                                  className="resize-none rounded-lg min-h-[44px]"
                                   rows={2}
                                 />
                               </FormControl>

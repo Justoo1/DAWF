@@ -19,7 +19,7 @@ const EditFoodPage = async ({ params }: { params: Promise<{ id: string }> }) => 
 
   if (foodData.error || !foodData.food) {
     return (
-      <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+      <main className="admin-main">
         <div className="mx-auto max-w-4xl">
           <div className="text-red-500">Error: {foodData.error || 'Food not found'}</div>
         </div>
@@ -29,7 +29,7 @@ const EditFoodPage = async ({ params }: { params: Promise<{ id: string }> }) => 
 
   if (vendorsData.error || !vendorsData.vendors || vendorsData.vendors.length === 0) {
     return (
-      <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+      <main className="admin-main">
         <div className="mx-auto max-w-4xl">
           <div className="text-red-500">Error: {vendorsData.error || 'No vendors available'}</div>
         </div>
@@ -38,7 +38,7 @@ const EditFoodPage = async ({ params }: { params: Promise<{ id: string }> }) => 
   }
 
   return (
-    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+    <main className="admin-main">
       <div className="mx-auto max-w-4xl space-y-6">
         <h1 className="text-2xl font-semibold text-gray-800">Edit Food Item</h1>
 

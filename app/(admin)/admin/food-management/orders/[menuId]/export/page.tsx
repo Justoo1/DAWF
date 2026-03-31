@@ -62,7 +62,7 @@ const ExportPDFPage = () => {
 
   if (loading) {
     return (
-      <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+      <main className="admin-main">
         <div className="mx-auto max-w-4xl">
           <Card>
             <CardContent className="flex items-center justify-center py-12">
@@ -77,7 +77,7 @@ const ExportPDFPage = () => {
 
   if (error || !data) {
     return (
-      <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+      <main className="admin-main">
         <div className="mx-auto max-w-4xl">
           <Card>
             <CardContent className="py-12 text-center">
@@ -96,7 +96,7 @@ const ExportPDFPage = () => {
   const simpleFileName = `${data.menu.vendor.name.replace(/\s+/g, '_')}_Vendor_Orders_${new Date(data.menu.weekStartDate).toISOString().slice(0, 10)}.pdf`
 
   return (
-    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+    <main className="admin-main">
       <div className="mx-auto max-w-4xl space-y-6">
         <h1 className="text-2xl font-semibold text-gray-800">Export Orders to PDF</h1>
 

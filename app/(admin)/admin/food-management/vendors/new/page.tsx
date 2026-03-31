@@ -3,7 +3,7 @@ import FoodVendorForm from '@/components/admin/FoodVendorForm'
 
 const NewVendorPage = () => {
   return (
-    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+    <main className="admin-main">
       <div className="mx-auto max-w-4xl space-y-6">
         <h1 className="text-2xl font-semibold text-gray-800">Add New Food Vendor</h1>
 

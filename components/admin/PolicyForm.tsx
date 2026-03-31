@@ -113,6 +113,7 @@ const PolicyForm = ({ userEmail, mode, initialData }: PolicyFormProps) => {
             placeholder="e.g., Welfare Fund Constitution"
             required
             disabled={loading}
+            className="h-11 rounded-lg"
           />
         </div>
 
@@ -127,6 +128,7 @@ const PolicyForm = ({ userEmail, mode, initialData }: PolicyFormProps) => {
             placeholder="e.g., welfare-fund-constitution"
             required
             disabled={loading || mode === 'edit'}
+            className="h-11 rounded-lg"
           />
           <p className="text-xs text-gray-500 mt-1">
             URL: /policy (Note: Currently only one active policy is supported)

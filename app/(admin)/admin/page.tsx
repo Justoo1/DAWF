@@ -10,6 +10,8 @@ import UserAnalysis from '@/components/admin/User-analysis'
 import QuickActions from "@/components/admin/QuickActions"
 import { headers } from "next/headers"
 import { canAccessAdmin } from '@/lib/permissions'
+import { AdminPageContent } from "@/components/admin/layout/AdminPageContent"
+import { AdminPageHeader } from "@/components/admin/layout/AdminPageHeader"
 
 const Dashboard = async () => {
   // const { userId } = await auth()
@@ -40,61 +42,89 @@ const Dashboard = async () => {
   }
 
   return (
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">Dashboard Overview</h2>
-          <div className="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Contributions</CardTitle>
-                <span className="h-4 w-4 text-muted-foreground">₵</span>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{contributionsData.totalContributions?.toFixed(2)} GH¢</div>
-                <p className="text-xs text-muted-foreground">{contributionsData.percentageChange}% from last month</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Members</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{membersData.totalMembers}</div>
-                <p className="text-xs text-muted-foreground">
-                  +{membersData.newMembersThisMonth} new this month ({membersData.percentageChange}% growth)
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{eventsData.totalEvents}</div>
-                <p className="text-xs text-muted-foreground">
-                  {Object.entries(eventsData.eventTypes || {})
-                    .map(([type, count]) => `${count} ${type}${count > 1 ? 's' : ''}`)
-                    .join(', ')}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-                <span className="h-4 w-4 text-muted-foreground">₵</span>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{expensesData.totalExpenses?.toFixed(2)} GH¢</div>
-                <p className="text-xs text-muted-foreground">{expensesData.percentageChange}% from last month</p>
-              </CardContent>
-            </Card>
-          </div>
-          {userData.success && (
-              <UserAnalysis userData={userData.user} showRecentContributions />
-            )}
-          <QuickActions />
-        </main>
+    <main className="admin-main">
+      <AdminPageContent>
+        <AdminPageHeader
+          title="Dashboard"
+          description="Overview of contributions, members, events, and expenses."
+        />
+
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold text-muted-foreground">
+                Total Contributions
+              </CardTitle>
+              <span className="text-sm font-semibold text-muted-foreground">₵</span>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tracking-tight text-foreground">
+                {contributionsData.totalContributions?.toFixed(2)} GH¢
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {contributionsData.percentageChange}% from last month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold text-muted-foreground">
+                Total Members
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tracking-tight text-foreground">
+                {membersData.totalMembers}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                +{membersData.newMembersThisMonth} new this month ({membersData.percentageChange}% growth)
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold text-muted-foreground">
+                Upcoming Events
+              </CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tracking-tight text-foreground">
+                {eventsData.totalEvents}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {Object.entries(eventsData.eventTypes || {})
+                  .map(([type, count]) => `${count} ${type}${count > 1 ? 's' : ''}`)
+                  .join(', ')}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold text-muted-foreground">
+                Total Expenses
+              </CardTitle>
+              <span className="text-sm font-semibold text-muted-foreground">₵</span>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tracking-tight text-foreground">
+                {expensesData.totalExpenses?.toFixed(2)} GH¢
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {expensesData.percentageChange}% from last month
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {userData.success && <UserAnalysis userData={userData.user} showRecentContributions />}
+        <QuickActions />
+      </AdminPageContent>
+    </main>
   )
 }
 

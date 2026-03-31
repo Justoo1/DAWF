@@ -101,7 +101,7 @@ const ConferenceRoomForm = ({ room, isEdit }: ConferenceRoomFormProps) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="name"
@@ -111,6 +111,7 @@ const ConferenceRoomForm = ({ room, isEdit }: ConferenceRoomFormProps) => {
               <FormControl>
                 <Input
                   type="text"
+                  className="h-11 rounded-lg"
                   {...field}
                   placeholder="e.g., Conference Room A"
                 />
@@ -129,6 +130,7 @@ const ConferenceRoomForm = ({ room, isEdit }: ConferenceRoomFormProps) => {
               <FormControl>
                 <Input
                   type="number"
+                  className="h-11 rounded-lg"
                   {...field}
                   onChange={(e) => field.onChange(Number(e.target.value))}
                   min={1}
@@ -149,6 +151,7 @@ const ConferenceRoomForm = ({ room, isEdit }: ConferenceRoomFormProps) => {
               <FormControl>
                 <Input
                   type="text"
+                  className="h-11 rounded-lg"
                   {...field}
                   placeholder="e.g., 3rd Floor, East Wing"
                 />
@@ -167,6 +170,7 @@ const ConferenceRoomForm = ({ room, isEdit }: ConferenceRoomFormProps) => {
               <FormControl>
                 <Textarea
                   {...field}
+                  className="rounded-lg min-h-[120px]"
                   placeholder="Brief description of the room"
                 />
               </FormControl>
@@ -180,6 +184,7 @@ const ConferenceRoomForm = ({ room, isEdit }: ConferenceRoomFormProps) => {
           <div className="flex gap-2">
             <Input
               type="text"
+              className="h-11 rounded-lg"
               value={newAmenity}
               onChange={(e) => setNewAmenity(e.target.value)}
               onKeyPress={(e) => {
@@ -190,7 +195,7 @@ const ConferenceRoomForm = ({ room, isEdit }: ConferenceRoomFormProps) => {
               }}
               placeholder="e.g., Projector, Whiteboard"
             />
-            <Button type="button" onClick={addAmenity}>
+            <Button type="button" onClick={addAmenity} className="h-11">
               Add
             </Button>
           </div>

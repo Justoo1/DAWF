@@ -8,6 +8,18 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { fetchUserWithContributions } from '@/lib/actions/users.action'
 import { hasPermission } from '@/lib/permissions'
+import { Badge } from '@/components/ui/badge'
+import { AdminPageContent } from '@/components/admin/layout/AdminPageContent'
+import { AdminPageHeader } from '@/components/admin/layout/AdminPageHeader'
+import { AdminTableCard } from '@/components/admin/layout/AdminTableCard'
+import {
+  adminTableClassName,
+  adminTbodyRowClass,
+  adminTdClass,
+  adminThClass,
+  adminTheadRowClass,
+} from '@/lib/admin-ui'
+import { cn } from '@/lib/utils'
 
 const FoodVendorsPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -22,10 +34,12 @@ const FoodVendorsPage = async () => {
 
   if (vendorsData.error) {
     return (
-      <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
-        <div className="mx-auto max-w-7xl">
-          <div className="text-red-500">Error: {vendorsData.error}</div>
-        </div>
+      <main className="admin-main">
+        <AdminPageContent>
+          <div className="rounded-xl border border-border/50 bg-card p-6 text-sm text-destructive shadow-sm ring-1 ring-border/30">
+            Error: {vendorsData.error}
+          </div>
+        </AdminPageContent>
       </main>
     )
   }
@@ -34,139 +48,154 @@ const FoodVendorsPage = async () => {
   const inactiveVendors = vendorsData.vendors?.filter((v) => !v.isActive) || []
 
   return (
-    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-semibold text-gray-800">Food Vendor Management</h1>
-          <Link href="/admin/food-management/vendors/new">
-            <Button>Add New Vendor</Button>
-          </Link>
-        </div>
+    <main className="admin-main">
+      <AdminPageContent>
+        <AdminPageHeader
+          title="Food Vendors"
+          description="Manage vendor profiles and availability."
+          action={
+            <Link href="/admin/food-management/vendors/new">
+              <Button className="shadow-sm">Add New Vendor</Button>
+            </Link>
+          }
+        />
 
-        {/* Statistics */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Vendors</CardTitle>
+              <CardTitle className="text-sm font-semibold text-muted-foreground">
+                Total Vendors
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{vendorsData.totalVendors || 0}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Vendors</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{activeVendors.length}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Inactive Vendors</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{inactiveVendors.length}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Active Vendors List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Active Vendors</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {activeVendors.length > 0 ? (
-                activeVendors.map((vendor) => (
-                  <div
-                    key={vendor.id}
-                    className="flex justify-between items-start p-4 border rounded-lg bg-white hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Building2 className="h-5 w-5 text-gray-600" />
-                        <h3 className="text-lg font-semibold">{vendor.name}</h3>
-                      </div>
-                      <div className="mt-2 space-y-1 text-sm text-gray-600">
-                        {vendor.contactName && (
-                          <p className="flex items-center gap-2">
-                            <User className="h-4 w-4" />
-                            Contact: {vendor.contactName}
-                          </p>
-                        )}
-                        {vendor.phone && (
-                          <p className="flex items-center gap-2">
-                            <Phone className="h-4 w-4" />
-                            {vendor.phone}
-                          </p>
-                        )}
-                        {vendor.email && (
-                          <p className="flex items-center gap-2">
-                            <Mail className="h-4 w-4" />
-                            {vendor.email}
-                          </p>
-                        )}
-                        {vendor.description && (
-                          <p className="mt-2 text-gray-500">{vendor.description}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Link href={`/admin/food-management/vendors/${vendor.id}/edit`}>
-                        <Button variant="outline" size="sm">
-                          Edit
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500 italic">No active vendors found</p>
-                  <Link href="/admin/food-management/vendors/new">
-                    <Button className="mt-4">Add Your First Vendor</Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Inactive Vendors */}
-        {inactiveVendors.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-gray-500">Inactive Vendors</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {inactiveVendors.map((vendor) => (
-                  <div
-                    key={vendor.id}
-                    className="flex justify-between items-start p-3 border rounded-lg bg-gray-50"
-                  >
-                    <div className="flex-1 opacity-75">
-                      <h4 className="font-semibold text-gray-700">{vendor.name}</h4>
-                      {vendor.contactName && (
-                        <p className="text-sm text-gray-600">Contact: {vendor.contactName}</p>
-                      )}
-                    </div>
-                    <Link href={`/admin/food-management/vendors/${vendor.id}/edit`}>
-                      <Button variant="ghost" size="sm">
-                        Reactivate
-                      </Button>
-                    </Link>
-                  </div>
-                ))}
+              <div className="text-2xl font-bold tracking-tight text-foreground">
+                {vendorsData.totalVendors || 0}
               </div>
             </CardContent>
           </Card>
-        )}
-      </div>
+
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold text-muted-foreground">
+                Active Vendors
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tracking-tight text-foreground">
+                {activeVendors.length}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold text-muted-foreground">
+                Inactive Vendors
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tracking-tight text-foreground">
+                {inactiveVendors.length}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <AdminTableCard title="Vendors">
+          {vendorsData.vendors && vendorsData.vendors.length > 0 ? (
+            <table className={adminTableClassName()}>
+              <thead>
+                <tr className={adminTheadRowClass}>
+                  <th className={adminThClass}>Vendor</th>
+                  <th className={cn(adminThClass, "hidden lg:table-cell")}>Contact</th>
+                  <th className={cn(adminThClass, "hidden xl:table-cell")}>Phone</th>
+                  <th className={cn(adminThClass, "hidden xl:table-cell")}>Email</th>
+                  <th className={cn(adminThClass, "w-28")}>Status</th>
+                  <th className={cn(adminThClass, "w-28 text-right")}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vendorsData.vendors.map((vendor) => (
+                  <tr key={vendor.id} className={adminTbodyRowClass}>
+                    <td className={adminTdClass}>
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <Building2 className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-foreground">{vendor.name}</p>
+                          {vendor.description ? (
+                            <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                              {vendor.description}
+                            </p>
+                          ) : null}
+                          <div className="mt-1 flex flex-col gap-1 text-xs text-muted-foreground lg:hidden">
+                            {vendor.contactName ? (
+                              <span className="inline-flex items-center gap-2">
+                                <User className="h-3.5 w-3.5" />
+                                {vendor.contactName}
+                              </span>
+                            ) : null}
+                            {vendor.phone ? (
+                              <span className="inline-flex items-center gap-2">
+                                <Phone className="h-3.5 w-3.5" />
+                                {vendor.phone}
+                              </span>
+                            ) : null}
+                            {vendor.email ? (
+                              <span className="inline-flex items-center gap-2">
+                                <Mail className="h-3.5 w-3.5" />
+                                {vendor.email}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className={cn(adminTdClass, "hidden lg:table-cell")}>
+                      <span className="text-sm text-muted-foreground">
+                        {vendor.contactName || "—"}
+                      </span>
+                    </td>
+                    <td className={cn(adminTdClass, "hidden xl:table-cell")}>
+                      <span className="text-sm text-muted-foreground">{vendor.phone || "—"}</span>
+                    </td>
+                    <td className={cn(adminTdClass, "hidden xl:table-cell")}>
+                      <span className="text-sm text-muted-foreground">{vendor.email || "—"}</span>
+                    </td>
+                    <td className={adminTdClass}>
+                      <Badge
+                        variant={vendor.isActive ? "default" : "secondary"}
+                        className={cn(
+                          "font-normal",
+                          vendor.isActive && "bg-primary/15 text-primary hover:bg-primary/15"
+                        )}
+                      >
+                        {vendor.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </td>
+                    <td className={cn(adminTdClass, "text-right")}>
+                      <Link href={`/admin/food-management/vendors/${vendor.id}/edit`}>
+                        <Button variant="outline" size="sm" className="shadow-sm">
+                          {vendor.isActive ? "Edit" : "Reactivate"}
+                        </Button>
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="p-6 text-sm text-muted-foreground">
+              No vendors found.{" "}
+              <Link href="/admin/food-management/vendors/new" className="text-primary underline">
+                Add your first vendor
+              </Link>
+              .
+            </div>
+          )}
+        </AdminTableCard>
+      </AdminPageContent>
     </main>
   )
 }
