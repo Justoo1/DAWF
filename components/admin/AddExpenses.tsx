@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { createExpenses, updateExpense } from '@/lib/actions/expenses'
 import { ExpenseStatus, ExpenseType } from '@prisma/client'
 import { ExpenseValue } from '@/lib/validation'
+import { Banknote, Calendar, User } from 'lucide-react'
 
 const ExpenseCreateSchema = z.object({
   type: z.enum(['BIRTHDAY', 'FUNERAL', 'MARRIAGE', 'CHILDBIRTH', 'EMPLOYEE_DEPARTURE', 'OTHER']),
@@ -135,6 +136,7 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
                   type="number"
                   placeholder="Amount"
                   {...field}
+                  leftIcon={<Banknote className="h-4 w-4" />}
                   onChange={(e) => field.onChange(Number(e.target.value))}
                   className="h-11 rounded-lg"
                 />
@@ -149,6 +151,7 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
                 <Input
                   type="date"
                   {...field}
+                  rightIcon={<Calendar className="h-4 w-4" />}
                   value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
                   className="h-11 rounded-lg"
                 />
@@ -163,6 +166,7 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
                 <Input
                   placeholder="Recipient"
                   {...field}
+                  leftIcon={<User className="h-4 w-4" />}
                   className="h-11 rounded-lg"
                 />
               )}

@@ -102,6 +102,7 @@ export function CreateHolidayModal() {
               <Input
                 id="name"
                 placeholder="e.g. Christmas Day"
+                leftIcon={<CalendarIcon className="h-4 w-4" />}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 disabled={loading}

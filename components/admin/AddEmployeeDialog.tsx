@@ -24,7 +24,7 @@ import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
 import { createEmployee } from "@/lib/actions/users.action"
 import { fetchDepartments } from "@/lib/actions/department.actions"
-import { PlusCircle } from "lucide-react"
+import { Calendar, Mail, PlusCircle, User } from "lucide-react"
 import { useEffect } from 'react'
 
 export function AddEmployeeDialog() {
@@ -140,6 +140,7 @@ export function AddEmployeeDialog() {
                 id="name"
                 required
                 className="h-11 rounded-lg"
+                leftIcon={<User className="h-4 w-4" />}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="John Doe"
@@ -154,6 +155,7 @@ export function AddEmployeeDialog() {
                 type="email"
                 required
                 className="h-11 rounded-lg"
+                leftIcon={<Mail className="h-4 w-4" />}
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="john.doe@example.com"
@@ -188,6 +190,7 @@ export function AddEmployeeDialog() {
                 id="dateOfBirth"
                 type="date"
                 className="h-11 rounded-lg"
+                rightIcon={<Calendar className="h-4 w-4" />}
                 value={formData.dateOfBirth}
                 onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
               />
@@ -201,6 +204,7 @@ export function AddEmployeeDialog() {
                 id="startDate"
                 type="date"
                 className="h-11 rounded-lg"
+                rightIcon={<Calendar className="h-4 w-4" />}
                 value={formData.startDate}
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
               />
@@ -255,6 +259,7 @@ export function AddEmployeeDialog() {
                     id="exitDate"
                     type="date"
                     className="h-11 rounded-lg"
+                    rightIcon={<Calendar className="h-4 w-4" />}
                     value={formData.exitDate}
                     onChange={(e) => setFormData({ ...formData, exitDate: e.target.value })}
                   />

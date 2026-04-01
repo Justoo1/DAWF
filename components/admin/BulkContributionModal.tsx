@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { createBulkContributions } from '@/lib/actions/contribution'
-import { Loader, PlusCircle, Users } from 'lucide-react'
+import { Calendar, Loader, PlusCircle, Users } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 
 interface User {
@@ -162,6 +162,7 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
                   id="startMonth"
                   type="month"
                   className="h-11 rounded-lg"
+                  rightIcon={<Calendar className="h-4 w-4" />}
                   value={startMonth}
                   onChange={(e) => setStartMonth(e.target.value)}
                   max={currentMonth}
@@ -174,6 +175,7 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
                   id="endMonth"
                   type="month"
                   className="h-11 rounded-lg"
+                  rightIcon={<Calendar className="h-4 w-4" />}
                   value={endMonth}
                   onChange={(e) => setEndMonth(e.target.value)}
                   max={currentMonth}

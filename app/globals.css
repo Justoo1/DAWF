@@ -388,3 +388,11 @@
   color: #52525b !important;
   opacity: 0.5;
 }
+
+/* Custom Native Input Styles to support perfectly aligned icons */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  display: none !important;
+  -webkit-appearance: none;
+}

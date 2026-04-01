@@ -179,12 +179,12 @@ export default function CreateDepartmentModal() {
             <div className="space-y-2">
               <Label>Assign employees</Label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="h-11 rounded-lg pl-10"
+                  className="h-11 rounded-lg"
                   placeholder="Find employees to add…"
+                  leftIcon={<Search className="h-4 w-4" />}
                   type="search"
                   disabled={isSubmitting || isLoading}
                 />
