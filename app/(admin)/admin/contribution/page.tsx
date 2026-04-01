@@ -2,6 +2,7 @@ import Contributions from '@/components/admin/Contributions'
 import QuickActions from '@/components/admin/QuickActions'
 import BulkContributionModal from '@/components/admin/BulkContributionModal'
 import { fetchContributions } from '@/lib/actions/contribution'
+import { AutomateContributionsButton } from '@/components/admin/AutomateContributionsButton'
 import { fetchUsersIdAndName } from '@/lib/actions/users.action'
 import { AdminStatCard, AdminStatCardsWrapper } from "@/components/admin/layout/AdminStatCards"
 import { WalletCards, TrendingUp, ListChecks } from "lucide-react"
@@ -40,7 +41,12 @@ const ContributionPage = async ({ searchParams }: ContributionPageProps) => {
         <AdminPageHeader
           title="Contributions Management"
           description="View, manage, and add welfare fund contributions."
-          action={<BulkContributionModal users={users} />}
+          action={
+            <div className="flex items-center gap-2">
+              <AutomateContributionsButton />
+              <BulkContributionModal users={users} />
+            </div>
+          }
         />
         
         <AdminStatCardsWrapper>

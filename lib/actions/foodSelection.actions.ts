@@ -79,6 +79,7 @@ export async function createOrUpdateFoodSelection(
       select: {
         status: true,
         selectionCloseDate: true,
+        weekStartDate: true,
         vendor: { select: { name: true } }
       }
     });
@@ -94,6 +95,32 @@ export async function createOrUpdateFoodSelection(
     if (new Date() > menu.selectionCloseDate) {
       return { error: 'Selection period has ended' };
     }
+
+    // --- LEAVE VALIDATION START ---
+    // Calculate the absolute date for this day of week
+    const daysToAdd = {
+      'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3, 'FRIDAY': 4
+    }[selectionData.dayOfWeek];
+
+    const targetDate = new Date(menu.weekStartDate);
+    targetDate.setDate(targetDate.getDate() + daysToAdd);
+
+    // Check for approved leave on this date
+    const approvedLeave = await prisma.leaveRequest.findFirst({
+      where: {
+        userId,
+        status: 'APPROVED',
+        startDate: { lte: targetDate },
+        endDate: { gte: targetDate }
+      }
+    });
+
+    if (approvedLeave && selectionData.menuItemId) {
+      return { 
+        error: `Selection blocked: You have an approved leave on ${targetDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}.` 
+      };
+    }
+    // --- LEAVE VALIDATION END ---
 
     // Upsert the selection
     const selection = await prisma.foodSelection.upsert({
@@ -159,6 +186,34 @@ export async function createBulkFoodSelections(
     if (new Date() > menu.selectionCloseDate) {
       return { error: 'Selection period has ended' };
     }
+
+    // --- BULK LEAVE VALIDATION START ---
+    const dayOffsets: Record<string, number> = {
+      'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3, 'FRIDAY': 4
+    };
+
+    for (const selection of data.selections) {
+        if (!selection.menuItemId) continue;
+
+        const targetDate = new Date(menu.weekStartDate);
+        targetDate.setDate(targetDate.getDate() + dayOffsets[selection.dayOfWeek]);
+
+        const approvedLeave = await prisma.leaveRequest.findFirst({
+            where: {
+                userId,
+                status: 'APPROVED',
+                startDate: { lte: targetDate },
+                endDate: { gte: targetDate }
+            }
+        });
+
+        if (approvedLeave) {
+            return { 
+                error: `Cannot save selections: You have an approved leave on ${selection.dayOfWeek.toLowerCase()}, ${targetDate.toLocaleDateString('en-GB')}.` 
+            };
+        }
+    }
+    // --- BULK LEAVE VALIDATION END ---
 
     // Get user details
     const user = await prisma.user.findUnique({

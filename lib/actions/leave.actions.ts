@@ -150,3 +150,185 @@ export async function submitLeaveRequest(data: {
     return { success: false, error: "Failed to submit leave request" };
   }
 }
+
+export async function fetchLeaveRequests(viewerId: string) {
+  try {
+    const viewer = await prisma.user.findUnique({
+      where: { id: viewerId },
+      select: { role: true, department: true }
+    });
+
+    if (!viewer) return { success: false, error: "Unauthorized" };
+
+    let whereClause = {};
+
+    if (viewer.role === 'MANAGER') {
+      // Find departments this user manages
+      const managedDepts = await prisma.department.findMany({
+        where: { managerId: viewerId },
+        select: { name: true }
+      });
+      const deptNames = managedDepts.map(d => d.name);
+      
+      whereClause = {
+        user: {
+          department: { in: deptNames }
+        }
+      };
+    } else if (viewer.role !== 'ADMIN') {
+        // Employees only see their own
+        whereClause = { userId: viewerId };
+    }
+
+    const requests = await prisma.leaveRequest.findMany({
+      where: whereClause,
+      include: {
+        user: {
+          select: { name: true, email: true, department: true }
+        },
+        policy: true,
+        manager: {
+          select: { name: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return { success: true, requests };
+  } catch (error) {
+    console.error("Error fetching leave requests:", error);
+    return { success: false, error: "Failed to fetch leave requests" };
+  }
+}
+
+export async function approveLeaveRequest(requestId: string, approverId: string) {
+  try {
+    const [request, approver] = await Promise.all([
+      prisma.leaveRequest.findUnique({ 
+        where: { id: requestId },
+        include: { user: true }
+      }),
+      prisma.user.findUnique({ where: { id: approverId } })
+    ]);
+
+    if (!request || !approver) return { success: false, error: "Not found" };
+
+    // Check permissions
+    const department = await prisma.department.findUnique({
+        where: { name: request.user.department || "" }
+    });
+
+    const isSystemAdmin = approver.role === 'ADMIN';
+    const isDeptManager = department?.managerId === approverId;
+
+    if (!isSystemAdmin && !isDeptManager) {
+      return { success: false, error: "Unauthorized: only department managers or admins can approve" };
+    }
+
+    await prisma.leaveRequest.update({
+      where: { id: requestId },
+      data: {
+        status: 'APPROVED',
+        approvedById: approverId
+      }
+    });
+
+    revalidatePath("/admin/leave-management/requests");
+    return { success: true };
+  } catch (error) {
+    console.error("Error approving leave request:", error);
+    return { success: false, error: "Failed to approve leave request" };
+  }
+}
+
+export async function rejectLeaveRequest(requestId: string, approverId: string, reason?: string) {
+  try {
+    const [request, approver] = await Promise.all([
+      prisma.leaveRequest.findUnique({ 
+        where: { id: requestId },
+        include: { user: true }
+      }),
+      prisma.user.findUnique({ where: { id: approverId } })
+    ]);
+
+    if (!request || !approver) return { success: false, error: "Not found" };
+
+    const department = await prisma.department.findUnique({
+        where: { name: request.user.department || "" }
+    });
+
+    const isSystemAdmin = approver.role === 'ADMIN';
+    const isDeptManager = department?.managerId === approverId;
+
+    if (!isSystemAdmin && !isDeptManager) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    await prisma.leaveRequest.update({
+      where: { id: requestId },
+      data: {
+        status: 'REJECTED',
+        approvedById: approverId,
+        reason: reason || request.reason
+      }
+    });
+
+    revalidatePath("/admin/leave-management/requests");
+    return { success: true };
+  } catch (error) {
+    console.error("Error rejecting leave request:", error);
+    return { success: false, error: "Failed to reject leave request" };
+  }
+}
+
+// ============================================
+// PUBLIC HOLIDAY MANAGEMENT
+// ============================================
+
+export async function fetchPublicHolidays() {
+  try {
+    const holidays = await prisma.publicHoliday.findMany({
+      orderBy: { date: 'asc' }
+    });
+    return { success: true, holidays };
+  } catch (error) {
+    console.error("Error fetching public holidays:", error);
+    return { success: false, error: "Failed to fetch holidays" };
+  }
+}
+
+export async function createPublicHoliday(data: {
+  name: string;
+  date: Date;
+  isRecurring: boolean;
+}) {
+  try {
+    const holiday = await prisma.publicHoliday.create({
+      data: {
+        name: data.name,
+        date: data.date,
+        isRecurring: data.isRecurring
+      }
+    });
+
+    revalidatePath("/admin/leave-management/calendar");
+    return { success: true, holiday };
+  } catch (error: any) {
+    console.error("Error creating public holiday:", error);
+    if (error?.code === 'P2002') {
+      return { success: false, error: `A holiday named "${data.name}" already exists.` };
+    }
+    return { success: false, error: "Failed to create public holiday" };
+  }
+}
+
+export async function deletePublicHoliday(id: string) {
+  try {
+    await prisma.publicHoliday.delete({ where: { id } });
+    revalidatePath("/admin/leave-management/calendar");
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting public holiday:", error);
+    return { success: false, error: "Failed to delete public holiday" };
+  }
+}

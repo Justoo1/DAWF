@@ -20,9 +20,6 @@ const Analytics = ({ incomeVsExpenses, monthlyContributions }: AnalyticsProp) =>
   const [filteredContributions, setFilteredContributions] = useState<Contribution[]>([])
   const [filteredIncomeVsExpenses, setFilteredIncomeVsExpenses] = useState<IncomeVsExpense[]>([])
 
-  console.log("filteredIncomeVsExpenses", filteredIncomeVsExpenses)
-  console.log(incomeVsExpenses)
-
   const years = Array.from(new Set([
     ...monthlyContributions.map(c => c.year),
     ...incomeVsExpenses.map(ie => ie.year)
@@ -34,7 +31,7 @@ const Analytics = ({ incomeVsExpenses, monthlyContributions }: AnalyticsProp) =>
   }, [selectedYear, monthlyContributions, incomeVsExpenses])
 
   return (
-    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-4 sm:p-6">
+    <main className="flex-1 overflow-x-hidden overflow-y-auto p-0 md:p-2">
       <div className="mb-4">
         <Select onValueChange={(value) => setSelectedYear(Number(value))}>
           <SelectTrigger className="w-[180px]">

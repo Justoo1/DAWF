@@ -536,3 +536,14 @@ model LeaveRequest {
   @@index([policyId])
   @@map("leave_requests")
 }
+
+model PublicHoliday {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  date        DateTime
+  isRecurring Boolean  @default(false) // Set to true for holidays that fall on the same day every year
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("public_holidays")
+}
