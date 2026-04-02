@@ -44,9 +44,10 @@ interface LeaveCalendarProps {
   leaves: Leave[]
   holidays: Holiday[]
   departments: string[]
+  totalHeadcount: number
 }
 
-export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCalendarProps) {
+export default function LeaveCalendar({ leaves, holidays, departments, totalHeadcount }: LeaveCalendarProps) {
   const calendarRef = useRef<FullCalendar>(null)
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
@@ -113,10 +114,34 @@ export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCa
       }
     })
 
-    // Add Leaves (Grouped)
+    // 1. Add Daily Headcount Label to EVERY day in the view
+    const start = startOfMonth(currentDate)
+    const end = endOfMonth(currentDate)
+    let dayIter = new Date(start)
+    dayIter.setDate(dayIter.getDate() - 7) // Buffer for previous weeks showing in grid
+    const stopDate = new Date(end)
+    stopDate.setDate(stopDate.getDate() + 7)
+
+    while (dayIter <= stopDate) {
+      const dateStr = format(dayIter, "yyyy-MM-dd")
+      calendarEvents.push({
+        id: `headcount-${dateStr}`,
+        title: `Total Employees: ${totalHeadcount}`,
+        start: dateStr,
+        allDay: true,
+        backgroundColor: "#F1F5F9", // Slate 100
+        textColor: "#64748B",       // Slate 500
+        borderColor: "transparent",
+        classNames: ["headcount-banner"],
+        extendedProps: { type: 'headcount' }
+      })
+      dayIter.setDate(dayIter.getDate() + 1)
+    }
+
+    // 2. Add Leaves (Grouped)
     Object.entries(leavesByDate).forEach(([dateStr, dayLeaves]) => {
       const names = dayLeaves.map(l => l.user.name)
-      const label = dayLeaves.length === 1 ? names[0] : `${dayLeaves.length} Employees Out`
+      const label = `Total On Leave: ${dayLeaves.length}`
       
       calendarEvents.push({
         id: `group-${dateStr}`,
@@ -125,7 +150,7 @@ export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCa
         allDay: true,
         backgroundColor: "#10A074", 
         borderColor: "transparent",
-        classNames: ["leave-banner"],
+        classNames: ["leave-banner", "status-banner"],
         extendedProps: { 
           type: 'leave', 
           count: dayLeaves.length,
@@ -134,11 +159,11 @@ export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCa
       })
     })
 
-    // Add Holidays
+    // 3. Add Holidays
     holidays.forEach((holiday) => {
       calendarEvents.push({
         id: holiday.id,
-        title: holiday.name,
+        title: `Public Holiday: ${holiday.name}`,
         start: holiday.date,
         allDay: true,
         backgroundColor: "#F43F5E", 
@@ -201,10 +226,22 @@ export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCa
           </div>
 
           <Card className="border-none shadow-premium bg-white overflow-hidden rounded-3xl">
-            <div className="flex flex-col md:flex-row justify-between items-center p-6 pb-0 gap-4">
-              <h2 className="text-2xl font-black tracking-tight text-slate-800">{viewTitle}</h2>
+            <div className="flex flex-col md:flex-row justify-between items-center p-6 pb-6 gap-6 border-b border-slate-50">
+              <div className="flex flex-col gap-4">
+                  <h2 className="text-2xl font-black tracking-tight text-slate-800">{viewTitle}</h2>
+                  <div className="flex flex-wrap gap-2">
+                      <div className="flex items-center gap-2 bg-[#10A074]/10 px-4 py-1.5 rounded-xl border border-[#10A074]/20">
+                          <div className="w-2 h-2 rounded-full bg-[#10A074]" />
+                          <span className="text-[12px] font-bold text-[#10A074] uppercase tracking-wider">Total Headcount: {totalHeadcount}</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-rose-50 px-4 py-1.5 rounded-xl border border-rose-100">
+                          <div className="w-2 h-2 rounded-full bg-rose-500" />
+                          <span className="text-[12px] font-bold text-rose-600 uppercase tracking-wider">Leaves This Month: {leaves.length}</span>
+                      </div>
+                  </div>
+              </div>
               
-              <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-2xl">
+              <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-2xl self-end md:self-center">
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -234,7 +271,7 @@ export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCa
                   headerToolbar={false}
                   events={filteredEvents}
                   height="auto"
-                  dayMaxEvents={3}
+                  dayMaxEvents={6}
                   datesSet={handleDatesSet}
                   dayHeaderFormat={{ weekday: 'short' }}
                   eventDisplay="block"
@@ -243,8 +280,8 @@ export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCa
                     const names = arg.event.extendedProps.names as string[] || [];
                     
                     const content = (
-                      <div className="px-2 py-0.5 flex items-center justify-start h-full truncate group transition-all cursor-default">
-                        <span className="text-[10px] font-bold text-white whitespace-nowrap truncate uppercase tracking-tight">
+                      <div className="px-2 py-1.5 flex items-center justify-start min-h-[28px] group transition-all cursor-default">
+                        <span className="text-[10px] font-bold text-white whitespace-normal break-words uppercase tracking-tight leading-tight">
                           {arg.event.title}
                         </span>
                       </div>
@@ -288,7 +325,7 @@ export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCa
         .custom-calendar .fc {
           border: none !important;
           --fc-border-color: #f1f5f9;
-          --fc-today-bg-color: #f0fdf4;
+          --fc-today-bg-color: #f8fafc;
           --fc-page-bg-color: transparent;
         }
         .custom-calendar .fc-theme-standard td, 
@@ -296,11 +333,23 @@ export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCa
         .custom-calendar .fc-theme-standard .fc-scrollgrid {
           border: 1px solid #f1f5f9 !important;
         }
+        .custom-calendar .fc-daygrid-day-top {
+          display: flex !important;
+          justify-content: flex-end !important;
+          padding-top: 4px;
+          padding-right: 4px;
+        }
         .custom-calendar .fc-daygrid-day-number {
-          font-size: 13px;
-          font-weight: 600;
-          color: #64748b;
-          padding: 8px 12px !important;
+          font-size: 15px !important;
+          font-weight: 900 !important;
+          color: #94a3b8 !important;
+          text-decoration: none !important;
+        }
+        .custom-calendar .fc-daygrid-event {
+            white-space: normal !important;
+        }
+        .custom-calendar .fc-event-main {
+            overflow: visible !important;
         }
         .custom-calendar .fc-col-header-cell-cushion {
           padding: 16px 0 !important;
@@ -311,16 +360,46 @@ export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCa
         }
         .custom-calendar .fc-event {
           margin: 2px 4px !important;
-          border-radius: 6px !important;
-          padding: 1px 0 !important;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+          border-radius: 8px !important;
+          padding: 2px 0 !important;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
         }
         .custom-calendar .fc-day-today {
-          background-color: #f0fdf4 !important;
+          background-color: #f8fafc !important;
         }
         .custom-calendar .fc-day-today .fc-daygrid-day-number {
-          color: #10A074;
-          font-weight: 800;
+          color: #10A074 !important;
+        }
+        .custom-calendar .headcount-banner {
+          border: 1px dashed #cbd5e1 !important;
+          background-color: #f8fafc !important;
+          margin-bottom: 4px !important;
+        }
+        .custom-calendar .headcount-banner .text-white {
+          color: #64748b !important;
+        }
+        .custom-calendar .headcount-banner span {
+            color: #64748b !important;
+        }
+        .custom-calendar .leave-banner {
+          border-left: 5px solid #064e3b !important;
+          background-color: #10b981 !important;
+          margin-bottom: 2px !important;
+        }
+        .custom-calendar .status-banner .fc-event-title:before {
+            content: "👥 ";
+            margin-right: 4px;
+        }
+        .custom-calendar .holiday-banner {
+          border-left: 5px solid #881337 !important;
+          background-color: #F43F5E !important;
+          margin-bottom: 2px !important;
+        }
+        .custom-calendar .fc-daygrid-day-frame {
+          min-height: 150px !important;
+        }
+        .custom-calendar .fc-event-title {
+            color: inherit !important;
         }
       `}</style>
       </div>
