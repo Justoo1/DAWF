@@ -69,10 +69,48 @@ const Employees = ({
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [deptFilter, setDeptFilter] = useState("all");
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof UserValues;
+    direction: "asc" | "desc";
+  }>({ key: "name", direction: "asc" });
 
-  const filteredRecords = employees.filter((record) =>
-    record.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Get unique departments for filter
+  const departments = Array.from(
+    new Set(employees.map((e) => e.department).filter(Boolean))
+  ).sort() as string[];
+
+  const filteredRecords = employees
+    .filter((record) => {
+      const matchesSearch =
+        record.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        record.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === "all"
+          ? true
+          : statusFilter === "active"
+          ? record.isActive
+          : !record.isActive;
+      const matchesDept =
+        deptFilter === "all" ? true : record.department === deptFilter;
+      return matchesSearch && matchesStatus && matchesDept;
+    })
+    .sort((a, b) => {
+      const aValue = a[sortConfig.key] ?? "";
+      const bValue = b[sortConfig.key] ?? "";
+
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+  const handleSort = (key: keyof UserValues) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -210,24 +248,57 @@ const Employees = ({
     <>
       <AdminToolbar>
         {/* Top half: Search */}
-        <div className="p-5 px-6 border-b border-slate-100">
+        <div className="p-6 px-8 border-b border-slate-100">
           <AdminSearchField
             placeholder="Search employees by name, ID or email..."
             value={searchTerm}
             onChange={setSearchTerm}
-            inputClassName="border-0 bg-transparent pl-10 shadow-none text-slate-700 h-6"
           />
         </div>
         {/* Bottom half: Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-3 sm:gap-4 px-4 sm:px-6 py-4 bg-white">
-          <Button variant="outline" className="h-10 w-full sm:w-auto justify-between sm:justify-center rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm px-4">
-            All Departments
-            <svg className="sm:ml-2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-          </Button>
-          <Button variant="outline" className="h-10 w-full sm:w-auto justify-between sm:justify-center rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm px-4">
-            Status: Active
-            <svg className="sm:ml-2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
-          </Button>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-3 sm:gap-4 px-6 sm:px-8 py-5 bg-white">
+          <div className="w-full sm:w-48">
+            <Select value={deptFilter} onValueChange={setDeptFilter}>
+              <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                {departments.map((dept) => (
+                  <SelectItem key={dept} value={dept}>
+                    {dept}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-full sm:w-40">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+                <SelectValue placeholder="Status: All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Status: All</SelectItem>
+                <SelectItem value="active">Active Only</SelectItem>
+                <SelectItem value="inactive">Inactive Only</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {(deptFilter !== "all" || statusFilter !== "all" || searchTerm) && (
+            <Button 
+              variant="ghost" 
+              className="text-xs text-slate-400 hover:text-primary h-10 px-2"
+              onClick={() => {
+                setSearchTerm("");
+                setDeptFilter("all");
+                setStatusFilter("all");
+              }}
+            >
+              Reset Filters
+            </Button>
+          )}
         </div>
       </AdminToolbar>
 
@@ -246,10 +317,25 @@ const Employees = ({
         <table className={adminTableClassName()}>
           <thead>
             <tr className={adminTheadRowClass}>
-              <th className={adminThClass}>Employee Name</th>
-              <th className={adminThClass}>Department</th>
+              <th className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")} onClick={() => handleSort("name")}>
+                <div className="flex items-center gap-2">
+                  Employee Name
+                  <SortIcon field="name" activeField={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
+              <th className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")} onClick={() => handleSort("department")}>
+                <div className="flex items-center gap-2">
+                  Department
+                  <SortIcon field="department" activeField={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
               <th className={adminThClass}>Contributions</th>
-              <th className={adminThClass}>Role & Status</th>
+              <th className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")} onClick={() => handleSort("isActive")}>
+                <div className="flex items-center gap-2">
+                  Role & Status
+                  <SortIcon field="isActive" activeField={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
               <th className={cn(adminThClass, "text-right")}>Actions</th>
             </tr>
           </thead>
@@ -350,5 +436,18 @@ const Employees = ({
     </>
   );
 };
+
+function SortIcon({ field, activeField, direction }: { field: string, activeField: string, direction: "asc" | "desc" }) {
+  if (field !== activeField) return <div className="w-4 h-4 opacity-0 group-hover:opacity-40 transition-opacity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 15l5 5 5-5M7 9l5-5 5-5" /></svg></div>;
+  return (
+    <div className="w-4 h-4 text-primary">
+      {direction === "asc" ? (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 11l5-5 5 5M12 19V6"/></svg>
+      ) : (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 13l5 5 5-5M12 5v13"/></svg>
+      )}
+    </div>
+  );
+}
 
 export default Employees;

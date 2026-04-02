@@ -22,26 +22,75 @@ import {
 import { cn } from "@/lib/utils";
 import { UserAvatarHover } from "./UserAvatarHover";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 interface ExpensesProps {
   expenses: ExpenseValue[];
 }
 
 const Expenses = ({ expenses }: ExpensesProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof ExpenseValue | "recipient_name";
+    direction: "asc" | "desc";
+  }>({ key: "date", direction: "desc" });
+
   const { toast } = useToast();
 
-  const filteredRecords = expenses.filter((record) => {
-    const monthName = record.date
-      .toLocaleString("default", { month: "long" })
-      .toLowerCase();
-    const monthNumber = (record.date.getMonth() + 1).toString();
-    return (
-      record.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      monthName.includes(searchTerm.toLowerCase()) ||
-      monthNumber.includes(searchTerm.toLowerCase())
-    );
-  });
+  // Get unique types for filter
+  const types = Array.from(new Set(expenses.map((e) => e.type))).sort();
+
+  const filteredRecords = expenses
+    .filter((record) => {
+      const monthName = record.date
+        .toLocaleString("default", { month: "long" })
+        .toLowerCase();
+      const monthNumber = (record.date.getMonth() + 1).toString();
+      const matchesSearch =
+        record.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        record.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (record.recipient || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (record.user?.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        monthName.includes(searchTerm.toLowerCase()) ||
+        monthNumber.includes(searchTerm.toLowerCase());
+
+      const matchesType = typeFilter === "all" ? true : record.type === typeFilter;
+      const matchesStatus =
+        statusFilter === "all" ? true : record.status === statusFilter;
+
+      return matchesSearch && matchesType && matchesStatus;
+    })
+    .sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      if (sortConfig.key === "recipient_name") {
+        aValue = a.user?.name || a.recipient || "";
+        bValue = b.user?.name || b.recipient || "";
+      } else {
+        aValue = a[sortConfig.key as keyof ExpenseValue] ?? "";
+        bValue = b[sortConfig.key as keyof ExpenseValue] ?? "";
+      }
+
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+  const handleSort = (key: keyof ExpenseValue | "recipient_name") => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
 
   const handleDelete = async (id: number | undefined) => {
     if (!id) return;
@@ -63,13 +112,59 @@ const Expenses = ({ expenses }: ExpensesProps) => {
   return (
     <>
       <AdminToolbar>
-        <div className="p-4 px-6 border-b border-slate-100 flex-1">
+        {/* Top half: Search */}
+        <div className="p-6 px-8 border-b border-slate-100 flex-1">
           <AdminSearchField
-            placeholder="Search expenses by type, status, or month..."
+            placeholder="Search expenses by type, status, name, or month..."
             value={searchTerm}
             onChange={setSearchTerm}
-            inputClassName="border-0 bg-transparent pl-10 shadow-none text-slate-700 h-6"
           />
+        </div>
+        {/* Bottom half: Filters */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-3 sm:gap-4 px-6 sm:px-8 py-5 bg-white">
+          <div className="w-full sm:w-48">
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {types.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type.replace("_", " ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-full sm:w-44">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+                <SelectValue placeholder="Status: All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Status: All</SelectItem>
+                <SelectItem value="APPROVED">Approved Only</SelectItem>
+                <SelectItem value="PENDING">Pending Only</SelectItem>
+                <SelectItem value="REJECTED">Rejected Only</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {(typeFilter !== "all" || statusFilter !== "all" || searchTerm) && (
+            <Button
+              variant="ghost"
+              className="text-xs text-slate-400 hover:text-primary h-10 px-2"
+              onClick={() => {
+                setSearchTerm("");
+                setTypeFilter("all");
+                setStatusFilter("all");
+              }}
+            >
+              Reset Filters
+            </Button>
+          )}
         </div>
       </AdminToolbar>
 
@@ -77,11 +172,51 @@ const Expenses = ({ expenses }: ExpensesProps) => {
         <table className={adminTableClassName()}>
           <thead>
             <tr className={adminTheadRowClass}>
-              <th className={adminThClass}>Recipient</th>
-              <th className={adminThClass}>Type</th>
-              <th className={adminThClass}>Amount</th>
-              <th className={adminThClass}>Date</th>
-              <th className={adminThClass}>Status</th>
+              <th
+                className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")}
+                onClick={() => handleSort("recipient_name")}
+              >
+                <div className="flex items-center gap-2">
+                  Recipient
+                  <SortIcon field="recipient_name" activeField={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
+              <th
+                className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")}
+                onClick={() => handleSort("type")}
+              >
+                <div className="flex items-center gap-2">
+                  Type
+                  <SortIcon field="type" activeField={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
+              <th
+                className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")}
+                onClick={() => handleSort("amount")}
+              >
+                <div className="flex items-center gap-2">
+                  Amount
+                  <SortIcon field="amount" activeField={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
+              <th
+                className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")}
+                onClick={() => handleSort("date")}
+              >
+                <div className="flex items-center gap-2">
+                  Date
+                  <SortIcon field="date" activeField={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
+              <th
+                className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")}
+                onClick={() => handleSort("status")}
+              >
+                <div className="flex items-center gap-2">
+                  Status
+                  <SortIcon field="status" activeField={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
               <th className={cn(adminThClass, "text-right")}>Actions</th>
             </tr>
           </thead>
@@ -181,5 +316,18 @@ const Expenses = ({ expenses }: ExpensesProps) => {
     </>
   );
 };
+
+function SortIcon({ field, activeField, direction }: { field: string, activeField: string, direction: "asc" | "desc" }) {
+  if (field !== activeField) return <div className="w-4 h-4 opacity-0 group-hover:opacity-40 transition-opacity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 15l5 5 5-5M7 9l5-5 5-5" /></svg></div>;
+  return (
+    <div className="w-4 h-4 text-primary">
+      {direction === "asc" ? (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 11l5-5 5 5M12 19V6"/></svg>
+      ) : (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 13l5 5 5-5M12 5v13"/></svg>
+      )}
+    </div>
+  );
+}
 
 export default Expenses;

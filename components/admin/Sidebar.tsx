@@ -299,6 +299,14 @@ export function Sidebar({
                     showTooltips={showTooltips}
                   />
                   <NavItem
+                    href="/admin/leave-management/calendar"
+                    label="Leave Calendar"
+                    icon={Calendar}
+                    active={isActive("/admin/leave-management/calendar")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                  <NavItem
                     href="/admin/manage-employees"
                     label="Leaves"
                     icon={CalendarDays}

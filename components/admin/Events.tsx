@@ -61,28 +61,58 @@ const AllEvents = ({ events }: Props) => {
     const [selectedAnniversaryYear, setSelectedAnniversaryYear] = useState(new Date().getFullYear().toString())
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [isAnniversaryDialogOpen, setIsAnniversaryDialogOpen] = useState(false)
+    const [typeFilter, setTypeFilter] = useState("all")
+    const [statusFilter, setStatusFilter] = useState("all")
+    const [sortConfig, setSortConfig] = useState<{
+      key: keyof EventValues;
+      direction: "asc" | "desc";
+    }>({ key: "start", direction: "desc" });
     const { toast } = useToast()
 
     // Generate year options (current year to 5 years in the future)
     const currentYear = new Date().getFullYear()
     const yearOptions = Array.from({ length: 6 }, (_, i) => currentYear + i)
 
-  const filteredRecords = events.filter(record =>{
+  // Get unique types
+  const types = Array.from(new Set(events.map(e => e.type))).sort();
 
-      const monthName = record.start.toLocaleString('default', { month: 'long' }).toLowerCase(); // Full month name
-      const monthNumber = (record.start.getMonth() + 1).toString(); // Numeric month (1-12)
-      return (
-            record.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            record.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            record.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (record.location || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-            monthName.includes(searchTerm.toLowerCase()) || // Match full month name
-            monthNumber.includes(searchTerm.toLowerCase()) // Match month number
-      )
-  })
+  const filteredRecords = events
+    .filter((record) => {
+      const monthName = record.start
+        .toLocaleString("default", { month: "long" })
+        .toLowerCase();
+      const monthNumber = (record.start.getMonth() + 1).toString();
+      const matchesSearch =
+        record.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        record.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        record.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (record.location || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        monthName.includes(searchTerm.toLowerCase()) ||
+        monthNumber.includes(searchTerm.toLowerCase());
 
+      const matchesType = typeFilter === "all" ? true : record.type === typeFilter;
+      const matchesStatus =
+        statusFilter === "all" ? true : record.status === statusFilter;
 
-  const handleDelete =  async (id: string | undefined) => {
+      return matchesSearch && matchesType && matchesStatus;
+    })
+    .sort((a, b) => {
+      const aValue = a[sortConfig.key] ?? "";
+      const bValue = b[sortConfig.key] ?? "";
+
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+  const handleSort = (key: keyof EventValues) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  const handleDelete = async (id: string | undefined) => {
     if (!id) return
     const deleted = await deleteEvent(id)
     if (deleted.success) {
@@ -307,15 +337,66 @@ const AllEvents = ({ events }: Props) => {
         }
       />
 
-      <AdminToolbar className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <AdminSearchField
-          placeholder="Search by title, status, type, month, or location"
-          value={searchTerm}
-          onChange={setSearchTerm}
-        />
-        <div className="text-xs text-muted-foreground">
-          <span className="font-semibold text-foreground">{filteredRecords.length}</span>{" "}
-          events
+      <AdminToolbar>
+        {/* Top half: Search */}
+        <div className="p-6 px-8 border-b border-slate-100 flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <AdminSearchField
+              placeholder="Search by title, status, type, month, or location"
+              value={searchTerm}
+              onChange={setSearchTerm}
+            />
+          </div>
+          <div className="hidden sm:block text-xs text-muted-foreground whitespace-nowrap">
+            <span className="font-semibold text-foreground">{filteredRecords.length}</span>{" "}
+            events
+          </div>
+        </div>
+
+        {/* Bottom half: Filters */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-3 sm:gap-4 px-6 sm:px-8 py-5 bg-white">
+          <div className="w-full sm:w-48">
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+                <SelectValue placeholder="All Event Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Event Types</SelectItem>
+                {types.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-full sm:w-40">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+                <SelectValue placeholder="Status: All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Status: All</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="ARCHIVED">Archived</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {(typeFilter !== "all" || statusFilter !== "all" || searchTerm) && (
+            <Button
+              variant="ghost"
+              className="text-xs text-slate-400 hover:text-primary h-10 px-2"
+              onClick={() => {
+                setSearchTerm("");
+                setTypeFilter("all");
+                setStatusFilter("all");
+              }}
+            >
+              Reset Filters
+            </Button>
+          )}
         </div>
       </AdminToolbar>
 
@@ -323,12 +404,52 @@ const AllEvents = ({ events }: Props) => {
         <table className={adminTableClassName()}>
           <thead>
             <tr className={adminTheadRowClass}>
-              <th className={adminThClass}>Type</th>
-              <th className={adminThClass}>Title</th>
-              <th className={cn(adminThClass, "hidden md:table-cell")}>Location</th>
-              <th className={cn(adminThClass, "hidden lg:table-cell")}>Start</th>
+              <th
+                className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")}
+                onClick={() => handleSort("type")}
+              >
+                <div className="flex items-center gap-2">
+                  Type
+                  <SortIcon field="type" activeField={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
+              <th
+                className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")}
+                onClick={() => handleSort("title")}
+              >
+                <div className="flex items-center gap-2">
+                  Title
+                  <SortIcon field="title" activeField={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
+              <th
+                className={cn(adminThClass, "hidden md:table-cell cursor-pointer hover:bg-slate-50 transition-colors group")}
+                onClick={() => handleSort("location")}
+              >
+                <div className="flex items-center gap-2">
+                  Location
+                  <SortIcon field="location" activeField={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
+              <th
+                className={cn(adminThClass, "hidden lg:table-cell cursor-pointer hover:bg-slate-50 transition-colors group")}
+                onClick={() => handleSort("start")}
+              >
+                <div className="flex items-center gap-2">
+                  Start
+                  <SortIcon field="start" activeField={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
               <th className={cn(adminThClass, "hidden lg:table-cell")}>End</th>
-              <th className={cn(adminThClass, "w-28")}>Status</th>
+              <th
+                className={cn(adminThClass, "w-28 cursor-pointer hover:bg-slate-50 transition-colors group")}
+                onClick={() => handleSort("status")}
+              >
+                <div className="flex items-center gap-2">
+                  Status
+                  <SortIcon field="status" activeField={sortConfig.key} direction={sortConfig.direction} />
+                </div>
+              </th>
               <th className={cn(adminThClass, "w-20 text-right")}>Actions</th>
             </tr>
           </thead>
@@ -414,6 +535,19 @@ const AllEvents = ({ events }: Props) => {
       </AdminTableCard>
     </div>
   )
+}
+
+function SortIcon({ field, activeField, direction }: { field: string, activeField: string, direction: "asc" | "desc" }) {
+  if (field !== activeField) return <div className="w-4 h-4 opacity-0 group-hover:opacity-40 transition-opacity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 15l5 5 5-5M7 9l5-5 5-5" /></svg></div>;
+  return (
+    <div className="w-4 h-4 text-primary">
+      {direction === "asc" ? (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 11l5-5 5 5M12 19V6"/></svg>
+      ) : (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 13l5 5 5-5M12 5v13"/></svg>
+      )}
+    </div>
+  );
 }
 
 export default AllEvents
