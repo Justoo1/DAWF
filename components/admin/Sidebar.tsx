@@ -162,9 +162,9 @@ export function Sidebar({
       <TooltipProvider delayDuration={showTooltips ? 0 : 300}>
         <div
           className={cn(
-            "w-72 shrink-0 border-r border-primary/10 bg-white dark:bg-zinc-950/60 fixed inset-y-0 left-0 z-50 flex flex-col h-screen overflow-hidden",
+            "w-72 shrink-0 border-r border-primary/10 bg-white dark:bg-zinc-950/60 flex flex-col h-full overflow-hidden",
             "transition-[width] motion-safe:duration-300 motion-safe:ease-in-out",
-            "md:relative md:translate-x-0",
+            "fixed inset-y-0 left-0 z-50 md:relative md:translate-x-0",
             isOpen ? "translate-x-0" : "-translate-x-full",
             collapsed ? "md:w-16" : "md:w-72"
           )}

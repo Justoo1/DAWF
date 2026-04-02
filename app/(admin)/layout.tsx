@@ -49,14 +49,14 @@ export default function RootLayout({
   }, [session])
 
   return (
-    <div className="flex min-h-screen w-full bg-background lg:min-h-screen">
+    <div className="flex h-screen w-full bg-background overflow-hidden">
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         userRole={userRole}
         collapsed={sidebarCollapsed ?? false}
       />
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col h-full overflow-hidden">
         <Header
           onMenuClick={() => setSidebarOpen(true)}
           sidebarCollapsed={sidebarCollapsed ?? false}
@@ -64,7 +64,9 @@ export default function RootLayout({
             setSidebarCollapsed((c) => !(c ?? false))
           }
         />
-        {children}
+        <main className="flex-1 overflow-y-auto">
+          {children}
+        </main>
       </div>
     </div>
   )

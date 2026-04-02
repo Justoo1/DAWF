@@ -17,6 +17,12 @@ import {
 } from "@/components/ui/select"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface Leave {
   id: string
@@ -109,30 +115,23 @@ export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCa
 
     // Add Leaves (Grouped)
     Object.entries(leavesByDate).forEach(([dateStr, dayLeaves]) => {
-      if (dayLeaves.length > 1) {
-        calendarEvents.push({
-          id: `group-${dateStr}`,
-          title: `${dayLeaves.length} people`,
-          start: dateStr,
-          allDay: true,
-          backgroundColor: "#107B8C", // Teal from screenshot
-          borderColor: "transparent",
-          classNames: ["rounded-md", "px-2"],
-          extendedProps: { type: 'group', count: dayLeaves.length }
-        })
-      } else {
-        const leave = dayLeaves[0]
-        calendarEvents.push({
-          id: leave.id,
-          title: leave.user.name,
-          start: dateStr,
-          allDay: true,
-          backgroundColor: "#107B8C",
-          borderColor: "transparent",
-          classNames: ["rounded-md", "px-2"],
-          extendedProps: { type: 'individual' }
-        })
-      }
+      const names = dayLeaves.map(l => l.user.name)
+      const label = dayLeaves.length === 1 ? names[0] : `${dayLeaves.length} Employees Out`
+      
+      calendarEvents.push({
+        id: `group-${dateStr}`,
+        title: label,
+        start: dateStr,
+        allDay: true,
+        backgroundColor: "#10A074", 
+        borderColor: "transparent",
+        classNames: ["leave-banner"],
+        extendedProps: { 
+          type: 'leave', 
+          count: dayLeaves.length,
+          names: names
+        }
+      })
     })
 
     // Add Holidays
@@ -142,9 +141,9 @@ export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCa
         title: holiday.name,
         start: holiday.date,
         allDay: true,
-        backgroundColor: "#E84E1B", 
+        backgroundColor: "#F43F5E", 
         borderColor: "transparent",
-        classNames: ["rounded-md", "px-2"],
+        classNames: ["holiday-banner"],
         extendedProps: { type: 'holiday' }
       })
     })
@@ -153,101 +152,137 @@ export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCa
   }, [leaves, holidays, selectedDept])
 
   return (
-    <div className="space-y-6">
-      {/* Filters Row */}
-      <div className="flex flex-col md:flex-row items-end gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-50">
-        <div className="space-y-1.5 flex-1 w-full md:w-auto">
-          <label className="text-[13px] font-semibold text-slate-500 ml-1">Year</label>
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-100 ring-offset-0 focus:ring-1 focus:ring-[#10A074]">
-              <SelectValue placeholder="Select year" />
-            </SelectTrigger>
-            <SelectContent>
-              {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-1.5 flex-1 w-full md:w-auto">
-          <label className="text-[13px] font-semibold text-slate-500 ml-1">Select HR Group</label>
-          <Select value={selectedDept} onValueChange={setSelectedDept}>
-            <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-100 ring-offset-0 focus:ring-1 focus:ring-[#10A074]">
-              <SelectValue placeholder="Select HR Group" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Groups</SelectItem>
-              {departments.map(dept => (
-                <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <Button 
-          onClick={handleApplyFilters}
-          className="h-11 px-8 rounded-xl bg-[#10A074] hover:bg-[#10A074]/90 text-white font-medium shadow-sm transition-all"
-        >
-          Apply Filters <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex justify-between items-center px-2">
-            <div className="text-[13px] font-medium text-slate-400">
-                Total Events Found: <span className="text-slate-900 font-bold">{filteredEvents.length}</span>
-            </div>
-        </div>
-
-        <Card className="border-none shadow-premium bg-white overflow-hidden rounded-3xl">
-          <div className="flex flex-col md:flex-row justify-between items-center p-6 pb-0 gap-4">
-            <h2 className="text-2xl font-black tracking-tight text-slate-800">{viewTitle}</h2>
-            
-            <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-2xl">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleToday}
-                className="h-9 px-4 rounded-xl text-slate-600 hover:bg-white hover:text-[#10A074] transition-all font-bold text-xs"
-              >
-                today
-              </Button>
-              <div className="w-[1px] h-4 bg-slate-200 mx-1" />
-              <div className="flex gap-1">
-                <Button variant="ghost" size="icon" onClick={handlePrev} className="h-9 w-9 rounded-xl text-slate-600 hover:bg-white hover:text-[#10A074] transition-all">
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={handleNext} className="h-9 w-9 rounded-xl text-slate-600 hover:bg-white hover:text-[#10A074] transition-all">
-                  <ChevronRight className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
+    <TooltipProvider>
+      <div className="space-y-6">
+        {/* Filters Row */}
+        <div className="flex flex-col md:flex-row items-end gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-50">
+          <div className="space-y-1.5 flex-1 w-full md:w-auto">
+            <label className="text-[13px] font-semibold text-slate-500 ml-1">Year</label>
+            <span className="sr-only">Year filter</span>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-100 ring-offset-0 focus:ring-1 focus:ring-[#10A074]">
+                <SelectValue placeholder="Select year" />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
 
-          <CardContent className="p-6">
-            <div className="calendar-container custom-calendar">
-              <FullCalendar
-                ref={calendarRef}
-                plugins={[dayGridPlugin, interactionPlugin]}
-                initialView="dayGridMonth"
-                headerToolbar={false}
-                events={filteredEvents}
-                height="auto"
-                dayMaxEvents={3}
-                datesSet={handleDatesSet}
-                dayHeaderFormat={{ weekday: 'short' }}
-                eventDisplay="block"
-                eventContent={(arg) => (
-                    <div className="px-2 py-1 flex items-center justify-start h-full truncate group transition-all">
-                        <span className="text-[11px] font-bold text-white whitespace-nowrap truncate uppercase tracking-wide">
-                            {arg.event.title}
-                        </span>
-                    </div>
-                )}
-              />
+          <div className="space-y-1.5 flex-1 w-full md:w-auto">
+            <label className="text-[13px] font-semibold text-slate-500 ml-1">Select HR Group</label>
+            <span className="sr-only">Department filter</span>
+            <Select value={selectedDept} onValueChange={setSelectedDept}>
+              <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-100 ring-offset-0 focus:ring-1 focus:ring-[#10A074]">
+                <SelectValue placeholder="Select HR Group" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Groups</SelectItem>
+                {departments.map(dept => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button 
+            onClick={handleApplyFilters}
+            className="h-11 px-8 rounded-xl bg-[#10A074] hover:bg-[#10A074]/90 text-white font-medium shadow-sm transition-all"
+          >
+            Apply Filters <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex justify-between items-center px-2">
+              <div className="text-[13px] font-medium text-slate-400">
+                  Total Events Found: <span className="text-slate-900 font-bold">{filteredEvents.length}</span>
+              </div>
+          </div>
+
+          <Card className="border-none shadow-premium bg-white overflow-hidden rounded-3xl">
+            <div className="flex flex-col md:flex-row justify-between items-center p-6 pb-0 gap-4">
+              <h2 className="text-2xl font-black tracking-tight text-slate-800">{viewTitle}</h2>
+              
+              <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-2xl">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleToday}
+                  className="h-9 px-4 rounded-xl text-slate-600 hover:bg-white hover:text-[#10A074] transition-all font-bold text-xs"
+                >
+                  today
+                </Button>
+                <div className="w-[1px] h-4 bg-slate-200 mx-1" />
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={handlePrev} className="h-9 w-9 rounded-xl text-slate-600 hover:bg-white hover:text-[#10A074] transition-all">
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={handleNext} className="h-9 w-9 rounded-xl text-slate-600 hover:bg-white hover:text-[#10A074] transition-all">
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+
+            <CardContent className="p-6">
+              <div className="calendar-container custom-calendar">
+                <FullCalendar
+                  ref={calendarRef}
+                  plugins={[dayGridPlugin, interactionPlugin]}
+                  initialView="dayGridMonth"
+                  headerToolbar={false}
+                  events={filteredEvents}
+                  height="auto"
+                  dayMaxEvents={3}
+                  datesSet={handleDatesSet}
+                  dayHeaderFormat={{ weekday: 'short' }}
+                  eventDisplay="block"
+                  eventContent={(arg) => {
+                    const type = arg.event.extendedProps.type;
+                    const names = arg.event.extendedProps.names as string[] || [];
+                    
+                    const content = (
+                      <div className="px-2 py-0.5 flex items-center justify-start h-full truncate group transition-all cursor-default">
+                        <span className="text-[10px] font-bold text-white whitespace-nowrap truncate uppercase tracking-tight">
+                          {arg.event.title}
+                        </span>
+                      </div>
+                    );
+
+                    if (type === 'leave' && names.length > 0) {
+                      return (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            {content}
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="bg-slate-900/95 text-white border-none p-3 rounded-xl shadow-2xl backdrop-blur-md">
+                            <div className="space-y-2 max-w-[200px]">
+                              <p className="text-[10px] font-black text-[#10A074] uppercase tracking-widest border-b border-slate-700 pb-1 mb-1.5 flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-[#10A074] animate-pulse" />
+                                On Leave Today
+                              </p>
+                              <ul className="grid gap-1">
+                                {names.map((name, i) => (
+                                  <li key={i} className="text-[12px] font-medium text-slate-100 flex items-center gap-1.5">
+                                    <div className="w-1 h-1 rounded-full bg-slate-400" />
+                                    {name}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    }
+                    
+                    return content;
+                  }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
       <style jsx global>{`
         .custom-calendar .fc {
@@ -288,6 +323,7 @@ export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCa
           font-weight: 800;
         }
       `}</style>
-    </div>
+      </div>
+    </TooltipProvider>
   )
 }
