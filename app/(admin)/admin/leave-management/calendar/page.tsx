@@ -5,7 +5,7 @@ import LeaveCalendar from "@/components/admin/LeaveCalendar"
 import prisma from "@/lib/prisma"
 
 export default async function LeaveCalendarPage() {
-  const [leaves, holidays] = await Promise.all([
+  const [leaves, holidays, deptRes] = await Promise.all([
     prisma.leaveRequest.findMany({
       where: {
         status: "APPROVED",
@@ -32,7 +32,14 @@ export default async function LeaveCalendarPage() {
         date: "asc",
       },
     }),
+    prisma.user.findMany({
+      where: { isActive: true },
+      select: { department: true },
+      distinct: ["department"],
+    }),
   ])
+
+  const departments = Array.from(new Set(deptRes.map(u => u.department).filter(Boolean))) as string[]
 
   return (
     <main className="admin-main">
@@ -43,7 +50,7 @@ export default async function LeaveCalendarPage() {
           action={<CreateHolidayModal />}
         />
 
-        <LeaveCalendar leaves={leaves} holidays={holidays} />
+        <LeaveCalendar leaves={leaves} holidays={holidays} departments={departments} />
       </AdminPageContent>
     </main>
   )

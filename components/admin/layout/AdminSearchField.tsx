@@ -25,7 +25,7 @@ export function AdminSearchField({
       placeholder={placeholder}
       leftIcon={<Search className="h-4 w-4" />}
       className={cn(
-        "h-11 rounded-xl border border-slate-200 bg-slate-50 text-[13px] shadow-none focus-visible:ring-1 focus-visible:ring-primary/50 text-slate-800",
+        "h-12 rounded-2xl border-none bg-slate-50 text-[14px] shadow-none focus-visible:ring-1 focus-visible:ring-[#10A074] text-slate-800 pl-14",
         inputClassName
       )}
     />

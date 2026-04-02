@@ -22,16 +22,49 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { createPublicHoliday } from "@/lib/actions/leave.actions"
+import { syncPublicHolidays } from "@/lib/actions/holidays.actions"
 import { useToast } from "@/hooks/use-toast"
 
 export function CreateHolidayModal() {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [syncLoading, setSyncLoading] = useState(false)
   const [date, setDate] = useState<Date>()
   const [name, setName] = useState("")
   const [isRecurring, setIsRecurring] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+
+  const handleSyncHolidays = async () => {
+    setSyncLoading(true)
+    try {
+      const year = new Date().getFullYear()
+      const result = await syncPublicHolidays(year)
+      
+      if (result.success) {
+        toast({
+          title: "Successfully Synced",
+          description: `Imported ${result.created} new holidays. (${result.skipped} already existed)`,
+        })
+        router.refresh()
+        setOpen(false)
+      } else {
+        toast({
+          title: "Sync Failed",
+          description: result.error,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred during sync.",
+        variant: "destructive",
+      })
+    } finally {
+      setSyncLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -89,13 +122,36 @@ export function CreateHolidayModal() {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Public Holiday Management</DialogTitle>
+          <DialogDescription>
+            Automate syncing official holidays or add a custom company holiday.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="py-2">
+          <Button 
+            variant="outline" 
+            className="w-full justify-center border-dashed border-2 hover:bg-slate-50 text-[13px] h-12"
+            onClick={handleSyncHolidays}
+            disabled={syncLoading || loading}
+          >
+            {syncLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <CalendarIcon className="mr-2 h-4 w-4 text-[#10A074]" />
+            )}
+            Sync Official Holidays ({new Date().getFullYear()})
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2 py-2">
+          <div className="flex-1 border-t border-slate-100" />
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold whitespace-nowrap">OR MANUALLY ADD</span>
+          <div className="flex-1 border-t border-slate-100" />
+        </div>
+
         <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Add Public Holiday</DialogTitle>
-            <DialogDescription>
-              Configure an official public holiday to show on the leave calendar.
-            </DialogDescription>
-          </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="name">Holiday Name</Label>
@@ -105,7 +161,7 @@ export function CreateHolidayModal() {
                 leftIcon={<CalendarIcon className="h-4 w-4" />}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                disabled={loading}
+                disabled={loading || syncLoading}
               />
             </div>
             <div className="grid gap-2">
@@ -118,7 +174,7 @@ export function CreateHolidayModal() {
                       "w-full justify-start text-left font-normal",
                       !date && "text-muted-foreground"
                     )}
-                    disabled={loading}
+                    disabled={loading || syncLoading}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {date ? format(date, "PPP") : <span>Pick a date</span>}
@@ -139,7 +195,7 @@ export function CreateHolidayModal() {
                 id="recurring"
                 checked={isRecurring}
                 onCheckedChange={setIsRecurring}
-                disabled={loading}
+                disabled={loading || syncLoading}
               />
               <Label htmlFor="recurring">Recurring (same date every year)</Label>
             </div>
@@ -149,14 +205,14 @@ export function CreateHolidayModal() {
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              disabled={loading}
+              disabled={loading || syncLoading}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               className="bg-[#10A074] hover:bg-[#10A074]/90 text-white"
-              disabled={loading}
+              disabled={loading || syncLoading}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Holiday

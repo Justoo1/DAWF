@@ -160,23 +160,24 @@ export async function fetchLeaveRequests(viewerId: string) {
 
     if (!viewer) return { success: false, error: "Unauthorized" };
 
-    let whereClause = {};
+    // Fetch all departments to know who has a manager
+    const departments = await prisma.department.findMany({
+      select: { name: true, managerId: true }
+    });
+
+    let whereClause: any = {};
 
     if (viewer.role === 'MANAGER') {
-      // Find departments this user manages
-      const managedDepts = await prisma.department.findMany({
-        where: { managerId: viewerId },
-        select: { name: true }
-      });
-      const deptNames = managedDepts.map(d => d.name);
+      const managedDepts = departments
+        .filter(d => d.managerId === viewerId)
+        .map(d => d.name);
       
       whereClause = {
         user: {
-          department: { in: deptNames }
+          department: { in: managedDepts }
         }
       };
     } else if (viewer.role !== 'ADMIN') {
-        // Employees only see their own
         whereClause = { userId: viewerId };
     }
 
@@ -194,7 +195,17 @@ export async function fetchLeaveRequests(viewerId: string) {
       orderBy: { createdAt: 'desc' }
     });
 
-    return { success: true, requests };
+    // Post-process to add routing metadata
+    const requestsWithMetadata = requests.map(req => {
+      const dept = departments.find(d => d.name === req.user.department);
+      return {
+        ...req,
+        isUnmanaged: !dept || !dept.managerId, // True if the department has no assigned manager
+        managerName: dept?.managerId ? (req.manager?.name || "Pending") : "System Admin (Fallback)"
+      };
+    });
+
+    return { success: true, requests: requestsWithMetadata };
   } catch (error) {
     console.error("Error fetching leave requests:", error);
     return { success: false, error: "Failed to fetch leave requests" };
@@ -330,5 +341,30 @@ export async function deletePublicHoliday(id: string) {
   } catch (error) {
     console.error("Error deleting public holiday:", error);
     return { success: false, error: "Failed to delete public holiday" };
+  }
+}
+
+export async function fetchUserApprovedLeavesInRange(userId: string, startDate: Date, endDate: Date) {
+  try {
+    const leaves = await prisma.leaveRequest.findMany({
+      where: {
+        userId,
+        status: "APPROVED",
+        OR: [
+          {
+            startDate: { lte: endDate },
+            endDate: { gte: startDate },
+          },
+        ],
+      },
+      select: {
+        startDate: true,
+        endDate: true,
+      }
+    });
+    return { success: true, leaves };
+  } catch (error) {
+    console.error("Error fetching user leaves in range:", error);
+    return { success: false, error: "Failed to fetch user leaves" };
   }
 }

@@ -1,14 +1,22 @@
 "use client"
 
-import React, { useMemo } from "react"
+import React, { useMemo, useState, useRef, useEffect } from "react"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import { EventInput } from "@fullcalendar/core"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns"
 
 interface Leave {
   id: string
@@ -29,113 +37,257 @@ interface Holiday {
 interface LeaveCalendarProps {
   leaves: Leave[]
   holidays: Holiday[]
+  departments: string[]
 }
 
-export default function LeaveCalendar({ leaves, holidays }: LeaveCalendarProps) {
-  const events = useMemo(() => {
-    const calendarEvents: EventInput[] = []
+export default function LeaveCalendar({ leaves, holidays, departments }: LeaveCalendarProps) {
+  const calendarRef = useRef<FullCalendar>(null)
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
+  const [selectedDept, setSelectedDept] = useState("all")
+  const [viewTitle, setViewTitle] = useState("")
 
-    // Add Leaves
-    leaves.forEach((leave) => {
-      calendarEvents.push({
-        id: leave.id,
-        title: `${leave.user.name} - ${leave.policy.name}`,
-        start: leave.startDate,
-        end: leave.endDate,
-        backgroundColor: "#2563eb", // Blue for approved leaves
-        borderColor: "#1e40af",
-        textColor: "white",
-        extendedProps: {
-            type: 'leave',
-            user: leave.user.name,
-            dept: leave.user.department || 'N/A'
-        }
-      })
+  // Generate years (past 2 and next 5)
+  const currentYearNum = new Date().getFullYear()
+  const years = Array.from({ length: 8 }, (_, i) => (currentYearNum - 2 + i).toString())
+
+  const handlePrev = () => {
+    const calendarApi = calendarRef.current?.getApi()
+    calendarApi?.prev()
+    if (calendarApi) setCurrentDate(calendarApi.getDate())
+  }
+
+  const handleNext = () => {
+    const calendarApi = calendarRef.current?.getApi()
+    calendarApi?.next()
+    if (calendarApi) setCurrentDate(calendarApi.getDate())
+  }
+
+  const handleToday = () => {
+    const calendarApi = calendarRef.current?.getApi()
+    calendarApi?.today()
+    if (calendarApi) setCurrentDate(calendarApi.getDate())
+  }
+
+  const handleApplyFilters = () => {
+    const calendarApi = calendarRef.current?.getApi()
+    if (calendarApi) {
+      // jump to the selected year, maintaining current month if possible
+      const newDate = new Date(currentDate)
+      newDate.setFullYear(parseInt(selectedYear))
+      calendarApi.gotoDate(newDate)
+      setCurrentDate(newDate)
+    }
+  }
+
+  // Update title when FullCalendar renders or moves
+  const handleDatesSet = (arg: any) => {
+    setViewTitle(arg.view.title.toUpperCase())
+    setCurrentDate(arg.view.currentStart)
+  }
+
+  const filteredEvents = useMemo(() => {
+    const calendarEvents: EventInput[] = []
+    
+    // Group leaves by date to handle "X people" display
+    const leavesByDate: Record<string, Leave[]> = {}
+    
+    leaves.forEach(leave => {
+      if (selectedDept !== "all" && leave.user.department !== selectedDept) return
+      
+      // For multi-day leaves, we need to consider each day
+      let curr = new Date(leave.startDate)
+      const end = new Date(leave.endDate)
+      
+      while (curr <= end) {
+        const dateStr = format(curr, "yyyy-MM-dd")
+        if (!leavesByDate[dateStr]) leavesByDate[dateStr] = []
+        leavesByDate[dateStr].push(leave)
+        curr.setDate(curr.getDate() + 1)
+      }
+    })
+
+    // Add Leaves (Grouped)
+    Object.entries(leavesByDate).forEach(([dateStr, dayLeaves]) => {
+      if (dayLeaves.length > 1) {
+        calendarEvents.push({
+          id: `group-${dateStr}`,
+          title: `${dayLeaves.length} people`,
+          start: dateStr,
+          allDay: true,
+          backgroundColor: "#107B8C", // Teal from screenshot
+          borderColor: "transparent",
+          classNames: ["rounded-md", "px-2"],
+          extendedProps: { type: 'group', count: dayLeaves.length }
+        })
+      } else {
+        const leave = dayLeaves[0]
+        calendarEvents.push({
+          id: leave.id,
+          title: leave.user.name,
+          start: dateStr,
+          allDay: true,
+          backgroundColor: "#107B8C",
+          borderColor: "transparent",
+          classNames: ["rounded-md", "px-2"],
+          extendedProps: { type: 'individual' }
+        })
+      }
     })
 
     // Add Holidays
     holidays.forEach((holiday) => {
-        // If recurring, we might want to generate for multiple years, but for now we just show the recorded date
-        calendarEvents.push({
-            id: holiday.id,
-            title: `Holiday: ${holiday.name}`,
-            start: holiday.date,
-            allDay: true,
-            backgroundColor: "#E84E1B", // Brand Orange/Red for holidays
-            borderColor: "#b91c1c",
-            textColor: "white",
-            extendedProps: {
-                type: 'holiday'
-            }
-        })
+      calendarEvents.push({
+        id: holiday.id,
+        title: holiday.name,
+        start: holiday.date,
+        allDay: true,
+        backgroundColor: "#E84E1B", 
+        borderColor: "transparent",
+        classNames: ["rounded-md", "px-2"],
+        extendedProps: { type: 'holiday' }
+      })
     })
 
     return calendarEvents
-  }, [leaves, holidays])
+  }, [leaves, holidays, selectedDept])
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      <Card className="lg:col-span-3 overflow-hidden border-none shadow-premium bg-white">
-        <CardContent className="p-0 sm:p-2">
-          <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            headerToolbar={{
-              left: "prev,next today",
-              center: "title",
-              right: "dayGridMonth,timeGridWeek"
-            }}
-            events={events}
-            height="auto"
-            dayMaxEvents={3}
-            eventClassNames="cursor-pointer transition-transform hover:scale-[1.02]"
-            eventContent={(arg) => (
-                <div className="p-1 text-xs font-semibold overflow-hidden whitespace-nowrap">
-                    {arg.event.title}
-                </div>
-            )}
-          />
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      {/* Filters Row */}
+      <div className="flex flex-col md:flex-row items-end gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-50">
+        <div className="space-y-1.5 flex-1 w-full md:w-auto">
+          <label className="text-[13px] font-semibold text-slate-500 ml-1">Year</label>
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-100 ring-offset-0 focus:ring-1 focus:ring-[#10A074]">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
 
-      <div className="space-y-6">
-        <Card className="border-none shadow-premium bg-white">
-          <CardHeader>
-            <CardTitle className="text-lg">Legend</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center gap-3">
-                <div className="w-4 h-4 rounded-sm bg-[#2563eb]" />
-                <span className="text-sm font-medium">Approved Leave</span>
-            </div>
-            <div className="flex items-center gap-3">
-                <div className="w-4 h-4 rounded-sm bg-[#E84E1B]" />
-                <span className="text-sm font-medium">Public Holiday</span>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-1.5 flex-1 w-full md:w-auto">
+          <label className="text-[13px] font-semibold text-slate-500 ml-1">Select HR Group</label>
+          <Select value={selectedDept} onValueChange={setSelectedDept}>
+            <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-100 ring-offset-0 focus:ring-1 focus:ring-[#10A074]">
+              <SelectValue placeholder="Select HR Group" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Groups</SelectItem>
+              {departments.map(dept => (
+                <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <Card className="border-none shadow-premium bg-white">
-          <CardHeader>
-            <CardTitle className="text-lg">Upcoming Holidays</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {holidays.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic">No holidays configured.</p>
-            ) : (
-                holidays.slice(0, 5).map((holiday) => (
-                    <div key={holiday.id} className="flex justify-between items-center border-b border-gray-50 pb-2 last:border-0 last:pb-0">
-                        <div>
-                            <p className="text-sm font-semibold text-gray-900">{holiday.name}</p>
-                            <p className="text-xs text-gray-500">{format(new Date(holiday.date), 'PPP')}</p>
-                        </div>
-                        {holiday.isRecurring && <Badge variant="outline" className="text-[10px] uppercase">Annual</Badge>}
+        <Button 
+          onClick={handleApplyFilters}
+          className="h-11 px-8 rounded-xl bg-[#10A074] hover:bg-[#10A074]/90 text-white font-medium shadow-sm transition-all"
+        >
+          Apply Filters <ChevronRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex justify-between items-center px-2">
+            <div className="text-[13px] font-medium text-slate-400">
+                Total Events Found: <span className="text-slate-900 font-bold">{filteredEvents.length}</span>
+            </div>
+        </div>
+
+        <Card className="border-none shadow-premium bg-white overflow-hidden rounded-3xl">
+          <div className="flex flex-col md:flex-row justify-between items-center p-6 pb-0 gap-4">
+            <h2 className="text-2xl font-black tracking-tight text-slate-800">{viewTitle}</h2>
+            
+            <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-2xl">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleToday}
+                className="h-9 px-4 rounded-xl text-slate-600 hover:bg-white hover:text-[#10A074] transition-all font-bold text-xs"
+              >
+                today
+              </Button>
+              <div className="w-[1px] h-4 bg-slate-200 mx-1" />
+              <div className="flex gap-1">
+                <Button variant="ghost" size="icon" onClick={handlePrev} className="h-9 w-9 rounded-xl text-slate-600 hover:bg-white hover:text-[#10A074] transition-all">
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={handleNext} className="h-9 w-9 rounded-xl text-slate-600 hover:bg-white hover:text-[#10A074] transition-all">
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <CardContent className="p-6">
+            <div className="calendar-container custom-calendar">
+              <FullCalendar
+                ref={calendarRef}
+                plugins={[dayGridPlugin, interactionPlugin]}
+                initialView="dayGridMonth"
+                headerToolbar={false}
+                events={filteredEvents}
+                height="auto"
+                dayMaxEvents={3}
+                datesSet={handleDatesSet}
+                dayHeaderFormat={{ weekday: 'short' }}
+                eventDisplay="block"
+                eventContent={(arg) => (
+                    <div className="px-2 py-1 flex items-center justify-start h-full truncate group transition-all">
+                        <span className="text-[11px] font-bold text-white whitespace-nowrap truncate uppercase tracking-wide">
+                            {arg.event.title}
+                        </span>
                     </div>
-                ))
-            )}
+                )}
+              />
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      <style jsx global>{`
+        .custom-calendar .fc {
+          border: none !important;
+          --fc-border-color: #f1f5f9;
+          --fc-today-bg-color: #f0fdf4;
+          --fc-page-bg-color: transparent;
+        }
+        .custom-calendar .fc-theme-standard td, 
+        .custom-calendar .fc-theme-standard th,
+        .custom-calendar .fc-theme-standard .fc-scrollgrid {
+          border: 1px solid #f1f5f9 !important;
+        }
+        .custom-calendar .fc-daygrid-day-number {
+          font-size: 13px;
+          font-weight: 600;
+          color: #64748b;
+          padding: 8px 12px !important;
+        }
+        .custom-calendar .fc-col-header-cell-cushion {
+          padding: 16px 0 !important;
+          font-size: 14px;
+          font-weight: 700;
+          color: #1e293b;
+          text-decoration: none !important;
+        }
+        .custom-calendar .fc-event {
+          margin: 2px 4px !important;
+          border-radius: 6px !important;
+          padding: 1px 0 !important;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+        }
+        .custom-calendar .fc-day-today {
+          background-color: #f0fdf4 !important;
+        }
+        .custom-calendar .fc-day-today .fc-daygrid-day-number {
+          color: #10A074;
+          font-weight: 800;
+        }
+      `}</style>
     </div>
   )
 }

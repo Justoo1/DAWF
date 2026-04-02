@@ -38,11 +38,15 @@ interface FoodSelectionFormProps {
     menuItemId: string | null
     notes: string | null
   }>
+  approvedLeaves?: Array<{
+    startDate: Date
+    endDate: Date
+  }>
 }
 
 const DAYS_OF_WEEK = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'] as const
 
-const FoodSelectionForm = ({ menu, userId, existingSelections }: FoodSelectionFormProps) => {
+const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = [] }: FoodSelectionFormProps) => {
   const { toast } = useToast()
   const [isSelectionOpen, setIsSelectionOpen] = useState(true)
   const [showSpecialOrders, setShowSpecialOrders] = useState(false)
@@ -52,6 +56,24 @@ const FoodSelectionForm = ({ menu, userId, existingSelections }: FoodSelectionFo
     const isOpen = now >= new Date(menu.selectionOpenDate) && now <= new Date(menu.selectionCloseDate)
     setIsSelectionOpen(isOpen)
   }, [menu.selectionOpenDate, menu.selectionCloseDate])
+
+  // Helper to check if a day is on leave
+  const checkIsOnLeave = (day: typeof DAYS_OF_WEEK[number]) => {
+    const dayIndex = DAYS_OF_WEEK.indexOf(day)
+    const weekStart = new Date(menu.weekStartDate)
+    const targetDate = new Date(weekStart)
+    targetDate.setDate(weekStart.getDate() + dayIndex)
+    // Clear time for date-only comparison
+    targetDate.setHours(0, 0, 0, 0)
+
+    return approvedLeaves.some(leave => {
+      const start = new Date(leave.startDate)
+      start.setHours(0, 0, 0, 0)
+      const end = new Date(leave.endDate)
+      end.setHours(23, 59, 59, 999)
+      return targetDate >= start && targetDate <= end
+    })
+  }
 
   // Group menu items by day and filter by special order preference
   const itemsByDay = menu.menuItems.reduce((acc, item) => {
@@ -97,8 +119,16 @@ const FoodSelectionForm = ({ menu, userId, existingSelections }: FoodSelectionFo
       return
     }
 
+    // Filter out selections for days on leave just in case
+    const filteredSelections = values.selections.map(s => {
+        if (checkIsOnLeave(s.dayOfWeek as any)) {
+            return { ...s, menuItemId: null, notes: 'ON LEAVE' }
+        }
+        return s
+    })
+
     try {
-      const result = await createBulkFoodSelections(userId, menu.id!, values)
+      const result = await createBulkFoodSelections(userId, menu.id!, { ...values, selections: filteredSelections })
 
       if (result.error) {
         toast({
@@ -200,12 +230,20 @@ const FoodSelectionForm = ({ menu, userId, existingSelections }: FoodSelectionFo
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {DAYS_OF_WEEK.map((day, dayIndex) => {
             const dayItems = itemsByDay[day] || []
+            const isOnLeave = checkIsOnLeave(day)
 
-            if (dayItems.length === 0) return null
+            if (dayItems.length === 0 && !isOnLeave) return null
 
             return (
-              <div key={day} className="border rounded-lg p-5 bg-white shadow-sm">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">{day}</h3>
+              <div key={day} className={`border rounded-lg p-5 bg-white shadow-sm transition-opacity ${isOnLeave ? 'opacity-70 grayscale-[0.5]' : ''}`}>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800">{day}</h3>
+                  {isOnLeave && (
+                    <span className="bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-amber-200">
+                      On Leave
+                    </span>
+                  )}
+                </div>
 
                 <div className="space-y-4">
                   <FormField
@@ -217,11 +255,11 @@ const FoodSelectionForm = ({ menu, userId, existingSelections }: FoodSelectionFo
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value || undefined}
-                          disabled={!isSelectionOpen}
+                          disabled={!isSelectionOpen || isOnLeave}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Choose a meal option" />
+                              <SelectValue placeholder={isOnLeave ? "Restricted during leave" : "Choose a meal option"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -239,6 +277,11 @@ const FoodSelectionForm = ({ menu, userId, existingSelections }: FoodSelectionFo
                             ))}
                           </SelectContent>
                         </Select>
+                        {isOnLeave && (
+                          <p className="text-xs text-amber-700 font-medium mt-1.5 flex items-center gap-1.5">
+                             Selection is disabled as you have an approved leave for this day.
+                          </p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -253,15 +296,17 @@ const FoodSelectionForm = ({ menu, userId, existingSelections }: FoodSelectionFo
                         <FormControl>
                           <Textarea
                             {...field}
-                            placeholder="E.g., No onions, extra pepper, etc."
+                            placeholder={isOnLeave ? "Disabled on leave" : "E.g., No onions, extra pepper, etc."}
                             className="resize-none"
                             rows={2}
-                            disabled={!isSelectionOpen}
+                            disabled={!isSelectionOpen || isOnLeave}
                           />
                         </FormControl>
-                        <FormDescription>
-                          Add any special dietary requirements or preferences
-                        </FormDescription>
+                        {!isOnLeave && (
+                          <FormDescription>
+                            Add any special dietary requirements or preferences
+                          </FormDescription>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}

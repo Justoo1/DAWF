@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { fetchActiveFoodMenus } from '@/lib/actions/foodMenu.actions'
 import { fetchUserFoodSelections } from '@/lib/actions/foodSelection.actions'
+import { fetchUserApprovedLeavesInRange } from '@/lib/actions/leave.actions'
 import FoodSelectionForm from '@/components/shared/FoodSelectionForm'
 import OrderHistorySection from '@/components/shared/OrderHistorySection'
 import { auth } from '@/lib/auth'
@@ -27,11 +28,18 @@ const FoodOrdersPage = async () => {
 
   const activeMenus = menusData.menus || []
 
-  // Fetch existing selections for all active menus
+  // Fetch existing selections and leaves for all active menus
   const selectionsPromises = activeMenus.map((menu) =>
     fetchUserFoodSelections(session.user.id, menu.id!)
   )
-  const selectionsResults = await Promise.all(selectionsPromises)
+  const leavesPromises = activeMenus.map((menu) =>
+    fetchUserApprovedLeavesInRange(session.user.id, new Date(menu.weekStartDate), new Date(menu.weekEndDate))
+  )
+  
+  const [selectionsResults, leavesResults] = await Promise.all([
+    Promise.all(selectionsPromises),
+    Promise.all(leavesPromises)
+  ])
 
   return (
     <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
@@ -94,6 +102,8 @@ const FoodOrdersPage = async () => {
                       }))
                     : []
 
+                  const approvedLeaves = leavesResults[index]?.success ? leavesResults[index].leaves : []
+
                   return (
                     <Card key={menu.id}>
                       <CardContent className="pt-6">
@@ -101,6 +111,7 @@ const FoodOrdersPage = async () => {
                           menu={menu}
                           userId={session.user.id}
                           existingSelections={existingSelections}
+                          approvedLeaves={approvedLeaves}
                         />
                       </CardContent>
                     </Card>
