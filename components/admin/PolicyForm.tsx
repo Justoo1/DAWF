@@ -15,9 +15,11 @@ interface PolicyFormProps {
   userEmail: string
   mode: 'create' | 'edit'
   initialData?: Policy
+  onSuccess?: () => void
+  onCancel?: () => void
 }
 
-const PolicyForm = ({ userEmail, mode, initialData }: PolicyFormProps) => {
+const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: PolicyFormProps) => {
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
@@ -55,8 +57,13 @@ const PolicyForm = ({ userEmail, mode, initialData }: PolicyFormProps) => {
           title: mode === 'create' ? 'Policy Created' : 'Policy Updated',
           description: `The policy has been ${mode === 'create' ? 'created' : 'updated'} successfully.`,
         })
-        router.push('/admin/policies')
-        router.refresh()
+        
+        if (onSuccess) {
+          onSuccess()
+        } else {
+          router.push('/admin/policies')
+          router.refresh()
+        }
       } else {
         toast({
           title: 'Error',
@@ -94,18 +101,20 @@ const PolicyForm = ({ userEmail, mode, initialData }: PolicyFormProps) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/admin/policies">
-          <Button type="button" variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-        </Link>
-      </div>
+      {!onCancel && (
+        <div className="flex items-center gap-4 mb-6">
+          <Link href="/admin/policies">
+            <Button type="button" variant="outline" size="sm" className="rounded-lg shadow-sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </Link>
+        </div>
+      )}
 
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="title">Policy Title</Label>
+      <div className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="title" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Policy Title</Label>
           <Input
             id="title"
             value={formData.title}
@@ -113,13 +122,13 @@ const PolicyForm = ({ userEmail, mode, initialData }: PolicyFormProps) => {
             placeholder="e.g., Welfare Fund Constitution"
             required
             disabled={loading}
-            className="h-11 rounded-lg"
+            className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50"
           />
         </div>
 
-        <div>
-          <Label htmlFor="slug">
-            URL Slug {mode === 'edit' && <span className="text-xs text-gray-500">(cannot be changed)</span>}
+        <div className="space-y-2">
+          <Label htmlFor="slug" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+            URL Slug {mode === 'edit' && <span className="text-xs text-gray-400 font-normal ml-1">(cannot be changed)</span>}
           </Label>
           <Input
             id="slug"
@@ -128,42 +137,46 @@ const PolicyForm = ({ userEmail, mode, initialData }: PolicyFormProps) => {
             placeholder="e.g., welfare-fund-constitution"
             required
             disabled={loading || mode === 'edit'}
-            className="h-11 rounded-lg"
+            className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50"
           />
-          <p className="text-xs text-gray-500 mt-1">
-            URL: /policy (Note: Currently only one active policy is supported)
+          <p className="text-[11px] text-slate-400 font-medium px-1">
+            Note: Currently only one active policy is supported at /policy
           </p>
         </div>
 
-        <div>
-          <Label htmlFor="content">Policy Content</Label>
-          <div className="mt-2">
+        <div className="space-y-2">
+          <Label htmlFor="content" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Policy Content</Label>
+          <div className="mt-2 border rounded-xl overflow-hidden border-slate-200 dark:border-slate-800">
             <RichTextEditor
               content={formData.content}
               onChange={(content) => setFormData({ ...formData, content })}
               disabled={loading}
             />
           </div>
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="text-[11px] text-slate-400 font-medium px-1 mt-2">
             Use the toolbar above to format your policy document. No HTML knowledge required!
           </p>
         </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
         <Button
           type="submit"
           disabled={loading}
-          className="bg-emerald-600 hover:bg-emerald-700"
+          className="h-11 px-6 rounded-xl bg-[#10A074] hover:bg-[#0d8460] text-white font-bold uppercase tracking-widest text-[12px] transition-all shadow-md shadow-emerald-500/10"
         >
           <Save className="h-4 w-4 mr-2" />
           {loading ? 'Saving...' : mode === 'create' ? 'Create Policy' : 'Update Policy'}
         </Button>
-        <Link href="/admin/policies">
-          <Button type="button" variant="outline" disabled={loading}>
-            Cancel
-          </Button>
-        </Link>
+        <Button 
+          type="button" 
+          variant="outline" 
+          disabled={loading}
+          onClick={() => onCancel ? onCancel() : router.push('/admin/policies')}
+          className="h-11 px-6 rounded-xl border-slate-200 dark:border-slate-800 font-bold uppercase tracking-widest text-[12px] transition-all"
+        >
+          Cancel
+        </Button>
       </div>
     </form>
   )

@@ -134,22 +134,24 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full max-w-full overflow-hidden">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full max-w-full overflow-hidden">
         <FormField
           control={form.control}
           name="roomId"
           render={({ field }) => (
-            <FormItem className='text-white'>
-              <FormLabel>Conference Room</FormLabel>
+            <FormItem>
+              <FormLabel className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Conference Room
+              </FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
                     <SelectValue placeholder="Select a conference room" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>
+                <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800">
                   {rooms.map((room) => (
-                    <SelectItem key={room.id} value={room.id!}>
+                    <SelectItem key={room.id} value={room.id!} className="rounded-lg">
                       {room.name} (Capacity: {room.capacity})
                     </SelectItem>
                   ))}
@@ -164,14 +166,16 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           control={form.control}
           name="title"
           render={({ field }) => (
-            <FormItem className='text-white'>
-              <FormLabel>Meeting Title</FormLabel>
+            <FormItem>
+              <FormLabel className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Meeting Title
+              </FormLabel>
               <FormControl>
                 <Input
                   type="text"
                   {...field}
                   placeholder="e.g., Team Planning Meeting"
-                  className="w-full"
+                  className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full"
                 />
               </FormControl>
               <FormMessage />
@@ -179,20 +183,22 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           )}
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full min-w-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full min-w-0">
           <FormField
             control={form.control}
             name="start"
             render={({ field }) => (
-              <FormItem className='text-white min-w-0'>
-                <FormLabel>Start Time</FormLabel>
+              <FormItem className='min-w-0'>
+                <FormLabel className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Start Time
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="datetime-local"
                     {...field}
                     value={field.value}
                     onChange={(e) => field.onChange(e.target.value)}
-                    className="w-full min-w-0"
+                    className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full min-w-0"
                   />
                 </FormControl>
                 <FormMessage />
@@ -204,15 +210,17 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
             control={form.control}
             name="end"
             render={({ field }) => (
-              <FormItem className='text-white min-w-0'>
-                <FormLabel>End Time</FormLabel>
+              <FormItem className='min-w-0'>
+                <FormLabel className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  End Time
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="datetime-local"
                     {...field}
                     value={field.value}
                     onChange={(e) => field.onChange(e.target.value)}
-                    className="w-full min-w-0"
+                    className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full min-w-0"
                   />
                 </FormControl>
                 <FormMessage />
@@ -226,7 +234,7 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           variant="outline"
           onClick={checkAvailability}
           disabled={isCheckingAvailability}
-          className="w-full"
+          className="w-full h-11 rounded-xl border-slate-200 dark:border-slate-800 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-sm"
         >
           {isCheckingAvailability ? 'Checking...' : 'Check Availability'}
         </Button>
@@ -235,14 +243,16 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           control={form.control}
           name="purpose"
           render={({ field }) => (
-            <FormItem className='text-white'>
-              <FormLabel>Purpose</FormLabel>
+            <FormItem>
+              <FormLabel className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Purpose
+              </FormLabel>
               <FormControl>
                 <Input
                   type="text"
                   {...field}
                   placeholder="e.g., Project Planning, Client Meeting"
-                  className="w-full"
+                  className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full"
                   required
                 />
               </FormControl>
@@ -255,13 +265,15 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           control={form.control}
           name="description"
           render={({ field }) => (
-            <FormItem className='text-white'>
-              <FormLabel>Description (Optional)</FormLabel>
+            <FormItem>
+              <FormLabel className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Description (Optional)
+              </FormLabel>
               <FormControl>
                 <Textarea
                   {...field}
                   placeholder="Add meeting agenda or additional details"
-                  className="w-full resize-none"
+                  className="rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full resize-none min-h-[100px]"
                 />
               </FormControl>
               <FormMessage />
@@ -273,8 +285,10 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           control={form.control}
           name="attendeeCount"
           render={({ field }) => (
-            <FormItem className='text-white'>
-              <FormLabel>Expected Attendees</FormLabel>
+            <FormItem>
+              <FormLabel className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Expected Attendees
+              </FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -283,7 +297,7 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
                   onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                   min={1}
                   placeholder="Number of expected attendees"
-                  className="w-full"
+                  className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full"
                   required
                 />
               </FormControl>
@@ -295,7 +309,7 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
         <Button
           type="submit"
           disabled={form.formState.isSubmitting}
-          className="w-full"
+          className="w-full h-12 rounded-xl bg-[#10A074] hover:bg-[#0d8460] text-white font-bold uppercase tracking-widest text-[13px] transition-all shadow-md shadow-emerald-500/20 active:scale-[0.98]"
         >
           {form.formState.isSubmitting ? 'Booking...' : 'Book Conference Room'}
         </Button>

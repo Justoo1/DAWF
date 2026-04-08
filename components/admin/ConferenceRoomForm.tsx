@@ -1,6 +1,6 @@
 "use client"
 
-import { ConferenceRoomSchema } from '@/lib/validation'
+import { ConferenceRoomSchema, ConferenceRoomValues } from '@/lib/validation'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -23,11 +23,13 @@ import { X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface ConferenceRoomFormProps {
-  room?: z.infer<typeof ConferenceRoomSchema> & { id: string }
+  room?: ConferenceRoomValues
   isEdit?: boolean
+  onSuccess?: () => void
+  onCancel?: () => void
 }
 
-const ConferenceRoomForm = ({ room, isEdit }: ConferenceRoomFormProps) => {
+const ConferenceRoomForm = ({ room, isEdit, onSuccess, onCancel }: ConferenceRoomFormProps) => {
   const { toast } = useToast()
   const router = useRouter()
   const [amenities, setAmenities] = useState<string[]>(
@@ -87,7 +89,12 @@ const ConferenceRoomForm = ({ room, isEdit }: ConferenceRoomFormProps) => {
           title: 'Success',
           description: `Conference room ${isEdit ? 'updated' : 'created'} successfully`
         })
-        router.push('/admin/conference-rooms')
+        
+        if (onSuccess) {
+          onSuccess()
+        } else {
+          router.push('/admin/conference-rooms')
+        }
       }
     } catch (error) {
       toast({
@@ -235,7 +242,7 @@ const ConferenceRoomForm = ({ room, isEdit }: ConferenceRoomFormProps) => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.back()}
+            onClick={() => onCancel ? onCancel() : router.back()}
           >
             Cancel
           </Button>
