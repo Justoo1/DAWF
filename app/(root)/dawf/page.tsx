@@ -67,72 +67,71 @@ const Dashboard = async () => {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1500px] px-8 py-4 md:px-20 relative z-10">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20">
+      <main className="mx-auto w-full max-w-[1550px] px-8 py-4 md:px-16 relative z-10">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16">
           
           {/* Column 1: Quick Actions */}
-          <div className="flex-shrink-0 flex items-center gap-6">
+          <div className="flex-shrink-0 flex items-center gap-8">
              <DashboardQuickActions />
-             <div className="hidden lg:block w-[1px] h-64 bg-border/50 self-center mx-4" />
+             <div className="hidden lg:block w-[1px] h-72 bg-border/50 self-center mx-6" />
           </div>
 
           {/* Column 2: Center Card & Branding */}
-          <div className="flex-grow w-full max-w-[800px] space-y-12">
+          <div className="flex-grow w-full max-w-[850px] space-y-12">
             <Link href="/dashboard" className="block transform transition-transform hover:scale-[1.01] active:scale-[0.99]">
               <UserCard userData={userInfo.user} />
             </Link>
             
-            <div className="space-y-4 max-w-2xl px-2">
-                <p className='text-sm leading-relaxed text-muted-foreground/80 font-medium'>
+            <div className="space-y-4 max-w-2xl px-6">
+                <p className='text-sm md:text-base leading-relaxed text-muted-foreground/80 font-medium italic'>
                     The team is dedicated to enhancing the overall well-being of members of the organization, thus, providing support and resources when and where necessary.
                 </p>
             </div>
           </div>
 
           {/* Column 3: Stats & Events */}
-          <div className="w-full lg:w-[400px] flex flex-col gap-6">
+          <div className="w-full lg:w-[420px] flex flex-col gap-6">
             
             <div className="grid grid-cols-2 gap-4">
-               {/* Months Paid Card */}
-               <Card className="bg-card border-border p-8 flex flex-col items-center justify-center text-center gap-2 rounded-[2rem] shadow-2xl transition-all group border-none">
-                    <div className="text-5xl font-black text-emerald-500 tracking-tighter group-hover:scale-110 transition-transform">
+               {/* Months Paid Card (Pure White) */}
+               <Card className="bg-white p-8 flex flex-col items-center justify-center text-center gap-3 rounded-2xl shadow-2xl transition-all group border-none">
+                    <div className="text-6xl font-black text-emerald-600 tracking-tighter group-hover:scale-110 transition-transform">
                         {userInfo.user?.totalContributionMonths || 0}
                     </div>
-                    <div className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-4">
+                    <div className="text-[11px] font-black text-emerald-600 uppercase tracking-[0.3em] mb-3">
                         Months
                     </div>
-                    <div className="pt-4 border-t border-border w-full">
-                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Amount Paid:</p>
-                        <p className="text-lg font-black text-emerald-500 tracking-wider">₵{userInfo.user?.totalAmountContributed}.00</p>
+                    <div className="pt-4 border-t border-zinc-100 w-full space-y-1">
+                        <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Amount Paid:</p>
+                        <p className="text-xl font-black text-emerald-600 tracking-wider">₵{userInfo.user?.totalAmountContributed}.00</p>
                     </div>
                </Card>
 
-               {/* Upcoming Event Card */}
+               {/* Upcoming Event Card (Black with White Border) */}
                <Link href="/events" className="block h-full">
-                    <Card className="relative h-full overflow-hidden p-8 rounded-[2rem] shadow-2xl border-border group border-none">
-                        <div className="absolute inset-0 border-2 border-white/10 rounded-[2rem]" />
-                        <div className="relative z-10 flex flex-col h-full justify-between items-center text-center">
-                            <div className="space-y-1">
-                                <h3 className="text-[9px] font-black text-white/80 uppercase tracking-[0.2em]">PURPLEWAVE HACKATHON</h3>
-                                <p className="text-4xl font-black text-orange-600 uppercase leading-tight italic">15</p>
-                                <p className="text-[10px] font-black text-white/80 uppercase tracking-[0.2em]">SEP, 2026</p>
+                    <Card className="relative h-full overflow-hidden p-8 rounded-2xl shadow-2xl group border-[3px] border-white bg-zinc-950">
+                        <div className="relative z-10 flex flex-col h-full justify-center items-center text-center">
+                            <div className="space-y-3">
+                                <h3 className="text-[9px] font-black text-white/80 uppercase tracking-[0.3em] leading-tight">PURPLEWAVE HACKATHON</h3>
+                                <p className="text-5xl font-black text-orange-600 uppercase leading-tight italic">15</p>
+                                <p className="text-[11px] font-black text-white/80 uppercase tracking-[0.3em]">SEP, 2026</p>
                             </div>
                         </div>
                     </Card>
                </Link>
             </div>
 
-            {/* Total Accumulated Card */}
-            <Card className="bg-emerald-600 border-none p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+            {/* Total Accumulated Card (Specific Green #10A074) */}
+            <Card className="bg-[#10A074] border-none p-8 rounded-2xl shadow-2xl relative overflow-hidden group">
                 <div className="flex items-center gap-8 relative z-10">
-                    <div className="flex-shrink-0 w-24 h-24 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center shadow-inner">
-                        <span className="text-7xl font-black text-white">₵</span>
+                    <div className="flex-shrink-0 w-28 h-28 bg-white rounded-xl flex items-center justify-center shadow-inner">
+                        <span className="text-7xl font-black text-[#10A074]">₵</span>
                     </div>
-                    <div className="space-y-1">
-                        <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter">
+                    <div className="space-y-2">
+                        <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none">
                             {contributions.success ? `${contributions.totalContributions}.00` : '0.00'}
                         </h2>
-                        <div className="text-[10px] font-black text-white uppercase tracking-[0.2em] leading-tight">
+                        <div className="text-[11px] font-black text-white uppercase tracking-[0.2em] leading-tight">
                             Total amount<br/>accumulated
                         </div>
                     </div>
@@ -143,10 +142,10 @@ const Dashboard = async () => {
         </div>
 
         {/* Footer info */}
-        <div className="mt-20 flex">
-             <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-muted-foreground/60 underline">Devops Africa Team</span>
-                <span className="text-[10px] text-muted-foreground/60">© All Rights Reserved.</span>
+        <div className="mt-28 flex">
+             <div className="flex items-center gap-3">
+                <span className="text-[11px] font-black text-muted-foreground/60 underline tracking-wider">Devops Africa Team</span>
+                <span className="text-[11px] font-semibold text-muted-foreground/60 tracking-wider">© All Rights Reserved.</span>
              </div>
         </div>
       </main>

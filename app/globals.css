@@ -341,3 +341,21 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   display: none !important;
   -webkit-appearance: none;
 }
+
+/* Custom Scrollbar for Dashboard Sections */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(16, 160, 116, 0.2);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 160, 116, 0.4);
+}
