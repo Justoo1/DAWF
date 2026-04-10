@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { EventInput } from "@fullcalendar/core"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -86,8 +87,7 @@ export const parseToDate = (dateString: string): Date | null => {
     return isNaN(date.getTime()) ? null : date;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getfilteredUpcomingEvents = (now: Date, allEvents: any[], limit: number = 3) => {
+export const getfilteredUpcomingEvents = (now: Date, allEvents: EventInput[], limit: number = 3) => {
 
   const upcomingEvents = allEvents
     .filter(event => {

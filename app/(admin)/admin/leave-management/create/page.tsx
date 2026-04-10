@@ -229,7 +229,7 @@ export default function CreateLeavePage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[14px] font-medium text-[#111827] dark:text-gray-200">Accrual Basis</label>
-                  <Select value={accrualType} onValueChange={(val: any) => setAccrualType(val)} disabled={isSubmitting}>
+                  <Select value={accrualType} onValueChange={(val: "WORKING_DAYS" | "CALENDAR_DAYS") => setAccrualType(val)} disabled={isSubmitting}>
                     <SelectTrigger className="w-full h-12 bg-[#F9FAFB] dark:bg-zinc-800 border border-[#E5E7EB] dark:border-zinc-700 rounded-[12px] px-4 text-[#111827] dark:text-gray-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
                       <SelectValue placeholder="Basis" />
                     </SelectTrigger>
@@ -419,7 +419,7 @@ export default function CreateLeavePage() {
               </div>
               <div className="space-y-2">
                 <Label>Accrual Type</Label>
-                <Select value={editAccrualType} onValueChange={(val: any) => setEditAccrualType(val)}>
+                <Select value={editAccrualType} onValueChange={(val: "WORKING_DAYS" | "CALENDAR_DAYS") => setEditAccrualType(val)}>
                   <SelectTrigger className="w-full h-11 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 text-sm">
                     <SelectValue />
                   </SelectTrigger>

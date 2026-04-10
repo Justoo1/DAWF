@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { fetchUsersIdAndName } from "@/lib/actions/users.action";
-import { createDepartment, addEmployeesToDepartment } from "@/lib/actions/department.actions";
+import { createDepartment } from "@/lib/actions/department.actions";
 
 type Employee = {
   id: string;
@@ -131,10 +131,10 @@ export default function CreateDepartmentModal() {
       setSelected([]);
       setManagerId("");
       setSearch("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Creation failed",
-        description: error.message,
+        description: error instanceof Error ? error.message : "An unknown error occurred",
         variant: "destructive"
       });
     } finally {
@@ -216,7 +216,7 @@ export default function CreateDepartmentModal() {
                 Selected ({selectedCount})
               </p>
 
-              {selected.map((emp, index) => {
+              {selected.map((emp) => {
                 const primary = managerId === emp.id;
                 return (
                   <div

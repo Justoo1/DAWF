@@ -352,7 +352,7 @@ const Employees = ({
                 <tr key={record.id} className={adminTbodyRowClass}>
                   <td className={adminTdClass}>
                     <div className="flex items-center gap-4 relative">
-                      <UserAvatarHover user={record as any} initials={initials} />
+                      <UserAvatarHover initials={initials} />
                       <div className="flex flex-col">
                         <span className="font-bold text-slate-900">{record.name}</span>
                         <span className="text-[12px] text-slate-500">{record.email}</span>

@@ -48,7 +48,11 @@ const EmployeesPage = async({ searchParams }: EmployeesPageProps) => {
     return <div>No users found</div>
   }
 
-  const { totalMembers = 0, newMembersThisMonth = 0, percentageChange = "0.0" } = membersData as any;
+  const { totalMembers = 0, newMembersThisMonth = 0, percentageChange = "0.0" } = membersData as { 
+    totalMembers?: number; 
+    newMembersThisMonth?: number; 
+    percentageChange?: string 
+  };
   const isPositiveGrowth = parseFloat(percentageChange) >= 0;
 
   return (

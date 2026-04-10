@@ -203,7 +203,7 @@ export async function fetchLeaveRequests(viewerId: string) {
       select: { name: true, managerId: true }
     });
 
-    let whereClause: any = {};
+    let whereClause: Record<string, unknown> = {};
 
     if (viewer.role === 'MANAGER') {
       const managedDepts = departments

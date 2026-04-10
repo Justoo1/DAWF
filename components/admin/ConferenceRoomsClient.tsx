@@ -22,7 +22,7 @@ import { Plus, CalendarPlus, Pencil } from 'lucide-react'
 
 interface ConferenceRoomsClientProps {
   rooms: ConferenceRoomValues[]
-  bookings: any[] // From prisma include
+  bookings: ConferenceRoomBookingValues[] // From prisma include
   totalRooms: number
   totalBookings: number
   upcomingBookingsCount: number
@@ -48,7 +48,7 @@ export default function ConferenceRoomsClient({
     setIsRoomModalOpen(true)
   }
 
-  const handleEditRoom = (room: any) => {
+  const handleEditRoom = (room: ConferenceRoomValues) => {
     setSelectedRoom(room)
     setIsEdit(true)
     setIsRoomModalOpen(true)

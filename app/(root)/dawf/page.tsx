@@ -9,7 +9,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import React from 'react'
 import { headers } from 'next/headers'
-import { Calendar, Layers, Home, Bell, Settings } from 'lucide-react'
+import { Home } from 'lucide-react'
 import { formatDateParts } from '@/lib/utils'
 import ProfileMenu from '@/components/shared/ProfileMenu'
 import NotificationBell from '@/components/shared/NotificationBell'
@@ -40,7 +40,6 @@ const Dashboard = async () => {
   }
 
   const latestEvent = upcomingEvents.events && upcomingEvents.events[0]
-  const { day, month, year } = latestEvent ? formatDateParts(new Date(latestEvent.start)) : { day: '15', month: 'SEP', year: '2026' }
   
   return (
     <div className='flex flex-col w-full min-h-screen relative overflow-hidden bg-background'>

@@ -1,7 +1,6 @@
 import { Card } from "@/components/ui/card"
 import { fetchAllEventsForCalendar } from "@/lib/actions/events.actions"
 import PublicCalendar from "@/components/shared/PublicCalendar"
-import Link from "next/link"
 
 const PublicCalendarPage = async () => {
   const data = await fetchAllEventsForCalendar()

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ChevronRight, Search } from "lucide-react"
+import { ChevronRight } from "lucide-react"
 import { fetchLeaveRequests } from "@/lib/actions/leave.actions"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
@@ -32,7 +32,7 @@ export default async function LeaveRequestsPage({ searchParams }: LeaveRequestsP
   const currentTab = (params.tab as TabKey) || "pending"
 
   const result = await fetchLeaveRequests(session.user.id)
-  const requests = (result.success ? (result.requests as any) : [])
+  const requests = result.success ? (result.requests ?? []) : []
 
   return (
     <main className="admin-main">

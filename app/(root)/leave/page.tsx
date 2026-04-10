@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,10 +22,7 @@ import {
 import { 
   Calendar as CalendarIcon, 
   FileText, 
-  History, 
-  CheckCircle2, 
   Clock, 
-  XCircle, 
   ArrowLeft,
   Loader2,
   Info
@@ -36,7 +32,35 @@ import { fetchLeavePolicies, fetchUserLeaveBalances, fetchLeaveRequests, submitL
 import { useToast } from '@/hooks/use-toast'
 import { authClient } from '@/lib/auth-client'
 import { format } from 'date-fns'
-import { Badge } from '@/components/ui/badge'
+
+interface LeavePolicy {
+    id: string;
+    name: string;
+    isActive: boolean;
+    defaultDays: number;
+}
+
+interface LeaveBalance {
+    id: string;
+    policyId: string;
+    userId: string;
+    year: number;
+    daysAllocated: number;
+    policy: LeavePolicy;
+}
+
+interface LeaveRequest {
+    id: string;
+    userId: string;
+    policyId: string;
+    startDate: string | Date;
+    endDate: string | Date;
+    days: number;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    reason?: string;
+    policy: LeavePolicy;
+    managerName?: string;
+}
 
 const LeaveRequestPage = () => {
     const [isLoading, setIsLoading] = useState(true)
@@ -45,9 +69,9 @@ const LeaveRequestPage = () => {
     const { data: session } = authClient.useSession()
     const { toast } = useToast()
 
-    const [policies, setPolicies] = useState<any[]>([])
-    const [balances, setBalances] = useState<any[]>([])
-    const [requests, setRequests] = useState<any[]>([])
+    const [policies, setPolicies] = useState<LeavePolicy[]>([])
+    const [balances, setBalances] = useState<LeaveBalance[]>([])
+    const [requests, setRequests] = useState<LeaveRequest[]>([])
     
     // Form state
     const [selectedPolicy, setSelectedPolicy] = useState("")
@@ -55,6 +79,7 @@ const LeaveRequestPage = () => {
     const [endDate, setEndDate] = useState("")
     const [days, setDays] = useState(1)
     const [reason, setReason] = useState("")
+    const [maxDays, setMaxDays] = useState<number | null>(null)
 
     useEffect(() => {
         const loadData = async () => {
@@ -221,7 +246,7 @@ const LeaveRequestPage = () => {
                                     <Info className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0 dark:text-emerald-500" />
                                     <p className="text-[9px] font-bold text-emerald-700 leading-relaxed uppercase tracking-[0.1em] dark:text-emerald-500/80">
                                         This request will be routed to your <span className="text-emerald-900 dark:text-white">Manager</span> for approval. 
-                                        You'll receive status updates via notifications.
+                                        You&apos;ll receive status updates via notifications.
                                     </p>
                                 </div>
                                 <Button 
@@ -244,52 +269,94 @@ const LeaveRequestPage = () => {
                     
                     {/* Primary Flow */}
                     <div className="space-y-8">
+                        {/* Section Header */}
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-[1px] bg-emerald-400 dark:bg-emerald-500/30" />
+                            <h2 className="text-xs font-black uppercase tracking-[0.4em] text-emerald-600 dark:text-emerald-500">Leave Balances</h2>
+                        </div>
+
                         {/* Balances: Leave Type Cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                            {balances.length > 0 ? balances.map((balance: any) => (
-                                <div key={balance.id} className="group relative overflow-hidden bg-white border border-zinc-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 dark:bg-zinc-900/30 dark:border-white/[0.05] dark:hover:border-emerald-500/30 dark:hover:shadow-none">
-                                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 dark:from-emerald-500/20" />
-                                    <div className="relative">
-                                        <div className="flex items-start justify-between mb-4">
-                                            <div className="p-3 bg-emerald-50 rounded-xl dark:bg-emerald-500/10">
-                                                <FileText className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                                            </div>
-                                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider dark:text-zinc-500">
-                                                {new Date().getFullYear()}
-                                            </span>
-                                        </div>
-                                        <h4 className="text-base font-bold text-zinc-900 dark:text-white leading-tight mb-4 line-clamp-2">
-                                            {balance.policy.name}
-                                        </h4>
-                                        <div className="space-y-3">
-                                            <div className="flex items-baseline gap-2">
-                                                <span className="text-4xl font-black text-zinc-900 dark:text-white tracking-tight">
-                                                    {balance.daysAllocated - balance.daysUsed}
-                                                </span>
-                                                <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                                                    Days Left
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center justify-between text-sm">
-                                                <span className="text-zinc-500 dark:text-zinc-400">
-                                                    <span className="font-semibold text-zinc-700 dark:text-zinc-300">{balance.daysUsed}</span> used
-                                                </span>
-                                                <span className="text-zinc-400 dark:text-zinc-500">
-                                                    of {balance.daysAllocated} total
+                            {policies.filter((p: LeavePolicy) => p.isActive).length > 0 ? policies.filter((p: LeavePolicy) => p.isActive).map((policy: LeavePolicy) => {
+                                const balance = balances.find((b: LeaveBalance) => b.policyId === policy.id)
+                                const hasBalance = balance !== undefined
+                                
+                                // Calculate approved days used for this policy
+                                const approvedRequests = requests.filter((r: LeaveRequest) => 
+                                    r.policyId === policy.id && r.status === 'APPROVED'
+                                )
+                                const approvedDaysUsed = approvedRequests.reduce((sum: number, r: LeaveRequest) => sum + r.days, 0)
+                                
+                                // Use policy defaultDays if no balance, otherwise use balance allocation
+                                const totalDays = hasBalance ? balance.daysAllocated : policy.defaultDays || 0
+                                const daysUsed = hasBalance ? approvedDaysUsed : approvedDaysUsed
+                                const daysRemaining = totalDays - daysUsed
+
+                                return (
+                                    <div key={policy.id} className="group relative overflow-hidden bg-white border border-zinc-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 dark:bg-zinc-900/30 dark:border-white/[0.05] dark:hover:border-emerald-500/30 dark:hover:shadow-none">
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 dark:from-emerald-500/20" />
+                                        <div className="relative">
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div className={`p-3 rounded-xl ${hasBalance ? 'bg-emerald-50 dark:bg-emerald-500/10' : 'bg-zinc-100 dark:bg-zinc-800'}`}>
+                                                    <FileText className={`w-5 h-5 ${hasBalance ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400 dark:text-zinc-500'}`} />
+                                                </div>
+                                                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider dark:text-zinc-500">
+                                                    {new Date().getFullYear()}
                                                 </span>
                                             </div>
-                                            <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden dark:bg-zinc-800">
-                                                <div 
-                                                    className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-700 ease-out" 
-                                                    style={{ width: `${(balance.daysUsed / balance.daysAllocated) * 100}%` }}
-                                                />
-                                            </div>
+                                            <h4 className="text-base font-bold text-zinc-900 dark:text-white leading-tight mb-4 line-clamp-2">
+                                                {policy.name}
+                                            </h4>
+                                            {totalDays > 0 ? (
+                                                <div className="space-y-3">
+                                                    <div className="flex items-baseline gap-2">
+                                                        <span className="text-4xl font-black text-zinc-900 dark:text-white tracking-tight">
+                                                            {daysRemaining}
+                                                        </span>
+                                                        <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                                                            Days Left
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between text-sm">
+                                                        <span className="text-zinc-500 dark:text-zinc-400">
+                                                            <span className="font-semibold text-zinc-700 dark:text-zinc-300">{daysUsed}</span> used
+                                                        </span>
+                                                        <span className="text-zinc-400 dark:text-zinc-500">
+                                                            of {totalDays} total
+                                                        </span>
+                                                    </div>
+                                                    <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden dark:bg-zinc-800">
+                                                        <div 
+                                                            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-700 ease-out" 
+                                                            style={{ width: `${totalDays > 0 ? (daysUsed / totalDays) * 100 : 0}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    <div className="flex items-baseline gap-2">
+                                                        <span className="text-2xl font-black text-zinc-400 dark:text-zinc-600 tracking-tight">
+                                                            --
+                                                        </span>
+                                                        <span className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                                                            No Allocation
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                                                        No days allocated for this policy
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                </div>
-                            )) : (
-                                <div className="col-span-full p-8 border border-dashed border-zinc-300 rounded-xl text-center bg-white dark:border-zinc-800/50 dark:bg-transparent">
-                                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest italic dark:text-zinc-600">No balance data synchronization found</p>
+                                )
+                            }) : (
+                                <div className="col-span-full p-12 border border-dashed border-zinc-300 rounded-2xl text-center bg-white dark:border-zinc-800/50 dark:bg-transparent">
+                                    <FileText className="w-12 h-12 text-zinc-300 mx-auto mb-4 dark:text-zinc-600" />
+                                    <p className="text-sm font-bold text-zinc-600 mb-2 dark:text-zinc-400">No Leave Balances Found</p>
+                                    <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                                        Leave balances need to be assigned by your administrator. Please contact your admin if you believe this is an error.
+                                    </p>
                                 </div>
                             )}
                         </div>
@@ -303,7 +370,7 @@ const LeaveRequestPage = () => {
                         </div>
 
                         <div className="space-y-3">
-                            {requests.length > 0 ? requests.map((req: any) => (
+                            {requests.length > 0 ? requests.map((req: LeaveRequest) => (
                                 <div key={req.id} className="p-4 bg-white border border-zinc-200 rounded-lg hover:border-zinc-300 transition-all group shadow-sm dark:bg-zinc-900/20 dark:border-white/[0.05] dark:hover:bg-zinc-900/40 dark:shadow-none">
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between">

@@ -40,7 +40,7 @@ const ConferenceRoomsAdminPage = async () => {
 
   const upcomingBookingsCount = bookingsData.success
     ? bookingsData.bookings?.filter(
-        (booking: any) =>
+        (booking: { start: Date; status: string }) =>
           new Date(booking.start) > new Date() &&
           (booking.status === 'APPROVED' || booking.status === 'PENDING')
       ).length || 0

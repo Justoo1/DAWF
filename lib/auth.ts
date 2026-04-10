@@ -26,8 +26,7 @@ export const auth = betterAuth({
     },
   },
   callbacks: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async signIn(user: any, account: any) {
+    async signIn({ user, account }: { user: { email: string }; account: { providerId: string } | null }) {
       // Only allow sign-in with @devopsafricalimited.com emails for OAuth
       if (account?.providerId === "google") {
         const email = user.email.toLowerCase();

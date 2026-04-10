@@ -69,8 +69,8 @@ const Contributions = ({contributions, pagination}: ContributionsProps) => {
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
+      let aValue: string | number | Date;
+      let bValue: string | number | Date;
 
       if (sortConfig.key === "user_name") {
         aValue = a.user.name.toLowerCase();
@@ -224,7 +224,7 @@ const Contributions = ({contributions, pagination}: ContributionsProps) => {
                 <tr key={record.id} className={adminTbodyRowClass}>
                   <td className={adminTdClass}>
                     <div className="flex items-center gap-4 relative">
-                      <UserAvatarHover user={record.user as any} initials={initials} />
+                      <UserAvatarHover initials={initials} />
                       <div className="flex flex-col">
                         <span className="font-bold text-slate-900">{record.user.name}</span>
                         <span className="text-[12px] text-slate-500">{record.user.email}</span>

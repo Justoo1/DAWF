@@ -6,11 +6,10 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 interface UserAvatarHoverProps {
-  user: UserValues;
   initials: string;
 }
 
-export function UserAvatarHover({ user, initials }: UserAvatarHoverProps) {
+export function UserAvatarHover({ initials }: UserAvatarHoverProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const triggerRef = useRef<HTMLDivElement>(null);
