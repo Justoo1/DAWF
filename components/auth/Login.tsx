@@ -2,31 +2,13 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Input } from "@/components/ui/input"
 import Link from "next/link"
-// import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form"
-// import { useForm } from "react-hook-form"
-// import { zodResolver } from "@hookform/resolvers/zod"
-// import { loginSchema } from "@/lib/validation"
-// import { z } from "zod"
-// import { Loader } from "lucide-react"
-// import { signIn } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
-// import { useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
+import { Calendar } from "lucide-react"
 
 const Login = () => {
   const { toast } = useToast()
-  // const router = useRouter()
-
-  // Commented out manual form - keeping for potential future use
-  // const form = useForm<z.infer<typeof loginSchema>>({
-  //     resolver: zodResolver(loginSchema),
-  //     defaultValues: {
-  //       email: "",
-  //       password: "",
-  //     },
-  //   })
 
   const handleGoogleSignIn = async () => {
     try {
@@ -44,114 +26,21 @@ const Login = () => {
     }
   }
 
-  // Commented out manual login handler - keeping for potential future use
-  // const onSubmit = async (values: z.infer<typeof loginSchema>) => {
-  //   // Simulate API call
-  //   try {
-  //     const { email, password } = values
-  //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //     const { data, error } = await authClient.signIn.email({
-  //       email,
-  //       password,
-  //       callbackURL: "/"
-  //     }, {
-  //         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //         onRequest: (ctx) => {
-  //          toast({
-  //           title: "Signing in please wait...",
-  //          })
-  //         },
-  //         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //         onSuccess: (ctx) => {
-  //           //redirect to the dashboard
-  //           router.replace("/")
-  //           form.reset();
-  //           // router.replace("/login")
-  //         },
-  //         onError: (ctx) => {
-  //           toast({
-  //             title: "Error",
-  //             description: ctx.error.message,
-  //             variant: "destructive",
-  //           })
-  //         },
-  //       });
-  //   } catch (error) {
-  //     console.log(error)
-  //   }
-  // }
   return (
-    <Card className="border-none bg-[#10A0748C] text-white">
-      <CardHeader>
-        <CardTitle className="text-2xl">Sign in to DAWF</CardTitle>
-        <p className="text-white/90">Welcome back! Please sign in to continue</p>
+    <Card className="w-full max-w-md border-none bg-[#146C43] text-white shadow-2xl rounded-3xl overflow-hidden p-4 md:p-8">
+      <CardHeader className="space-y-4 pb-8">
+        <CardTitle className="text-4xl font-bold tracking-tight">Sign In to DAWF</CardTitle>
+        <p className="text-white/70 text-base">
+          Welcome to Dawf, kindly Sign in to continue
+        </p>
       </CardHeader>
-      <CardContent>
-        {/* Manual Login Form - Commented out for Google OAuth only */}
-        {/* <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email address</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      className="border-white/20 bg-transparent text-white placeholder:text-white/50"
-                      placeholder="Enter your email address"
-                      type="email"
-                      disabled={form.formState.isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      className="border-white/20 bg-transparent text-white placeholder:text-white/50"
-                      placeholder="Enter your password"
-                      type="password"
-                      disabled={form.formState.isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button
-              type="submit"
-              className="w-full bg-[#E84E1B] font-medium hover:bg-[#E84E1B]/90"
-              disabled={form.formState.isSubmitting}
-            >
-              {form.formState.isSubmitting ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : "Sign in"}
-            </Button>
-          </form>
-        </Form>
-        <div className="relative mt-4">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-white/20" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-[#2F7A67] px-2 text-white/50">or</span>
-          </div>
-        </div> */}
+      <CardContent className="space-y-8">
         <Button
           onClick={handleGoogleSignIn}
           type="button"
-          className="mt-4 w-full bg-white text-zinc-900 hover:bg-white/90"
-          variant="outline"
+          className="w-full h-14 bg-white text-[#121212] hover:bg-white/90 transition-all rounded-xl flex items-center justify-center gap-3 font-semibold text-base shadow-sm"
         >
-          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+          <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
               fill="#4285F4"
@@ -169,24 +58,24 @@ const Login = () => {
               fill="#EA4335"
             />
           </svg>
-          Continue with Google
+          Sign in with Google
         </Button>
-        <div className="mt-4 text-center text-sm space-y-2">
-          <div>
-            Don&apos;t have an account?{" "}
-            <Link className="text-[#E84E1B] hover:underline" href="/sign-up">
-              Sign up
-            </Link>
-          </div>
-          <div className="pt-2 border-t border-white/20">
-            <Link className="text-white hover:text-[#E84E1B] hover:underline flex items-center justify-center gap-2" href="/public-calendar">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              View Public Calendar (No login required)
-            </Link>
-          </div>
+        
+        <div className="text-left py-2 font-medium">
+          Don&apos;t have an account ? <Link href="/sign-up" className="text-[#F15A24] hover:underline font-bold transition-all ml-1">Sign Up</Link>
         </div>
+
+        <div className="w-full h-px bg-white/10" />
+
+        <Link 
+          href="/public-calendar" 
+          className="flex items-center gap-3 text-white/90 hover:text-white transition-colors group"
+        >
+          <div className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-all border border-white/5">
+            <Calendar className="w-5 h-5" />
+          </div>
+          <span className="text-sm font-medium tracking-wide">View Public Calendar (no login required)</span>
+        </Link>
       </CardContent>
     </Card>
   )
