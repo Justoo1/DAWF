@@ -84,6 +84,22 @@
     -webkit-text-stroke: 1px currentColor;
     color: transparent;
   }
+  .bg-glass {
+    @apply bg-background/60 backdrop-blur-xl border border-border/50;
+  }
+  .text-glow {
+    text-shadow: 0 0 20px rgba(16, 160, 116, 0.2);
+  }
+  .blob-animate {
+    animation: blob-float 20s infinite alternate;
+  }
+}
+
+@keyframes blob-float {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
 }
 
 .cl-internal-qo3qk7 {

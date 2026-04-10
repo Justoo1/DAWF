@@ -2,19 +2,23 @@ import type { Metadata, Viewport } from "next";
 // import {
 //   ClerkProvider
 // } from '@clerk/nextjs'
-import { Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/toaster"
 import { ProfileChecker } from "@/components/auth/ProfileChecker"
 import { ThemeProvider } from "@/components/shared/ThemeProvider"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import "./globals.css";
-// import '@fullcalendar/common/main.css'
-// import '@fullcalendar/daygrid/main.css'
 
-const fontSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
+const geistSans = localFont({
+  src: "./fonts/GeistVF.woff",
+  variable: "--font-geist-sans",
+  weight: "100 900",
+});
+
+const geistMono = localFont({
+  src: "./fonts/GeistMonoVF.woff",
+  variable: "--font-geist-mono",
+  weight: "100 900",
 });
 
 
@@ -84,7 +88,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/assets/images/logo.png" />
       </head>
       <body
-        className={`${fontSans.variable} font-sans antialiased min-h-screen bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased min-h-screen bg-background text-foreground`}
       >
         <ThemeProvider
           attribute="class"
