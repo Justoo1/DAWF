@@ -31,41 +31,34 @@ const PublicCalendarPage = async () => {
         {/* Subtle background decoration for light mode */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,hsl(var(--primary)/0.03),transparent_50%)] pointer-events-none" />
         
-      <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 py-12 md:px-12 relative z-10">
-        {/* Hero Section */}
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-16 px-2">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Live Schedule</span>
+      <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 py-6 md:px-12 relative z-10 overflow-hidden">
+        {/* Hero Section - Compact */}
+        <div className="flex flex-col items-center justify-center text-center mb-10 px-2 gap-4">
+          <div className="space-y-2 flex flex-col items-center">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em]">Live Schedule</span>
             </div>
-            <h1 className="text-5xl md:text-6xl font-black text-foreground tracking-tighter uppercase italic leading-[0.9]">
-              Company <span className="text-emerald-500 font-outline-2">Calendar</span>
-            </h1>
-            <p className="text-muted-foreground font-medium tracking-wide max-w-md">
-              A comprehensive view of upcoming welfare events and conference room availability.
-            </p>
+            <div className="space-y-1">
+                <h1 className="text-5xl md:text-7xl font-black text-foreground tracking-tighter uppercase italic leading-none drop-shadow-sm">
+                COMPANY
+                </h1>
+                <p className="text-muted-foreground font-medium tracking-wide max-w-xl text-xs md:text-sm mx-auto leading-relaxed">
+                A comprehensive view of upcoming welfare events and conference room availability.
+                </p>
+            </div>
           </div>
-          <Link
-            href="/sign-in"
-            className="inline-flex items-center justify-center px-10 py-4 rounded-2xl bg-[#10A074] text-white text-sm font-bold uppercase tracking-widest hover:bg-[#10A074]/90 hover:scale-[1.02] transition-all shadow-[0_20px_40px_-15px_rgba(16,160,116,0.3)]"
-          >
-            Employee Login
-          </Link>
         </div>
 
-        <div className="flex-1">
+        <div className="flex-1 overflow-hidden">
           <PublicCalendar events={data.events} />
         </div>
 
-        <div className="mt-24 pt-12 border-t border-border flex flex-col items-center gap-6 text-center">
-            <p className="text-muted-foreground/60 text-xs max-w-2xl leading-relaxed font-medium">
-            DAWF is committed to transparency and efficient resource management. This calendar is synchronized in real-time with internal scheduling systems.
-            </p>
+        <div className="mt-8 flex flex-col items-center gap-4 text-center">
             <div className="flex items-center gap-4">
-                <span className="text-[10px] text-muted-foreground/40 font-black uppercase tracking-[0.3em]">DevOps Africa ltd</span>
+                <span className="text-[9px] text-muted-foreground/40 font-black uppercase tracking-[0.3em]">DevOps Africa ltd</span>
                 <div className="w-1 h-1 rounded-full bg-border" />
-                <span className="text-[10px] text-muted-foreground/40 font-black uppercase tracking-[0.3em]">Welfare Program 2026</span>
+                <span className="text-[9px] text-muted-foreground/40 font-black uppercase tracking-[0.3em]">Welfare Program 2026</span>
             </div>
         </div>
       </main>

@@ -63,33 +63,22 @@ export const Navbar = () => {
             </span>
           </Link>
 
-          {/* Desktop Navigation - Centered */}
-          <div className="hidden lg:flex items-center gap-10">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest transition-all duration-300",
-                    pathname === item.href
-                      ? "text-emerald-500"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              )
-            })}
-          </div>
 
-          {/* Right side - Notifications & Profile */}
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-4">
-              {session?.user && <NotificationBell userId={session.user.id} />}
-              {userInfo && <ProfileMenu user={userInfo} />}
+              {session?.user ? (
+                <>
+                  <NotificationBell userId={session.user.id} />
+                  {userInfo && <ProfileMenu user={userInfo} />}
+                </>
+              ) : (
+                <Link
+                  href="/sign-in"
+                  className="inline-flex items-center justify-center px-10 py-3 rounded-xl bg-[#10A074] text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#10A074]/90 hover:scale-[1.05] transition-all shadow-lg"
+                >
+                  Employee Login
+                </Link>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
