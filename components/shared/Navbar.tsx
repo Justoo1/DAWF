@@ -47,6 +47,8 @@ export const Navbar = () => {
 
   const closeMobileMenu = () => setIsOpen(false)
 
+  if (pathname === '/dawf') return null;
+
   return (
     <>
       <header className='sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border px-6 py-4 md:px-12 2xl:px-80'>
