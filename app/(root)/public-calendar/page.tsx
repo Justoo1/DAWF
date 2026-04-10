@@ -32,19 +32,20 @@ const PublicCalendarPage = async () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,hsl(var(--primary)/0.03),transparent_50%)] pointer-events-none" />
         
       <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 py-6 md:px-12 relative z-10 overflow-hidden">
-        {/* Hero Section - Compact */}
+        {/* Hero Section - High Fidelity Treatment */}
         <div className="flex flex-col items-center justify-center text-center mb-10 px-2 gap-4">
-          <div className="space-y-2 flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em]">Live Schedule</span>
+          <div className="space-y-4 flex flex-col items-center">
+            {/* Animated Live Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,160,116,0.5)]" />
+                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.3em]">Live Schedule</span>
             </div>
-            <div className="space-y-1">
-                <h1 className="text-5xl md:text-7xl font-black text-foreground tracking-tighter uppercase italic leading-none drop-shadow-sm">
-                COMPANY
-                </h1>
-                <p className="text-muted-foreground font-medium tracking-wide max-w-xl text-xs md:text-sm mx-auto leading-relaxed">
-                A comprehensive view of upcoming welfare events and conference room availability.
+            
+            <div className="space-y-4 max-w-2xl">
+                <div className="h-[1px] w-12 bg-emerald-500 mx-auto opacity-50" />
+                <p className="text-muted-foreground font-bold tracking-[0.1em] text-[10px] md:text-[11px] uppercase leading-relaxed mx-auto opacity-80">
+                    A comprehensive view of <span className="text-foreground">upcoming welfare events</span> <br className="hidden md:block"/> 
+                    and <span className="text-foreground">conference room availability</span>
                 </p>
             </div>
           </div>
