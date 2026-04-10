@@ -11,6 +11,8 @@ import React from 'react'
 import { headers } from 'next/headers'
 import { Calendar, Layers, Home, Bell, Settings } from 'lucide-react'
 import { formatDateParts } from '@/lib/utils'
+import ProfileMenu from '@/components/shared/ProfileMenu'
+import NotificationBell from '@/components/shared/NotificationBell'
 
 const Dashboard = async () => {
   const session = await auth.api.getSession({
@@ -55,14 +57,9 @@ const Dashboard = async () => {
         </Link>
         <div className="flex items-center gap-8">
             <Link href="/events" className="text-xs font-black text-foreground tracking-[0.2em] uppercase hover:text-emerald-500 transition-colors">Events</Link>
-            <div className="flex items-center gap-4">
-                <button className="relative p-2 rounded-full hover:bg-muted transition-colors">
-                    <Bell className="w-4 h-4 text-foreground/60" />
-                    <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-orange-500 rounded-full" />
-                </button>
-                <button className="p-2 rounded-full hover:bg-muted transition-colors text-orange-500">
-                    <Settings className="w-4 h-4" />
-                </button>
+            <div className="flex items-center gap-6">
+                <NotificationBell userId={session.user.id} />
+                <ProfileMenu user={userInfo.user} />
             </div>
         </div>
       </header>

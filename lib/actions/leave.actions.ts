@@ -2,7 +2,8 @@
 
 import prisma from "../prisma";
 import { revalidatePath } from "next/cache";
-import { AccrualType } from "@prisma/client";
+import { AccrualType, NotificationType } from "@prisma/client";
+import { createNotification } from "./notification.actions";
 
 export async function fetchLeavePolicies() {
   try {
@@ -129,7 +130,7 @@ export async function submitLeaveRequest(data: {
   reason?: string;
 }) {
   try {
-    // Basic validation could happen here, checking balances, etc.
+    // 1. Create the leave request
     const request = await prisma.leaveRequest.create({
       data: {
         userId: data.userId,
@@ -138,11 +139,48 @@ export async function submitLeaveRequest(data: {
         endDate: data.endDate,
         days: data.days,
         reason: data.reason
+      },
+      include: {
+        user: true,
+        policy: true
       }
     });
 
+    // 2. Identify the approver (Department Manager or Admins)
+    const userDept = await prisma.department.findUnique({
+      where: { name: request.user.department || "" }
+    });
+
+    if (userDept?.managerId) {
+      // Notify the specific manager
+      await createNotification({
+        userId: userDept.managerId,
+        type: NotificationType.ROOM_BOOKING_PENDING, // Using PENDING as a placeholder if leave-specific isn't in Enum yet
+        title: "New Leave Request",
+        message: `${request.user.name} has requested ${data.days} days of ${request.policy.name}.`,
+        linkUrl: "/admin/leave-management/requests"
+      });
+    } else {
+      // Fallback: Notify all admins
+      const admins = await prisma.user.findMany({
+        where: { role: 'ADMIN', isActive: true },
+        select: { id: true }
+      });
+      
+      for (const admin of admins) {
+        await createNotification({
+          userId: admin.id,
+          type: NotificationType.ROOM_BOOKING_PENDING,
+          title: "New Leave Request (Unmanaged)",
+          message: `${request.user.name} submitted a leave request. No manager assigned to their dept.`,
+          linkUrl: "/admin/leave-management/requests"
+        });
+      }
+    }
+
     revalidatePath("/admin/leave-management");
     revalidatePath("/admin/manage-employees");
+    revalidatePath("/leave");
     
     return { success: true, request };
   } catch (error) {
@@ -244,7 +282,17 @@ export async function approveLeaveRequest(requestId: string, approverId: string)
       }
     });
 
+    // Notify the user
+    await createNotification({
+      userId: request.userId,
+      type: NotificationType.ROOM_BOOKING_APPROVED,
+      title: "Leave Request Approved",
+      message: `Your leave request for ${request.days} days has been approved by ${approver.name}.`,
+      linkUrl: "/leave"
+    });
+
     revalidatePath("/admin/leave-management/requests");
+    revalidatePath("/leave");
     return { success: true };
   } catch (error) {
     console.error("Error approving leave request:", error);
@@ -284,7 +332,17 @@ export async function rejectLeaveRequest(requestId: string, approverId: string, 
       }
     });
 
+    // Notify the user
+    await createNotification({
+      userId: request.userId,
+      type: NotificationType.ROOM_BOOKING_REJECTED,
+      title: "Leave Request Declined",
+      message: `Your leave request has been reclined. Reason: ${reason || "No reason provided."}`,
+      linkUrl: "/leave"
+    });
+
     revalidatePath("/admin/leave-management/requests");
+    revalidatePath("/leave");
     return { success: true };
   } catch (error) {
     console.error("Error rejecting leave request:", error);

@@ -16,7 +16,7 @@ const actions = [
   {
     icon: FileText,
     label: "LEAVE REQUEST",
-    href: "/conference-rooms", 
+    href: "/leave", 
     color: "text-orange-500",
     bgColor: "bg-orange-500/10",
   },

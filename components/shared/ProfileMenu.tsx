@@ -87,53 +87,58 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
         aria-haspopup="true"
         aria-expanded={isOpen}
       >
-        <Avatar className="h-10 w-10 flex items-center justify-center bg-green-700">
+        <Avatar className="h-10 w-10 flex items-center justify-center">
           {/* <AvatarImage src="/avatars/01.png" alt="@username" /> */}
-          <AvatarFallback className="bg-emerald-500 text-wh">{initials}</AvatarFallback>
+          <AvatarFallback className="bg-emerald-500 text-white">{initials}</AvatarFallback>
         </Avatar>
       </Button>
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute right-0 mt-2 w-80 rounded-md bg-white p-4 shadow-lg ring-1 ring-black ring-opacity-5"
+          className="absolute right-0 mt-4 w-80 rounded-2xl bg-zinc-950/90 backdrop-blur-xl p-6 shadow-2xl border border-zinc-800 animate-in fade-in zoom-in duration-200"
           onMouseEnter={clearCloseTimeout}
           onMouseLeave={handleClose}
         >
-          <div className="flex gap-3">
-            <Avatar className="h-16 w-16 flex-shrink-0">
-              {/* <AvatarImage src="/avatars/01.png" /> */}
-              <AvatarFallback>{initials}</AvatarFallback>
+          <div className="flex gap-4 items-center">
+            <Avatar className="h-16 w-16 flex-shrink-0 border-2 border-emerald-500/20">
+              <AvatarFallback className="bg-emerald-500 text-white font-black text-xl">{initials}</AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0 space-y-1">
-              <h4 className="text-lg font-semibold truncate">{user?.name}</h4>
-              <p className="text-sm text-muted-foreground capitalize">
+            <div className="flex-1 min-w-0 space-y-0.5">
+              <h4 className="text-lg font-black text-white tracking-tight truncate uppercase">{user?.name}</h4>
+              <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] opacity-80">
                 {user?.role?.toLowerCase()}
               </p>
-              <div className="flex items-center pt-1">
-                <Mail className="mr-2 h-4 w-4 opacity-70 flex-shrink-0" />
-                <span className="text-xs text-muted-foreground truncate" title={user?.email}>
+              <div className="flex items-center pt-2">
+                <Mail className="mr-2 h-3 w-3 text-zinc-500 flex-shrink-0" />
+                <span className="text-[10px] font-bold text-zinc-400 truncate tracking-wide" title={user?.email}>
                   {user?.email}
                 </span>
               </div>
             </div>
           </div>
-          <div className="mt-4 grid gap-2">
+          
+          <div className="mt-8 grid gap-3">
             {(user?.role === "ADMIN" || user?.role === "MANAGER") && (
               <Link href="/admin">
-                <Button variant="outline" className="w-full justify-start">
-                  <ShieldCheck className="mr-2 h-4 w-4" />
-                  Admin Dashboard
+                <Button variant="outline" className="w-full justify-start bg-zinc-900/50 border-zinc-800 text-zinc-300 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all rounded-xl py-6 font-black text-[11px] uppercase tracking-widest">
+                  <ShieldCheck className="mr-3 h-4 w-4" />
+                  Admin Control
                 </Button>
               </Link>
             )}
-            <Button variant="outline" className="justify-start hidden">
-              <UserIcon className="mr-2 h-4 w-4" />
-              Edit Profile
+            
+            <Button 
+                variant="outline" 
+                className="w-full justify-start bg-zinc-900 border-zinc-800 text-red-500 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/50 transition-all rounded-xl py-6 font-black text-[11px] uppercase tracking-widest mt-2" 
+                onClick={handleLogout}
+            >
+              <LogOut className="mr-3 h-4 w-4" />
+              Sign Out
             </Button>
-            <Button variant="outline" className="justify-start text-red-600 hover:text-red-700 hover:bg-red-100" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Log out
-            </Button>
+          </div>
+          
+          <div className="mt-6 pt-4 border-t border-zinc-800 flex justify-center">
+            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em]">DAWF Welfare System</span>
           </div>
         </div>
       )}
