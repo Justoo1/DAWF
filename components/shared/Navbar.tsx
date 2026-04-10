@@ -49,18 +49,20 @@ export const Navbar = () => {
 
   return (
     <>
-      <header className='sticky top-0 z-50  backdrop-blur-sm border-b border-zinc-800 p-2 md:px-10 md:pt-3 md:pb-0 2xl:px-80'>
-        <nav className="flex items-center justify-between p-2 md:p-4 mx-auto">
+      <header className='sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-zinc-900 px-6 py-4 md:px-12 2xl:px-80'>
+        <nav className="flex items-center justify-between mx-auto max-w-[1400px]">
           {/* Logo/Home */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <Home className="h-6 w-6 text-emerald-500" />
-            <span className="hidden sm:block text-xl font-semibold text-white group-hover:text-green-700 transition-colors">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="p-2 rounded-lg bg-emerald-500/10 group-hover:bg-emerald-500/20 transition-all">
+              <Home className="h-5 w-5 text-emerald-500" />
+            </div>
+            <span className="hidden sm:block text-sm font-black text-white tracking-[0.2em] uppercase">
               HOME
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-6">
+          {/* Desktop Navigation - Centered */}
+          <div className="hidden lg:flex items-center gap-10">
             {navItems.map((item) => {
               const Icon = item.icon
               return (
@@ -68,13 +70,13 @@ export const Navbar = () => {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-2 text-base font-semibold transition-colors",
+                    "flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest transition-all duration-300",
                     pathname === item.href
                       ? "text-emerald-500"
-                      : "text-white hover:text-green-700"
+                      : "text-zinc-400 hover:text-white"
                   )}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-4 w-4" />
                   {item.label}
                 </Link>
               )
@@ -82,14 +84,16 @@ export const Navbar = () => {
           </div>
 
           {/* Right side - Notifications & Profile */}
-          <div className="flex items-center gap-3">
-            {session?.user && <NotificationBell userId={session.user.id} />}
-            {userInfo && <ProfileMenu user={userInfo} />}
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
+              {session?.user && <NotificationBell userId={session.user.id} />}
+              {userInfo && <ProfileMenu user={userInfo} />}
+            </div>
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+              className="lg:hidden p-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 transition-colors"
             >
               {isOpen ? (
                 <X className="h-6 w-6 text-white" />
