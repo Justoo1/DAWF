@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { type ReactNode } from "react"
-import { Home, Settings } from 'lucide-react'
+import { Home } from 'lucide-react'
 import Link from "next/link"
 
 interface AuthLayoutProps {
@@ -33,9 +33,6 @@ const AuthLayout = ({ children, description, secondaryDescription, teamImage, cl
           <Link href="/public-calendar" className="text-white text-sm font-semibold tracking-[0.2em] uppercase hover:text-[#10A074] transition-colors">
             Events
           </Link>
-          <button className="text-[#E84E1B] hover:scale-110 transition-transform">
-            <Settings className="w-6 h-6" />
-          </button>
         </div>
       </nav>
 
