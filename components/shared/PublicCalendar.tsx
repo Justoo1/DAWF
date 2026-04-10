@@ -56,10 +56,10 @@ const PublicCalendar: React.FC<PublicCalendarProps> = ({ events }) => {
           <button
             key={btn.id}
             onClick={() => setFilter(btn.id as any)}
-            className={`px-6 py-2 rounded-full text-xs font-semibold tracking-wide uppercase transition-all duration-300 ${
+            className={`px-6 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all duration-300 ${
               filter === btn.id
                 ? 'bg-[#007AFF] text-white shadow-[0_0_15px_rgba(0,122,255,0.4)]'
-                : 'bg-zinc-800/80 text-zinc-400 hover:bg-zinc-700 hover:text-white'
+                : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
             }`}
           >
             {btn.label}
@@ -68,27 +68,27 @@ const PublicCalendar: React.FC<PublicCalendarProps> = ({ events }) => {
       </div>
 
       {/* Legend */}
-      <div className="border border-zinc-800 bg-zinc-900/30 p-4 rounded-xl">
-        <div className="flex flex-wrap gap-8 items-center text-xs ml-2">
-          <span className="text-zinc-400 font-bold uppercase tracking-widest text-[10px]">Color Legend</span>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-[#E84E1B] rounded-sm"></div>
-            <span className="text-zinc-300">Welfare Events</span>
+      <div className="border border-border bg-card/80 backdrop-blur-sm p-5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none transition-all">
+        <div className="flex flex-wrap gap-10 items-center text-xs ml-2">
+          <span className="text-muted-foreground font-bold uppercase tracking-[0.2em] text-[10px]">Color Legend</span>
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 bg-[#E84E1B] rounded-sm shadow-sm"></div>
+            <span className="text-foreground/70 font-bold uppercase tracking-wider text-[10px]">Welfare Events</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-[#9333EA] rounded-sm"></div>
-            <span className="text-zinc-300">Company Events</span>
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 bg-[#9333EA] rounded-sm shadow-sm"></div>
+            <span className="text-foreground/70 font-bold uppercase tracking-wider text-[10px]">Company Events</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-[#10A074] rounded-sm"></div>
-            <span className="text-zinc-300">Room Bookings</span>
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 bg-[#10A074] rounded-sm shadow-sm"></div>
+            <span className="text-foreground/70 font-bold uppercase tracking-wider text-[10px]">Room Bookings</span>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr,320px]">
+      <div className="grid gap-8 lg:grid-cols-[1fr,340px]">
         {/* Calendar */}
-        <div className="bg-zinc-900/50 border border-zinc-800 p-2 rounded-2xl">
+        <div className="bg-card border border-border p-3 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-none transition-all">
           <BaseCalendar
             events={filteredEvents}
             editable={false}
@@ -108,24 +108,26 @@ const PublicCalendar: React.FC<PublicCalendarProps> = ({ events }) => {
         </div>
 
         {/* Sidebar */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           {/* Upcoming Events */}
-          <Card className="bg-zinc-900/50 border-zinc-800 p-6 rounded-2xl shadow-xl">
-            <div className="flex items-center gap-2 mb-4">
-              <Calendar className="w-4 h-4 text-[#007AFF]" />
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+          <Card className="bg-card border-border p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-none transition-all border-none">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 rounded-xl bg-[#007AFF]/10">
+                <Calendar className="w-4 h-4 text-[#007AFF]" />
+              </div>
+              <h2 className="text-xs font-black text-foreground uppercase tracking-[0.2em]">
                 Upcoming Events
               </h2>
             </div>
-            <ul className="space-y-4">
+            <ul className="space-y-6">
               {upcomingEvents.length === 0 && (
-                <li className="text-sm text-zinc-500 italic">No upcoming events</li>
+                <li className="text-sm text-muted-foreground italic">No upcoming events</li>
               )}
               {upcomingEvents.map((event) => (
-                <li key={event.id} className="group transition-all">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-sm font-semibold text-white group-hover:text-[#007AFF] transition-colors">{event.title}</span>
-                    <span className="text-xs text-zinc-500">{new Date(event.start!).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                <li key={event.id} className="group transition-all cursor-default">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-sm font-bold text-foreground group-hover:text-[#007AFF] transition-colors leading-tight">{event.title}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{new Date(event.start!).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   </div>
                 </li>
               ))}
@@ -133,16 +135,20 @@ const PublicCalendar: React.FC<PublicCalendarProps> = ({ events }) => {
           </Card>
 
           {/* Event Details */}
-          <Card className="bg-zinc-900/50 border-zinc-800 p-6 rounded-2xl shadow-xl">
-            <div className="flex items-center gap-2 mb-4">
-              <Info className="w-4 h-4 text-[#10A074]" />
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-                {selectedEvent ? "Event Details" : "Select an Event"}
+          <Card className="bg-card border-border p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-none transition-all border-none overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-full -mr-16 -mt-16 pointer-events-none" />
+            
+            <div className="flex items-center gap-3 mb-6 relative z-10">
+              <div className="p-2 rounded-xl bg-[#10A074]/10">
+                <Info className="w-4 h-4 text-[#10A074]" />
+              </div>
+              <h2 className="text-xs font-black text-foreground uppercase tracking-[0.2em]">
+                {selectedEvent ? "Event Details" : "Selection"}
               </h2>
             </div>
             {selectedEvent ? (
-              <div className="space-y-4">
-                <div className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+              <div className="space-y-6 relative z-10">
+                <div className={`inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
                   selectedEvent.extendedProps?.type === 'ROOM_BOOKING' 
                     ? 'bg-[#10A074]/10 text-[#10A074]' 
                     : selectedEvent.extendedProps?.category === 'WELFARE'
@@ -152,34 +158,37 @@ const PublicCalendar: React.FC<PublicCalendarProps> = ({ events }) => {
                   {selectedEvent.extendedProps?.type === 'ROOM_BOOKING' ? 'Room Booking' : selectedEvent.extendedProps?.category === 'WELFARE' ? 'Welfare' : 'Company'}
                 </div>
                 
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <p className="text-[10px] text-zinc-500 uppercase font-black">Title</p>
-                    <p className="text-sm text-white font-medium">{selectedEvent.title?.includes(': ') ? selectedEvent.title.split(': ')[1] : selectedEvent.title}</p>
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Title</p>
+                    <p className="text-base text-foreground font-bold leading-snug">{selectedEvent.title?.includes(': ') ? selectedEvent.title.split(': ')[1] : selectedEvent.title}</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-zinc-500 uppercase font-black">Start</p>
-                      <p className="text-xs text-zinc-300">{new Date(selectedEvent.start!.toString()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                  <div className="grid grid-cols-2 gap-6 pt-2 border-t border-border">
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Start Time</p>
+                      <p className="text-xs text-foreground/80 font-bold">{new Date(selectedEvent.start!.toString()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-zinc-500 uppercase font-black">Date</p>
-                      <p className="text-xs text-zinc-300">{new Date(selectedEvent.start!.toString()).toLocaleDateString()}</p>
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Event Date</p>
+                      <p className="text-xs text-foreground/80 font-bold">{new Date(selectedEvent.start!.toString()).toLocaleDateString()}</p>
                     </div>
                   </div>
 
                   {selectedEvent.extendedProps?.roomName && (
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-zinc-500 uppercase font-black">Location</p>
-                      <p className="text-xs text-zinc-300">{selectedEvent.extendedProps.roomName}</p>
+                    <div className="space-y-1.5 pt-4">
+                      <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Location</p>
+                      <p className="text-xs text-foreground/80 font-bold flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#10A074]" />
+                          {selectedEvent.extendedProps.roomName}
+                      </p>
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-zinc-500 italic leading-relaxed">
-                Click or hover over an event on the calendar to view its full details here.
+              <p className="text-xs text-muted-foreground italic leading-relaxed font-medium">
+                Hover or tap an event on the schedule to view comprehensive details right here.
               </p>
             )}
           </Card>

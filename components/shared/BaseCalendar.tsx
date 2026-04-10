@@ -17,7 +17,7 @@ interface BaseCalendarProps {
 
 const BaseCalendar: React.FC<BaseCalendarProps> = ({ events, onEventClick, editable, selectable, onMouseEnter, onMouseLeave }) => {
   return (
-    <Card className="bg-zinc-800/50 p-2 sm:p-3 md:p-4 text-white overflow-hidden">
+    <Card className="bg-background p-2 sm:p-3 md:p-4 text-foreground overflow-hidden border-none">
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         headerToolbar={{

@@ -49,14 +49,14 @@ export const Navbar = () => {
 
   return (
     <>
-      <header className='sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-zinc-900 px-6 py-4 md:px-12 2xl:px-80'>
+      <header className='sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border px-6 py-4 md:px-12 2xl:px-80'>
         <nav className="flex items-center justify-between mx-auto max-w-[1400px]">
           {/* Logo/Home */}
           <Link href="/" className="flex items-center gap-3 group">
             <div className="p-2 rounded-lg bg-emerald-500/10 group-hover:bg-emerald-500/20 transition-all">
               <Home className="h-5 w-5 text-emerald-500" />
             </div>
-            <span className="hidden sm:block text-sm font-black text-white tracking-[0.2em] uppercase">
+            <span className="hidden sm:block text-sm font-black text-foreground tracking-[0.2em] uppercase">
               HOME
             </span>
           </Link>
@@ -73,7 +73,7 @@ export const Navbar = () => {
                     "flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest transition-all duration-300",
                     pathname === item.href
                       ? "text-emerald-500"
-                      : "text-zinc-400 hover:text-white"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -93,12 +93,12 @@ export const Navbar = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="lg:hidden p-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 transition-colors"
+              className="lg:hidden p-2 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
             >
               {isOpen ? (
-                <X className="h-6 w-6 text-white" />
+                <X className="h-6 w-6 text-foreground" />
               ) : (
-                <Menu className="h-6 w-6 text-white" />
+                <Menu className="h-6 w-6 text-foreground" />
               )}
             </button>
           </div>

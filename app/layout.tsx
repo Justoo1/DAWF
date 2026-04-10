@@ -5,6 +5,8 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster"
 import { ProfileChecker } from "@/components/auth/ProfileChecker"
+import { ThemeProvider } from "@/components/shared/ThemeProvider"
+import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import "./globals.css";
 // import '@fullcalendar/common/main.css'
 // import '@fullcalendar/daygrid/main.css'
@@ -71,7 +73,7 @@ export default function RootLayout({
     //   }
       
     // }}>
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="application-name" content="DAWF" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -82,13 +84,21 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/assets/images/logo.png" />
       </head>
       <body
-        className={`${fontSans.variable} font-sans antialiased min-h-screen bg-background`}
+        className={`${fontSans.variable} font-sans antialiased min-h-screen bg-background text-foreground`}
       >
-        <ProfileChecker />
-        <div className="min-h-screen bg-background">
-          {children}
-        </div>
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ProfileChecker />
+          <div className="min-h-screen bg-background">
+            {children}
+          </div>
+          <ThemeToggle />
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
     // </ClerkProvider>
