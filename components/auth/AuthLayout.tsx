@@ -1,6 +1,8 @@
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { type ReactNode } from "react"
+import { Home, Settings } from 'lucide-react'
+import Link from "next/link"
 
 interface AuthLayoutProps {
   children: ReactNode
@@ -13,39 +15,93 @@ interface AuthLayoutProps {
 
 const AuthLayout = ({ children, description, secondaryDescription, teamImage, className, flexStart }: AuthLayoutProps) => {
   return (
-    <div className={cn("flex min-h-screen items-center justify-center p-4 overflow-hidden", flexStart && "flex-start")}>
-    <div className="grid h-[100vh] max-h-[800px] w-full max-w-6xl grid-cols-1 gap-8 overflow-hidden rounded-xl lg:grid-cols-[1fr,1fr,1.5fr]">
-      <div className="flex items-center justify-center overflow-y-auto">{children}</div>
-      <div className="hidden lg:flex lg:items-center lg:justify-center overflow-hidden">
-            <div className={cn("relative h-[27.8rem] w-full overflow-hidden rounded-lg bg-white", className)}>
-            <Image
+    <div className={cn("relative min-h-screen flex flex-col items-center justify-center bg-[#121212] overflow-hidden font-sans", flexStart && "items-start")}>
+      {/* Background Pattern Overlay */}
+      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none">
+        <div className="absolute inset-0 bg-[url('/assets/images/logo.png')] bg-repeat bg-[length:200px_200px] grayscale brightness-0 invert" />
+      </div>
+
+      {/* Top Navigation */}
+      <nav className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 py-6 md:px-16">
+        <Link href="/" className="flex items-center gap-2 group transition-all">
+          <div className="p-1.5 rounded-md bg-[#10A074]/10">
+            <Home className="text-[#10A074] w-5 h-5" />
+          </div>
+          <span className="text-white text-sm font-semibold tracking-[0.2em] uppercase">Home</span>
+        </Link>
+        <div className="flex items-center gap-8 md:gap-12">
+          <Link href="/public-calendar" className="text-white text-sm font-semibold tracking-[0.2em] uppercase hover:text-[#10A074] transition-colors">
+            Events
+          </Link>
+          <button className="text-[#E84E1B] hover:scale-110 transition-transform">
+            <Settings className="w-6 h-6" />
+          </button>
+        </div>
+      </nav>
+
+      <main className="relative z-10 w-full max-w-[1400px] px-6 py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+          {/* Left Column: Auth form */}
+          <div className="flex items-center justify-center w-full">
+            {children}
+          </div>
+
+          {/* Middle Column: Team Card */}
+          <div className="hidden lg:flex items-center justify-center">
+            <div className={cn("relative w-full aspect-square max-w-[400px] overflow-hidden rounded-2xl bg-white shadow-2xl", className)}>
+              <Image
                 src={teamImage}
                 alt="Team"
                 layout="fill"
-                objectFit="cover"
-                className="rounded-lg"
-            />
+                objectFit="contain"
+                className="p-8"
+              />
             </div>
-        </div>
-      <div className={cn("hidden lg:flex lg:flex-col lg:justify-center overflow-y-auto space-y-8 leading-10")}>
-        <div className="flex items-center gap-4">
-          <div>
-            <h2 className="text-2xl lg:text-5xl tracking-widest font-bold text-white">DAWF</h2>
-            <p className="text-sm text-white">DEVOPS AFRICA LTD <br /> WELFARE FUND</p>
           </div>
-          <Image
-                src="/assets/images/logo.png"
-                alt="DAWF Logo"
-                width={400}
-                height={400}
-                className="object-contain size-24"
-            />
+
+          {/* Right Column: Info Section */}
+          <div className="hidden lg:flex flex-col justify-center space-y-6 text-white pl-8">
+            <div className="flex items-center gap-6">
+              <div className="space-y-1">
+                <h2 className="text-5xl font-black tracking-tighter leading-tight">DAWF</h2>
+                <div className="text-sm font-bold tracking-[0.1em] text-white/80 uppercase">
+                  DEVOPS AFRICA LTD <br /> WELFARE PROGRAM
+                </div>
+              </div>
+              <div className="relative size-24 bg-[#10A074] rounded-full flex items-center justify-center overflow-hidden">
+                <Image
+                  src="/assets/images/logo.png"
+                  alt="DAWF Logo"
+                  width={120}
+                  height={120}
+                  className="object-contain brightness-0 invert opacity-40 scale-150"
+                />
+              </div>
+            </div>
+
+            <div className="w-full h-px bg-white/10 my-4" />
+
+            <div className="space-y-8">
+              <p className="text-white/80 text-lg leading-relaxed font-light">
+                {description}
+              </p>
+              {secondaryDescription && (
+                <p className="text-white/80 text-lg leading-relaxed font-light">
+                  {secondaryDescription}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
-        <p className=" text-white/90 text-xl leading-9">{description}</p>
-        {secondaryDescription && <p className=" text-white/90 text-xl leading-9">{secondaryDescription}</p>}
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="absolute bottom-8 left-8 md:left-16 z-10">
+        <p className="text-white/40 text-sm font-medium">
+          <Link href="#" className="hover:text-white underline decoration-white/20 underline-offset-4 transition-colors">Devops Africa Team</Link> © All Rights Reserved.
+        </p>
+      </footer>
     </div>
-  </div>
   )
 }
 
