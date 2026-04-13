@@ -4,15 +4,40 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth-client";
-import { Calendar } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getEmailLoginState } from "@/lib/actions/auth-login.action";
+import { AlertCircle } from "lucide-react";
 
 type Step = "email" | "password";
 
+const AUTH_ERROR_MESSAGES: Record<string, { title: string; body: string }> = {
+  token_expired: {
+    title: "Link expired",
+    body: "Your verification or reset link has expired. Ask your administrator to resend the verification email.",
+  },
+  invalid_token: {
+    title: "Invalid link",
+    body: "This link is not valid or has already been used. Try signing in, or ask your administrator to resend the verification email.",
+  },
+  expired_token: {
+    title: "Link expired",
+    body: "This link has expired. Ask your administrator to resend the verification email.",
+  },
+};
+
 const Login = () => {
+  const searchParams = useSearchParams();
+  const errorCode = searchParams.get("error");
+  const authErrorInfo = errorCode
+    ? (AUTH_ERROR_MESSAGES[errorCode] ?? {
+        title: "Something went wrong",
+        body: "We could not complete that action from the link. Try signing in again or contact your administrator.",
+      })
+    : null;
+
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
@@ -52,7 +77,7 @@ const Login = () => {
           break;
         case "not_provisioned":
           setInlineHint(
-            "No DAWF account exists for this email. Ask your administrator to add you."
+            "No account exists for this email. Ask your administrator to add you."
           );
           break;
         case "needs_verification":
@@ -115,13 +140,25 @@ const Login = () => {
     <Card className="w-full max-w-md border-none bg-[#146C43] text-white shadow-2xl rounded-3xl overflow-hidden p-4 md:p-8">
       <CardHeader className="space-y-4 pb-8">
         <CardTitle className="text-4xl font-bold tracking-tight">
-          Sign In to DAWF
+          Sign In to DEVOPS AFRICA
         </CardTitle>
         <p className="text-white/70 text-base">
-          Welcome to Dawf, kindly sign in to continue
+          Welcome to DEVOPS AFRICA, kindly sign in to continue
         </p>
       </CardHeader>
       <CardContent className="space-y-8">
+        {authErrorInfo ? (
+          <div
+            role="alert"
+            className="flex gap-3 rounded-xl border border-amber-200/40 bg-black/25 px-4 py-3 text-left text-sm text-amber-50"
+          >
+            <AlertCircle className="h-5 w-5 shrink-0 text-amber-200" aria-hidden />
+            <div className="space-y-1">
+              <p className="font-semibold text-white">{authErrorInfo.title}</p>
+              <p className="text-white/85 leading-snug">{authErrorInfo.body}</p>
+            </div>
+          </div>
+        ) : null}
         <Button
           onClick={handleGoogleSignIn}
           type="button"
@@ -175,14 +212,7 @@ const Login = () => {
             </div>
             {inlineHint ? (
               <p className="text-sm text-amber-100/95 bg-black/20 rounded-lg p-3 border border-white/10">
-                {inlineHint}{" "}
-                <Link href="/forgot-password" className="underline font-medium">
-                  Forgot password
-                </Link>
-                {" · "}
-                <Link href="/verify-email-pending" className="underline font-medium">
-                  Verification help
-                </Link>
+                {inlineHint}
               </p>
             ) : null}
             <Button
@@ -240,25 +270,6 @@ const Login = () => {
             </Button>
           </form>
         )}
-
-        <p className="text-sm text-white/70 text-left py-2">
-          Accounts are created by an administrator. If you need access, contact
-          your HR admin.
-        </p>
-
-        <div className="w-full h-px bg-white/10" />
-
-        <Link
-          href="/public-calendar"
-          className="flex items-center gap-3 text-white/90 hover:text-white transition-colors group"
-        >
-          <div className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-all border border-white/5">
-            <Calendar className="h-5 w-5" />
-          </div>
-          <span className="text-sm font-medium tracking-wide">
-            View Public Calendar (no login required)
-          </span>
-        </Link>
       </CardContent>
     </Card>
   );

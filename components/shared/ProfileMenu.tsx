@@ -138,7 +138,7 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
           </div>
           
           <div className="mt-6 pt-4 border-t border-zinc-800 flex justify-center">
-            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em]">DAWF Welfare System</span>
+            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em]">DEVOPS AFRICA Welfare System</span>
           </div>
         </div>
       )}

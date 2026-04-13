@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Dashboard",
-  description: "DevOps Africa Welfare Fund Dashboard",
+  description: "DEVOPS AFRICA Welfare Fund Dashboard",
 };
 
 export default function Layout({

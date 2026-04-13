@@ -18,7 +18,7 @@ export function birthdayWishTemplate(employeeName: string) {
           <p style="font-size: 18px; margin-bottom: 20px;">Dear ${employeeName},</p>
 
           <p style="font-size: 16px; margin-bottom: 20px;">
-            🎂 Wishing you a very happy birthday from all of us at DevOps Africa Limited!
+            🎂 Wishing you a very happy birthday from all of us at DEVOPS AFRICA Limited!
           </p>
 
           <p style="font-size: 16px; margin-bottom: 20px;">
@@ -32,7 +32,7 @@ export function birthdayWishTemplate(employeeName: string) {
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best wishes,<br>
-              <strong>DevOps Africa Welfare Fund</strong>
+              <strong>DEVOPS AFRICA Welfare Fund</strong>
             </p>
           </div>
         </div>
@@ -72,7 +72,7 @@ export function childbirthCongratulationsTemplate(parentName: string) {
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               With love and best wishes,<br>
-              <strong>DevOps Africa Welfare Fund</strong>
+              <strong>DEVOPS AFRICA Welfare Fund</strong>
             </p>
           </div>
         </div>
@@ -113,7 +113,7 @@ export function childbirthAnnouncementTemplate(parentName: string, _allEmployees
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DevOps Africa Welfare Fund</strong>
+              <strong>DEVOPS AFRICA Welfare Fund</strong>
             </p>
           </div>
         </div>
@@ -153,7 +153,7 @@ export function marriageCongratulationsTemplate(employeeName: string) {
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               With warmest wishes,<br>
-              <strong>DevOps Africa Welfare Fund</strong>
+              <strong>DEVOPS AFRICA Welfare Fund</strong>
             </p>
           </div>
         </div>
@@ -193,7 +193,7 @@ export function marriageAnnouncementTemplate(employeeName: string) {
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DevOps Africa Welfare Fund</strong>
+              <strong>DEVOPS AFRICA Welfare Fund</strong>
             </p>
           </div>
         </div>
@@ -237,7 +237,7 @@ export function upcomingEventTemplate(eventTitle: string, eventType: string, eve
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DevOps Africa Welfare Fund</strong>
+              <strong>DEVOPS AFRICA Welfare Fund</strong>
             </p>
           </div>
         </div>
@@ -335,7 +335,7 @@ export function conferenceRoomBookingTemplate(
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DevOps Africa Welfare Fund</strong>
+              <strong>DEVOPS AFRICA Welfare Fund</strong>
             </p>
           </div>
         </div>
@@ -393,7 +393,7 @@ export function monthlySummaryTemplate(
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DevOps Africa Welfare Fund</strong>
+              <strong>DEVOPS AFRICA Welfare Fund</strong>
             </p>
           </div>
         </div>
@@ -459,7 +459,7 @@ export function roomBookingApprovedTemplate(
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DevOps Africa Welfare Fund</strong>
+              <strong>DEVOPS AFRICA Welfare Fund</strong>
             </p>
           </div>
         </div>
@@ -531,7 +531,7 @@ export function roomBookingRejectedTemplate(
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DevOps Africa Welfare Fund</strong>
+              <strong>DEVOPS AFRICA Welfare Fund</strong>
             </p>
           </div>
         </div>
@@ -633,7 +633,7 @@ export function roomBookingPendingApprovalTemplate(
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DevOps Africa Welfare Fund</strong>
+              <strong>DEVOPS AFRICA Welfare Fund</strong>
             </p>
           </div>
         </div>
@@ -716,7 +716,7 @@ export function foodMenuPublishedTemplate({
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DevOps Africa Food Committee</strong>
+              <strong>DEVOPS AFRICA Food Committee</strong>
             </p>
           </div>
         </div>
@@ -782,7 +782,7 @@ export function foodSelectionReminderTemplate({
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #f59e0b;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DevOps Africa Food Committee</strong>
+              <strong>DEVOPS AFRICA Food Committee</strong>
             </p>
           </div>
         </div>
@@ -846,7 +846,7 @@ export function foodSelectionConfirmedTemplate({
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Thank you,<br>
-              <strong>DevOps Africa Food Committee</strong>
+              <strong>DEVOPS AFRICA Food Committee</strong>
             </p>
           </div>
         </div>

@@ -15,7 +15,7 @@ const AccountDeactivatedPage = () => {
           <h1 className="text-2xl font-bold text-white">Account Deactivated</h1>
 
           <p className="text-zinc-400">
-            Your account has been deactivated. You no longer have access to the DevOps Africa Welfare Fund system.
+            Your account has been deactivated. You no longer have access to the DEVOPS AFRICA Welfare Fund system.
           </p>
 
           <p className="text-zinc-400 text-sm">

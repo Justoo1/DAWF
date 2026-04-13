@@ -66,7 +66,7 @@ export function ChangeInitialPasswordForm() {
       }
       toast({
         title: "Password updated",
-        description: "You can continue using DAWF.",
+        description: "You can continue using DEVOPS AFRICA.",
       });
       window.location.assign("/");
     } catch (err) {

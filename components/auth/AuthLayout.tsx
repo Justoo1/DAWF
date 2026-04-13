@@ -68,7 +68,7 @@ const AuthLayout = ({ children, description, secondaryDescription, teamImage, cl
               <div className="relative size-24 bg-[#10A074] rounded-full flex items-center justify-center overflow-hidden">
                 <Image
                   src="/assets/images/logo.png"
-                  alt="DAWF Logo"
+                  alt="DEVOPS AFRICA logo"
                   width={120}
                   height={120}
                   className="object-contain brightness-0 invert opacity-40 scale-150"

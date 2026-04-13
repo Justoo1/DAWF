@@ -171,6 +171,11 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
         pendingInvite: true,
         emailVerified: true,
         createdAt: true,
+        dateOfBirth: true,
+        startDate: true,
+        exitDate: true,
+        welfareContributionsBeforeExit: true,
+        clientId: true,
         client: {
           select: { id: true, name: true },
         },
@@ -644,6 +649,178 @@ export async function createEmployee(data: {
   }
 }
 
+export async function updateEmployeeProfile(
+  userId: string,
+  data: {
+    email: string
+    firstName: string
+    lastName: string
+    phoneNumber: string
+    clientId: string
+    department?: string
+    dateOfBirth?: Date
+    startDate?: Date
+    role?: string
+    isActive?: boolean
+    isContributor?: boolean
+    exitDate?: Date | null
+    welfareContributionsBeforeExit?: number | null
+  }
+): Promise<
+  | { success: true; emailChanged: boolean }
+  | { success: false; error: string }
+> {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+    if (!session?.user) {
+      return { success: false, error: 'Unauthorized: You must be logged in' }
+    }
+    const currentUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true },
+    })
+    if (!currentUser || currentUser.role !== 'ADMIN') {
+      return {
+        success: false,
+        error: 'Unauthorized: Only admins can edit employee profiles',
+      }
+    }
+
+    const newEmail = data.email.trim().toLowerCase()
+
+    const existing = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        email: true,
+        accounts: {
+          where: { providerId: 'credential' },
+          select: { password: true },
+          take: 1,
+        },
+      },
+    })
+    if (!existing) {
+      return { success: false, error: 'Employee not found' }
+    }
+
+    const emailChanged =
+      newEmail !== existing.email.trim().toLowerCase()
+
+    if (emailChanged) {
+      const others = await prisma.user.findMany({
+        where: { NOT: { id: userId } },
+        select: { email: true },
+      })
+      if (others.some((u) => u.email.toLowerCase() === newEmail)) {
+        return {
+          success: false,
+          error: 'Another employee already uses this email',
+        }
+      }
+    }
+
+    const client = await prisma.client.findFirst({
+      where: { id: data.clientId, isActive: true },
+    })
+    if (!client) {
+      return { success: false, error: 'Invalid client selected' }
+    }
+
+    const firstName = data.firstName.trim()
+    const lastName = data.lastName.trim()
+    const displayName = `${firstName} ${lastName}`.trim()
+    if (!displayName) {
+      return { success: false, error: 'First and last name are required' }
+    }
+
+    const department =
+      data.department === 'none' || !data.department?.trim()
+        ? null
+        : data.department.trim()
+
+    const active = data.isActive ?? true
+
+    const userUpdate = {
+      email: newEmail,
+      firstName,
+      lastName,
+      name: displayName,
+      phoneNumber: data.phoneNumber.trim(),
+      clientId: data.clientId,
+      department,
+      dateOfBirth: data.dateOfBirth,
+      startDate: data.startDate,
+      role: (data.role as UserRole) || 'EMPLOYEE',
+      isActive: active,
+      isContributor: data.isContributor ?? true,
+      ...(active
+        ? {
+            exitDate: null,
+            welfareContributionsBeforeExit: null,
+          }
+        : {
+            exitDate: data.exitDate ?? null,
+            welfareContributionsBeforeExit:
+              data.welfareContributionsBeforeExit ?? null,
+          }),
+      ...(emailChanged
+        ? {
+            emailVerified: false,
+            pendingInvite: true,
+          }
+        : {}),
+    }
+
+    await prisma.$transaction(async (tx) => {
+      if (emailChanged) {
+        await tx.session.deleteMany({ where: { userId } })
+        await tx.verification.deleteMany({
+          where: {
+            OR: [
+              { identifier: existing.email },
+              { identifier: newEmail },
+            ],
+          },
+        })
+      }
+      await tx.user.update({
+        where: { id: userId },
+        data: userUpdate,
+      })
+    })
+
+    if (emailChanged) {
+      const cred = existing.accounts[0]
+      const hasCredentialPassword = !!(cred?.password && cred.password.length > 0)
+      const verificationCallback = hasCredentialPassword ? '/' : '/set-password'
+      try {
+        await auth.api.sendVerificationEmail({
+          body: {
+            email: newEmail,
+            callbackURL: verificationCallback,
+          },
+          headers: await headers(),
+        })
+      } catch (e) {
+        console.error('updateEmployeeProfile: sendVerificationEmail', e)
+      }
+    }
+
+    revalidatePath('/admin/employees')
+    revalidatePath('/admin/manage-employees')
+    return { success: true, emailChanged }
+  } catch (error) {
+    console.error('Error updating employee profile:', error)
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : 'An unknown error occurred',
+    }
+  }
+}
+
 export async function updateEmployeeDates(userId: string, data: {
   startDate?: Date | null
   dateOfBirth?: Date | null
@@ -738,21 +915,33 @@ export async function adminResendEmployeeVerificationEmail(userId: string) {
   if (!gate.ok) return { success: false, error: gate.error }
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { email: true, emailVerified: true }
+    select: {
+      email: true,
+      emailVerified: true,
+      pendingInvite: true,
+      accounts: {
+        where: { providerId: 'credential' },
+        select: { password: true },
+        take: 1,
+      },
+    },
   })
   if (!user) return { success: false, error: 'User not found' }
-  if (user.emailVerified) {
+  if (user.emailVerified && !user.pendingInvite) {
     return {
       success: false,
       error:
         'This account is already verified. Use “Send password reset” if they need to set or change their password.'
     }
   }
+  const cred = user.accounts[0]
+  const hasCredentialPassword = !!(cred?.password && cred.password.length > 0)
+  const verificationCallback = hasCredentialPassword ? '/' : '/set-password'
   try {
     await auth.api.sendVerificationEmail({
       body: {
         email: user.email,
-        callbackURL: '/set-password'
+        callbackURL: verificationCallback,
       },
       headers: await headers()
     })

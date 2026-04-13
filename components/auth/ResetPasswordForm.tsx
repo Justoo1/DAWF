@@ -126,7 +126,7 @@ function ResetPasswordFormInner() {
           Choose a new password
         </CardTitle>
         <p className="text-white/70 text-base">
-          Enter and confirm your new password for DAWF.
+          Enter and confirm your new password for DEVOPS AFRICA.
         </p>
       </CardHeader>
       <CardContent>

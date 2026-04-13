@@ -24,15 +24,15 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | DAWF",
-    default: "DAWF",
+    template: "%s | DEVOPS AFRICA",
+    default: "DEVOPS AFRICA",
   },
-  description: "DevOps Africa Welfare Fund",
+  description: "DEVOPS AFRICA Welfare Fund",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "DAWF",
+    title: "DEVOPS AFRICA",
   },
   formatDetection: {
     telephone: false,
@@ -79,10 +79,10 @@ export default function RootLayout({
     // }}>
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="application-name" content="DAWF" />
+        <meta name="application-name" content="DEVOPS AFRICA" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="DAWF" />
+        <meta name="apple-mobile-web-app-title" content="DEVOPS AFRICA" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="apple-touch-icon" href="/assets/images/logo.png" />

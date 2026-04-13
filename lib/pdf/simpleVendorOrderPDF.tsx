@@ -142,7 +142,7 @@ const SimpleVendorOrderPDF: React.FC<SimpleVendorOrderPDFProps> = ({
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text>DevOps Africa Limited</Text>
+          <Text>DEVOPS AFRICA Limited</Text>
         </View>
       </Page>
     </Document>

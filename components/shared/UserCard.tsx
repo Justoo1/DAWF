@@ -47,7 +47,7 @@ const UserCard = ({ userData }: UserCardProps) => {
 
           <div className="flex items-center gap-6 text-right">
             <div className="flex flex-col uppercase">
-              <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-white">DAWF</h1>
+              <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-white">DEVOPS AFRICA</h1>
               <p className="text-[10px] font-bold text-zinc-500 tracking-[0.2em] leading-tight">
                 DEVOPS AFRICA LTD<br />WELFARE PROGRAM
               </p>
@@ -55,7 +55,7 @@ const UserCard = ({ userData }: UserCardProps) => {
             <div className="p-3 rounded-2xl bg-emerald-500/10 backdrop-blur-md">
               <Image
                 src="/assets/images/logo.png"
-                alt="DAWF Logo"
+                alt="DEVOPS AFRICA logo"
                 width={56}
                 height={56}
                 className="object-contain"

@@ -56,7 +56,7 @@ const PublicCalendarPage = async () => {
 
         <div className="mt-8 flex flex-col items-center gap-4 text-center">
             <div className="flex items-center gap-4">
-                <span className="text-[9px] text-muted-foreground/40 font-black uppercase tracking-[0.3em]">DevOps Africa ltd</span>
+                <span className="text-[9px] text-muted-foreground/40 font-black uppercase tracking-[0.3em]">DEVOPS AFRICA LTD</span>
                 <div className="w-1 h-1 rounded-full bg-border" />
                 <span className="text-[9px] text-muted-foreground/40 font-black uppercase tracking-[0.3em]">Welfare Program 2026</span>
             </div>

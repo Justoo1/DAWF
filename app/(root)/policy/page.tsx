@@ -32,7 +32,7 @@ const PolicyPage = async () => {
               Welfare Fund Policy
             </h1>
             <p className="text-gray-300">
-              DevOps Africa Limited - Staff Welfare Fund Constitution
+              DEVOPS AFRICA Limited - Staff Welfare Fund Constitution
             </p>
           </div>
 

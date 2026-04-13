@@ -4,7 +4,7 @@ import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 export default function ResetPasswordPage() {
   return (
     <AuthLayout
-      description="Set a new password for your DAWF account."
+      description="Set a new password for your DEVOPS AFRICA account."
       secondaryDescription="After updating your password, sign in with your work email."
       teamImage="/assets/images/team.png"
     >

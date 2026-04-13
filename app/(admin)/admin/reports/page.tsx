@@ -170,7 +170,7 @@ export default function Reports() {
       ]
 
       const workbook = new ExcelJS.Workbook()
-      workbook.creator = 'DAWF'
+      workbook.creator = 'DEVOPS AFRICA'
       workbook.created = new Date()
 
       if (reportType === 'financial_summary' && financialData) {
@@ -328,7 +328,7 @@ export default function Reports() {
         quarterlyData.forEach((q) => sheet.addRow(q))
       }
 
-      const fileName = `DAWF_${reportType}_${startDate.toISOString().split('T')[0]}_to_${endDate.toISOString().split('T')[0]}.xlsx`
+      const fileName = `DEVOPS_AFRICA_${reportType}_${startDate.toISOString().split('T')[0]}_to_${endDate.toISOString().split('T')[0]}.xlsx`
       const buffer = await workbook.xlsx.writeBuffer()
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
       const url = window.URL.createObjectURL(blob)

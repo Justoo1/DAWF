@@ -1,5 +1,184 @@
 import { z } from 'zod'
 
+const phoneLike = /^[\d\s\-+().]{7,32}$/
+
+const addEmployeeFormObjectSchema = z.object({
+  firstName: z
+    .string()
+    .trim()
+    .min(1, { message: 'First name is required' })
+    .max(100, { message: 'First name is too long' }),
+  lastName: z
+    .string()
+    .trim()
+    .min(1, { message: 'Last name is required' })
+    .max(100, { message: 'Last name is too long' }),
+  phoneNumber: z
+    .string()
+    .trim()
+    .min(1, { message: 'Phone number is required' })
+    .regex(phoneLike, { message: 'Enter a valid phone number' }),
+  email: z
+    .string()
+    .trim()
+    .min(1, { message: 'Email is required' })
+    .email({ message: 'Enter a valid email address' }),
+  clientId: z.string().min(1, { message: 'Select a client' }),
+  department: z.string(),
+  dateOfBirth: z
+    .string()
+    .trim()
+    .min(1, { message: 'Date of birth is required' }),
+  startDate: z
+    .string()
+    .trim()
+    .min(1, { message: 'Employment start date is required' }),
+  role: z.enum(['EMPLOYEE', 'MANAGER', 'ADMIN', 'FOOD_COMMITTEE']),
+  isActive: z.boolean(),
+  isContributor: z.boolean(),
+  exitDate: z.string().optional(),
+  welfareContributionsBeforeExit: z.string().optional(),
+  generateInitialPassword: z.boolean(),
+  initialPassword: z.string().optional(),
+})
+
+function refineEmployeeDatesAndExit(
+  data: {
+    isActive: boolean
+    exitDate?: string
+    dateOfBirth: string
+    startDate: string
+    welfareContributionsBeforeExit?: string
+  },
+  ctx: z.RefinementCtx
+) {
+  if (!data.isActive) {
+    if (!data.exitDate?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Exit date is required for inactive employees',
+        path: ['exitDate'],
+      })
+    }
+  }
+  const parseYmd = (s: string | undefined) => {
+    if (!s?.trim()) return null
+    const d = new Date(s)
+    return Number.isNaN(d.getTime()) ? undefined : d
+  }
+  const dob = parseYmd(data.dateOfBirth)
+  if (!(dob instanceof Date)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Invalid date of birth',
+      path: ['dateOfBirth'],
+    })
+  }
+  const start = parseYmd(data.startDate)
+  if (!(start instanceof Date)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Invalid employment start date',
+      path: ['startDate'],
+    })
+  }
+  const exit = parseYmd(data.exitDate)
+  if (data.exitDate?.trim() && exit === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Invalid exit date',
+      path: ['exitDate'],
+    })
+  }
+  if (start && exit && exit.getTime() < start.getTime()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Exit date cannot be before start date',
+      path: ['exitDate'],
+    })
+  }
+  if (data.welfareContributionsBeforeExit?.trim()) {
+    const n = parseFloat(data.welfareContributionsBeforeExit)
+    if (Number.isNaN(n) || n < 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Enter a valid amount (0 or greater)',
+        path: ['welfareContributionsBeforeExit'],
+      })
+    }
+  }
+}
+
+/** Admin “Add employee” modal — client-side validation before server action. */
+export const addEmployeeFormSchema = addEmployeeFormObjectSchema.superRefine(
+  (data, ctx) => {
+    if (!data.generateInitialPassword && data.initialPassword?.trim()) {
+      const p = data.initialPassword.trim()
+      if (p.length < 8) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Initial password must be at least 8 characters',
+          path: ['initialPassword'],
+        })
+      }
+      if (p.length > 128) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Password must be at most 128 characters',
+          path: ['initialPassword'],
+        })
+      }
+    }
+    refineEmployeeDatesAndExit(data, ctx)
+  }
+)
+
+export type AddEmployeeFormValues = z.infer<typeof addEmployeeFormSchema>
+
+/** Admin edit employee — same rules as add, including work email; no initial password fields. */
+export const editEmployeeFormSchema = addEmployeeFormObjectSchema
+  .omit({
+    generateInitialPassword: true,
+    initialPassword: true,
+  })
+  .superRefine((data, ctx) => refineEmployeeDatesAndExit(data, ctx))
+
+export type EditEmployeeFormValues = z.infer<typeof editEmployeeFormSchema>
+
+export const editEmployeeEmptyValues: EditEmployeeFormValues = {
+  firstName: '',
+  lastName: '',
+  phoneNumber: '',
+  email: '',
+  clientId: '',
+  department: 'none',
+  dateOfBirth: '',
+  startDate: '',
+  role: 'EMPLOYEE',
+  isActive: true,
+  isContributor: true,
+  exitDate: '',
+  welfareContributionsBeforeExit: '',
+}
+
+export const addEmployeeDefaultValues: AddEmployeeFormValues = {
+  firstName: '',
+  lastName: '',
+  phoneNumber: '',
+  email: '',
+  clientId: '',
+  department: '',
+  dateOfBirth: '',
+  startDate: '',
+  role: 'EMPLOYEE',
+  isActive: true,
+  isContributor: true,
+  exitDate: '',
+  welfareContributionsBeforeExit: '',
+  generateInitialPassword: false,
+  initialPassword: '',
+}
+
 // User Schema
 export const UserSchema = z.object({
   id: z.string().optional(),
@@ -28,6 +207,7 @@ export type UserValues = Omit<z.infer<typeof UserSchema>, 'password' | "departme
   dateOfBirth?: Date | null
   startDate?: Date | null
   exitDate?: Date | null
+  welfareContributionsBeforeExit?: number | null
   firstName?: string
   lastName?: string
   phoneNumber?: string
@@ -36,6 +216,8 @@ export type UserValues = Omit<z.infer<typeof UserSchema>, 'password' | "departme
   /** True when Better Auth credential account has a password hash (employee can sign in with email/password). */
   hasCredentialPassword?: boolean
   clientName?: string | null
+  /** Present when loaded from admin `fetchUsers` for edit dialog. */
+  clientId?: string | null
   contributions?: { month: Date; amount: number; status?: string }[]
 }
 

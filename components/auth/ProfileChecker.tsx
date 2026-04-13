@@ -38,11 +38,6 @@ export function ProfileChecker() {
           return
         }
 
-        if (!gate.domainOk) {
-          router.push("/wrong-email")
-          return
-        }
-
         if (!gate.isActive) {
           await authClient.signOut()
           router.push("/account-deactivated")

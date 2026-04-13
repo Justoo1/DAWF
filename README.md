@@ -1,8 +1,8 @@
-# DAWF - DevOps Africa Welfare Fund
+# DEVOPS AFRICA - DevOps Africa Welfare Fund
 
 > A comprehensive welfare management system for employee contributions, events, expenses, and benefits tracking.
 
-![DAWF Dashboard](image.png)
+![DEVOPS AFRICA Dashboard](image.png)
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.0.3-black)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
@@ -12,7 +12,7 @@
 
 ## Overview
 
-DAWF is a modern, full-stack web application built to manage employee welfare contributions, track expenses, organize events, and automate notifications. Designed specifically for DevOps Africa Limited, it streamlines welfare fund management with powerful automation and analytics.
+DEVOPS AFRICA is a modern, full-stack web application built to manage employee welfare contributions, track expenses, organize events, and automate notifications. Designed specifically for DevOps Africa Limited, it streamlines welfare fund management with powerful automation and analytics.
 
 ## ✨ Key Features
 
@@ -63,7 +63,7 @@ DAWF is a modern, full-stack web application built to manage employee welfare co
 1. **Clone the repository**
    ```bash
    git clone https://github.com/Justoo1/DAWF.git
-   cd dwarf
+   cd DAWF
    ```
 
 2. **Install dependencies**
@@ -141,7 +141,7 @@ DAWF is a modern, full-stack web application built to manage employee welfare co
 ## 📁 Project Structure
 
 ```
-dwarf/
+DAWF/
 ├── app/                          # Next.js App Router
 │   ├── (admin)/                  # Admin routes
 │   │   └── admin/

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { UserValues } from "@/lib/validation";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { KeyRound, Mail, Trash2Icon, MoreHorizontal } from "lucide-react";
+import { KeyRound, Mail, Pencil, Trash2Icon, MoreHorizontal } from "lucide-react";
 import { UserAvatarHover } from "./UserAvatarHover";
 import {
   adminResendEmployeeVerificationEmail,
@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { EditEmployeeDatesDialog } from "./EditEmployeeDatesDialog";
+import { EditEmployeeDialog } from "./EditEmployeeDialog";
 import {
   Select,
   SelectContent,
@@ -72,11 +73,15 @@ const Employees = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [statusFilter, setStatusFilter] = useState("all");
+  const [verificationFilter, setVerificationFilter] = useState<"all" | "unverified">("all");
   const [deptFilter, setDeptFilter] = useState("all");
   const [sortConfig, setSortConfig] = useState<{
     key: keyof UserValues;
     direction: "asc" | "desc";
   }>({ key: "name", direction: "asc" });
+  const [editingEmployee, setEditingEmployee] = useState<UserValues | null>(
+    null
+  );
 
   // Get unique departments for filter
   const departments = Array.from(
@@ -99,7 +104,16 @@ const Employees = ({
           : !record.isActive;
       const matchesDept =
         deptFilter === "all" ? true : record.department === deptFilter;
-      return matchesSearch && matchesStatus && matchesDept;
+      const needsEmailVerification =
+        !record.emailVerified || !!record.pendingInvite;
+      const matchesVerification =
+        verificationFilter === "all" || needsEmailVerification;
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesDept &&
+        matchesVerification
+      );
     })
     .sort((a, b) => {
       const aValue = a[sortConfig.key] ?? "";
@@ -287,6 +301,13 @@ const Employees = ({
 
   return (
     <>
+      <EditEmployeeDialog
+        employee={editingEmployee}
+        open={editingEmployee != null}
+        onOpenChange={(open) => {
+          if (!open) setEditingEmployee(null);
+        }}
+      />
       <AdminToolbar>
         {/* Top half: Search */}
         <div className="p-6 px-8 border-b border-slate-100">
@@ -327,7 +348,29 @@ const Employees = ({
             </Select>
           </div>
 
-          {(deptFilter !== "all" || statusFilter !== "all" || searchTerm) && (
+          {isAdmin && (
+            <div className="w-full sm:w-48">
+              <Select
+                value={verificationFilter}
+                onValueChange={(v) =>
+                  setVerificationFilter(v as "all" | "unverified")
+                }
+              >
+                <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+                  <SelectValue placeholder="Email verification" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Email: All</SelectItem>
+                  <SelectItem value="unverified">Email: Not verified</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {(deptFilter !== "all" ||
+            statusFilter !== "all" ||
+            verificationFilter !== "all" ||
+            searchTerm) && (
             <Button 
               variant="ghost" 
               className="text-xs text-slate-400 hover:text-primary h-10 px-2"
@@ -335,6 +378,7 @@ const Employees = ({
                 setSearchTerm("");
                 setDeptFilter("all");
                 setStatusFilter("all");
+                setVerificationFilter("all");
               }}
             >
               Reset Filters
@@ -394,18 +438,50 @@ const Employees = ({
                 .slice(0, 2)
                 .map((s) => s[0]?.toUpperCase())
                 .join("");
+              const needsEmailVerification =
+                !record.emailVerified || !!record.pendingInvite;
 
               return (
-                <tr key={record.id} className={adminTbodyRowClass}>
+                <tr
+                  key={record.id}
+                  className={cn(
+                    adminTbodyRowClass,
+                    isAdmin &&
+                      "cursor-pointer hover:bg-slate-50/90 transition-colors"
+                  )}
+                  onClick={
+                    isAdmin
+                      ? () => setEditingEmployee(record)
+                      : undefined
+                  }
+                  onKeyDown={
+                    isAdmin
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setEditingEmployee(record);
+                          }
+                        }
+                      : undefined
+                  }
+                  tabIndex={isAdmin ? 0 : undefined}
+                  aria-label={
+                    isAdmin
+                      ? `Edit employee ${record.name}`
+                      : undefined
+                  }
+                >
                   <td className={adminTdClass}>
                     <div className="flex items-center gap-4 relative">
                       <UserAvatarHover initials={initials} />
                       <div className="flex flex-col gap-1">
                         <span className="font-bold text-slate-900">{record.name}</span>
                         <span className="text-[12px] text-slate-500">{record.email}</span>
-                        {record.pendingInvite ? (
+                        {needsEmailVerification ? (
                           <Badge variant="outline" className="w-fit text-[10px] border-amber-300 text-amber-800 bg-amber-50">
-                            Awaiting email verification
+                            {record.pendingInvite
+                              ? "Awaiting email verification"
+                              : "Email not verified"}
                           </Badge>
                         ) : null}
                       </div>
@@ -430,7 +506,7 @@ const Employees = ({
                     </div>
                   </td>
                   <td className={adminTdClass}>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                        <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider", 
                           record.isActive ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"
                         )}>
@@ -439,9 +515,21 @@ const Employees = ({
                        <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
                          {record.role}
                        </span>
+                       {needsEmailVerification ? (
+                         <span className="inline-flex rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800">
+                           UNVERIFIED
+                         </span>
+                       ) : (
+                         <span className="inline-flex rounded-full bg-slate-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                           VERIFIED
+                         </span>
+                       )}
                     </div>
                   </td>
-                  <td className={cn(adminTdClass, "text-right")}>
+                  <td
+                    className={cn(adminTdClass, "text-right")}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0 rounded-full text-slate-400 hover:text-primary">
@@ -454,6 +542,17 @@ const Employees = ({
                           <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                             Actions
                           </div>
+                          {isAdmin && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="w-full justify-start h-9 rounded-lg px-2 text-slate-700"
+                              onClick={() => setEditingEmployee(record)}
+                            >
+                              <Pencil className="mr-2 h-4 w-4 shrink-0" />
+                              Edit employee
+                            </Button>
+                          )}
                           {(isAdmin || isManager) && (
                              <div className="flex w-full">
                                 <EditEmployeeDatesDialog
@@ -466,7 +565,7 @@ const Employees = ({
                                 />
                              </div>
                           )}
-                          {isAdmin && !record.emailVerified && (
+                          {isAdmin && needsEmailVerification && (
                             <Button
                               type="button"
                               variant="ghost"
@@ -474,10 +573,10 @@ const Employees = ({
                               onClick={() => handleResendVerification(record.id)}
                             >
                               <Mail className="mr-2 h-4 w-4 shrink-0" />
-                              Resend verification
+                              Resend verification email
                             </Button>
                           )}
-                          {isAdmin && record.emailVerified && (
+                          {isAdmin && !needsEmailVerification && (
                             <Button
                               type="button"
                               variant="ghost"

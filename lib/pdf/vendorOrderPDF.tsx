@@ -232,7 +232,7 @@ const VendorOrderPDF: React.FC<OrderPDFProps> = ({
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text>DevOps Africa Limited - Food Ordering System</Text>
+          <Text>DEVOPS AFRICA Limited - Food Ordering System</Text>
           <Text>This document was generated automatically</Text>
         </View>
       </Page>
