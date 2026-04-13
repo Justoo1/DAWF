@@ -159,12 +159,19 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
       select: {
         id: true,
         name: true,
+        firstName: true,
+        lastName: true,
+        phoneNumber: true,
         email: true,
         department: true,
         role: true,
         isActive: true,
         isContributor: true,
+        pendingInvite: true,
         createdAt: true,
+        client: {
+          select: { id: true, name: true },
+        },
         _count: {
           select: {
             contributions: true,
@@ -184,8 +191,11 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
     });
 
     // Map the users to keep the API contract consistent but drastically smaller payload
-    const userValues = users.map((user) => ({
-      ...user,
+    const userValues = users.map((user) => {
+      const { client, ...rest } = user
+      return {
+      ...rest,
+      clientName: client?.name ?? null,
       contributionsCount: user._count.contributions,
       eventsCount: user._count.events,
       expensesCount: user._count.expenses,
@@ -195,7 +205,8 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
       contributions: [], 
       events: [],
       expenses: [],
-    }));
+    }
+    });
 
     return {
       success: true,
@@ -338,6 +349,7 @@ export async function updateEmployeeStatus(userId: string, isActive: boolean) {
       data: { isActive }
     })
     revalidatePath('/admin/employees')
+    revalidatePath('/admin/manage-employees')
     return { success: true }
   } catch (error) {
     console.error('Error updating employee status:', error)
@@ -370,6 +382,7 @@ export async function updateContributorStatus(userId: string, isContributor: boo
       data: { isContributor }
     })
     revalidatePath('/admin/employees')
+    revalidatePath('/admin/manage-employees')
     return { success: true }
   } catch (error) {
     console.error('Error updating contributor status:', error)
@@ -402,6 +415,7 @@ export async function updateBookingApprovalPermission(userId: string, canApprove
       data: { canApproveBookings }
     })
     revalidatePath('/admin/employees')
+    revalidatePath('/admin/manage-employees')
     return { success: true }
   } catch (error) {
     console.error('Error updating booking approval permission:', error)
@@ -434,6 +448,7 @@ export async function updateUserRole(userId: string, role: string) {
       data: { role: role as UserRole }
     })
     revalidatePath('/admin/employees')
+    revalidatePath('/admin/manage-employees')
     return { success: true }
   } catch (error) {
     console.error('Error updating user role:', error)
@@ -466,6 +481,7 @@ export async function updateUserDepartment(userId: string, department: string) {
       data: { department }
     })
     revalidatePath('/admin/employees')
+    revalidatePath('/admin/manage-employees')
     return { success: true }
   } catch (error) {
     console.error('Error updating user department:', error)
@@ -474,8 +490,11 @@ export async function updateUserDepartment(userId: string, department: string) {
 }
 
 export async function createEmployee(data: {
-  name: string
+  firstName: string
+  lastName: string
+  phoneNumber: string
   email: string
+  clientId: string
   department?: string
   dateOfBirth?: Date
   startDate?: Date
@@ -512,10 +531,26 @@ export async function createEmployee(data: {
       return { success: false, error: 'An employee with this email already exists' }
     }
 
+    const client = await prisma.client.findFirst({
+      where: { id: data.clientId, isActive: true },
+    })
+    if (!client) {
+      return { success: false, error: 'Invalid client selected' }
+    }
+
+    const firstName = data.firstName.trim()
+    const lastName = data.lastName.trim()
+    const displayName = `${firstName} ${lastName}`.trim() || data.email
+
     const user = await prisma.user.create({
       data: {
-        name: data.name,
+        firstName,
+        lastName,
+        phoneNumber: data.phoneNumber.trim(),
+        name: displayName,
         email: data.email,
+        clientId: data.clientId,
+        pendingInvite: true,
         department: data.department,
         dateOfBirth: data.dateOfBirth,
         startDate: data.startDate,
@@ -529,7 +564,19 @@ export async function createEmployee(data: {
       }
     })
 
+    try {
+      await auth.api.sendVerificationEmail({
+        body: {
+          email: user.email,
+          callbackURL: "/sign-in",
+        },
+      })
+    } catch (err) {
+      console.error("Failed to send verification email:", err)
+    }
+
     revalidatePath('/admin/employees')
+    revalidatePath('/admin/manage-employees')
     return { success: true, user }
   } catch (error) {
     console.error('Error creating employee:', error)
@@ -591,6 +638,7 @@ export async function updateEmployeeDates(userId: string, data: {
     })
 
     revalidatePath('/admin/employees')
+    revalidatePath('/admin/manage-employees')
     return { success: true }
   } catch (error) {
     console.error('Error updating employee dates:', error)

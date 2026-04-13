@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
+import { getAccountGateState } from "@/lib/actions/account-gate.action"
 
 export function ProfileChecker() {
   const router = useRouter()
@@ -10,12 +11,13 @@ export function ProfileChecker() {
 
   useEffect(() => {
     const checkProfile = async () => {
-      // Skip check for auth pages
       if (
         pathname.startsWith("/sign-in") ||
         pathname.startsWith("/sign-up") ||
         pathname.startsWith("/wrong-email") ||
-        pathname.startsWith("/complete-profile")
+        pathname.startsWith("/complete-profile") ||
+        pathname.startsWith("/verify-email-pending") ||
+        pathname.startsWith("/account-deactivated")
       ) {
         return
       }
@@ -23,13 +25,35 @@ export function ProfileChecker() {
       try {
         const session = await authClient.getSession()
 
-        if (session.data?.user) {
-          const user = session.data.user as { dateOfBirth?: Date | null }
+        if (!session.data?.user) {
+          return
+        }
 
-          // If user is logged in but doesn't have a birthday, redirect to complete-profile
-          if (!user.dateOfBirth) {
-            router.push("/complete-profile")
-          }
+        const gate = await getAccountGateState()
+        if (!gate.authenticated) {
+          return
+        }
+
+        if (!gate.domainOk) {
+          router.push("/wrong-email")
+          return
+        }
+
+        if (!gate.isActive) {
+          await authClient.signOut()
+          router.push("/account-deactivated")
+          return
+        }
+
+        if (gate.pendingInvite) {
+          router.push("/verify-email-pending")
+          return
+        }
+
+        const user = session.data.user as { dateOfBirth?: Date | null }
+
+        if (!user.dateOfBirth) {
+          router.push("/complete-profile")
         }
       } catch (error) {
         console.error("Error checking profile:", error)

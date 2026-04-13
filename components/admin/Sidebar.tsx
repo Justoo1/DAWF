@@ -145,6 +145,7 @@ export function Sidebar({
 
   const peopleSectionActive =
     isActive("/admin/employees") ||
+    isActive("/admin/clients") ||
     isActive("/admin/leave-management/departments");
 
   const leaveManagementActive =
@@ -269,6 +270,14 @@ export function Sidebar({
                     label="Employees"
                     icon={Users}
                     active={isActive("/admin/employees")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                  <NavItem
+                    href="/admin/clients"
+                    label="Clients"
+                    icon={Store}
+                    active={isActive("/admin/clients")}
                     collapsed={collapsed}
                     showTooltips={showTooltips}
                   />

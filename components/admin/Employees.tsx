@@ -83,9 +83,12 @@ const Employees = ({
 
   const filteredRecords = employees
     .filter((record) => {
+      const q = searchTerm.toLowerCase()
       const matchesSearch =
-        record.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.email.toLowerCase().includes(searchTerm.toLowerCase());
+        record.name.toLowerCase().includes(q) ||
+        record.email.toLowerCase().includes(q) ||
+        (record.clientName?.toLowerCase().includes(q) ?? false) ||
+        (record.phoneNumber?.toLowerCase().includes(q) ?? false);
       const matchesStatus =
         statusFilter === "all"
           ? true
@@ -329,6 +332,12 @@ const Employees = ({
                   <SortIcon field="department" activeField={sortConfig.key} direction={sortConfig.direction} />
                 </div>
               </th>
+              <th className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")} onClick={() => handleSort("clientName" as keyof UserValues)}>
+                <div className="flex items-center gap-2">
+                  Client
+                  <SortIcon field="clientName" activeField={String(sortConfig.key)} direction={sortConfig.direction} />
+                </div>
+              </th>
               <th className={adminThClass}>Contributions</th>
               <th className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")} onClick={() => handleSort("isActive")}>
                 <div className="flex items-center gap-2">
@@ -353,15 +362,25 @@ const Employees = ({
                   <td className={adminTdClass}>
                     <div className="flex items-center gap-4 relative">
                       <UserAvatarHover initials={initials} />
-                      <div className="flex flex-col">
+                      <div className="flex flex-col gap-1">
                         <span className="font-bold text-slate-900">{record.name}</span>
                         <span className="text-[12px] text-slate-500">{record.email}</span>
+                        {record.pendingInvite ? (
+                          <Badge variant="outline" className="w-fit text-[10px] border-amber-300 text-amber-800 bg-amber-50">
+                            Awaiting email verification
+                          </Badge>
+                        ) : null}
                       </div>
                     </div>
                   </td>
                   <td className={adminTdClass}>
                     <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-[800] tracking-widest text-slate-600 uppercase">
                       {record.department || "N/A"}
+                    </span>
+                  </td>
+                  <td className={adminTdClass}>
+                    <span className="text-[13px] font-medium text-slate-700">
+                      {record.clientName || "—"}
                     </span>
                   </td>
                   <td className={adminTdClass}>

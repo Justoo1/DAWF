@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { 
   Select, 
   SelectContent, 
@@ -19,10 +20,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { 
-  Calendar as CalendarIcon, 
-  FileText, 
-  Clock, 
+import {
+  Calendar as CalendarIcon,
+  FileText,
   ArrowLeft,
   Loader2,
   Info
@@ -56,8 +56,8 @@ interface LeaveRequest {
     startDate: string | Date;
     endDate: string | Date;
     days: number;
-    status: 'PENDING' | 'APPROVED' | 'REJECTED';
-    reason?: string;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+    reason: string | null;
     policy: LeavePolicy;
     managerName?: string;
 }
@@ -77,9 +77,33 @@ const LeaveRequestPage = () => {
     const [selectedPolicy, setSelectedPolicy] = useState("")
     const [startDate, setStartDate] = useState("")
     const [endDate, setEndDate] = useState("")
-    const [days, setDays] = useState(1)
     const [reason, setReason] = useState("")
     const [maxDays, setMaxDays] = useState<number | null>(null)
+
+    // Check if form is valid
+    const isFormValid = selectedPolicy && startDate && endDate
+
+    // Calculate working days between two dates (excluding weekends)
+    // TODO: Add public holiday exclusion when holiday database/table is available
+    const calculateWorkingDays = (start: Date, end: Date): number => {
+        let count = 0
+        let current = new Date(start)
+        const endDate = new Date(end)
+
+        while (current <= endDate) {
+            const dayOfWeek = current.getDay()
+            // 0 = Sunday, 6 = Saturday
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                count++
+            }
+            current.setDate(current.getDate() + 1)
+        }
+
+        return count
+    }
+
+    // Calculate duration based on start and end dates
+    const calculatedDays = startDate && endDate ? calculateWorkingDays(new Date(startDate), new Date(endDate)) : 0
 
     useEffect(() => {
         const loadData = async () => {
@@ -102,10 +126,43 @@ const LeaveRequestPage = () => {
         loadData()
     }, [session?.user?.id])
 
+    // Update maxDays when policy changes
+    useEffect(() => {
+        if (selectedPolicy) {
+            const policy = policies.find((p: LeavePolicy) => p.id === selectedPolicy)
+            const balance = balances.find((b: LeaveBalance) => b.policyId === selectedPolicy)
+
+            // Calculate approved days used
+            const approvedRequests = requests.filter((r: LeaveRequest) =>
+                r.policyId === selectedPolicy && r.status === 'APPROVED'
+            )
+            const approvedDaysUsed = approvedRequests.reduce((sum: number, r: LeaveRequest) => sum + r.days, 0)
+
+            // Use balance allocation if exists, otherwise use policy defaultDays
+            const totalDays = balance ? balance.daysAllocated : (policy?.defaultDays || 0)
+            const remainingDays = totalDays - approvedDaysUsed
+
+            setMaxDays(remainingDays > 0 ? remainingDays : 0)
+        } else {
+            setMaxDays(null)
+        }
+    }, [selectedPolicy, policies, balances, requests])
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!selectedPolicy || !startDate || !endDate || !session?.user?.id) {
+        const daysNum = calculatedDays
+        if (!selectedPolicy || !startDate || !endDate || !session?.user?.id || daysNum <= 0) {
             toast({ title: "Validation Error", description: "Please fill all required fields.", variant: "destructive" })
+            return
+        }
+
+        // Validate days against max available
+        if (maxDays !== null && daysNum > maxDays) {
+            toast({
+                title: "Validation Error",
+                description: `You can only request up to ${maxDays} days for this leave type.`,
+                variant: "destructive"
+            })
             return
         }
 
@@ -115,7 +172,7 @@ const LeaveRequestPage = () => {
             policyId: selectedPolicy,
             startDate: new Date(startDate),
             endDate: new Date(endDate),
-            days,
+            days: daysNum,
             reason
         })
 
@@ -125,8 +182,8 @@ const LeaveRequestPage = () => {
             setSelectedPolicy("")
             setStartDate("")
             setEndDate("")
-            setDays(1)
             setReason("")
+            setMaxDays(null)
             // Close modal
             setIsModalOpen(false)
             
@@ -174,39 +231,27 @@ const LeaveRequestPage = () => {
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-5 mt-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1 dark:text-zinc-500">Policy Category</Label>
-                                    <Select value={selectedPolicy} onValueChange={setSelectedPolicy}>
-                                        <SelectTrigger className="h-11 rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold hover:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:hover:bg-zinc-950 transition-colors">
-                                            <SelectValue placeholder="Select Policy" />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-white border-zinc-200 text-zinc-900 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-300">
-                                            {policies.map((p) => (
-                                                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1 dark:text-zinc-500">Duration (Days)</Label>
-                                    <div className="relative">
-                                        <Input 
-                                            type="number" 
-                                            step="0.5"
-                                            min="0.5"
-                                            value={days}
-                                            onChange={(e) => setDays(parseFloat(e.target.value))}
-                                            className="h-11 pl-10 rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold focus:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:focus:bg-zinc-950"
-                                        />
-                                        <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 dark:text-zinc-600" />
-                                    </div>
-                                </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1 dark:text-zinc-500">
+                                    Policy Category <span className="text-red-500">*</span>
+                                </Label>
+                                <Select value={selectedPolicy} onValueChange={setSelectedPolicy}>
+                                    <SelectTrigger className="h-11 rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold hover:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:hover:bg-zinc-950 transition-colors">
+                                        <SelectValue placeholder="Select Policy" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white border-zinc-200 text-zinc-900 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-300">
+                                        {policies.filter((p) => p.isActive).map((p) => (
+                                            <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1 dark:text-zinc-500">Start Date</Label>
+                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1 dark:text-zinc-500">
+                                        Start Date <span className="text-red-500">*</span>
+                                    </Label>
                                     <div className="relative">
                                         <Input 
                                             type="date" 
@@ -218,7 +263,9 @@ const LeaveRequestPage = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1 dark:text-zinc-500">End Date</Label>
+                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1 dark:text-zinc-500">
+                                        End Date <span className="text-red-500">*</span>
+                                    </Label>
                                     <div className="relative">
                                         <Input 
                                             type="date" 
@@ -231,13 +278,36 @@ const LeaveRequestPage = () => {
                                 </div>
                             </div>
 
+                            {/* Calculated Duration Display */}
+                            <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 dark:bg-zinc-950/50 dark:border-zinc-800">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] dark:text-zinc-600">Calculated Duration</p>
+                                        <p className="text-2xl font-black text-zinc-900 mt-1 dark:text-white">
+                                            {calculatedDays} <span className="text-sm font-bold text-zinc-500">working days</span>
+                                        </p>
+                                    </div>
+                                    {maxDays !== null && (
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] dark:text-zinc-600">Available</p>
+                                            <p className={`text-2xl font-black mt-1 ${calculatedDays > maxDays ? 'text-red-500' : 'text-emerald-600'}`}>
+                                                {maxDays} <span className="text-sm font-bold text-zinc-500">days</span>
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="text-[9px] text-zinc-500 mt-2 dark:text-zinc-600">
+                                    Weekends are excluded from the calculation. Public holidays will be factored in when configured.
+                                </p>
+                            </div>
+
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1 dark:text-zinc-500">Reason (Optional)</Label>
-                                <Input 
+                                <Textarea
                                     value={reason}
                                     onChange={(e) => setReason(e.target.value)}
                                     placeholder="Briefly state reason for leave request..."
-                                    className="h-11 rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold focus:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:focus:bg-zinc-950"
+                                    className="min-h-[80px] rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold focus:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:focus:bg-zinc-950 resize-none"
                                 />
                             </div>
 
@@ -249,10 +319,10 @@ const LeaveRequestPage = () => {
                                         You&apos;ll receive status updates via notifications.
                                     </p>
                                 </div>
-                                <Button 
-                                    type="submit" 
-                                    disabled={isSubmitting}
-                                    className="w-full h-11 bg-[#10A074] hover:bg-[#0d8a62] text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-lg shadow-lg hover:translate-y-[-1px] transition-all active:scale-[0.98] dark:shadow-emerald-900/20"
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting || !isFormValid}
+                                    className="w-full h-11 bg-[#10A074] hover:bg-[#0d8a62] text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-lg shadow-lg hover:translate-y-[-1px] transition-all active:scale-[0.98] dark:shadow-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isSubmitting ? (
                                         <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Submitting...</>
@@ -405,7 +475,7 @@ const LeaveRequestPage = () => {
                                 </div>
                             )) : (
                                 <div className="p-8 border border-dashed border-zinc-300 rounded-lg flex flex-col items-center gap-3 bg-white opacity-50 dark:border-zinc-900 dark:bg-transparent dark:opacity-30">
-                                    <Clock className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
+                                    <CalendarIcon className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
                                     <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.3em] dark:text-zinc-600">No Leave Requests Yet</p>
                                 </div>
                             )}

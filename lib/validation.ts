@@ -28,6 +28,12 @@ export type UserValues = Omit<z.infer<typeof UserSchema>, 'password' | "departme
   dateOfBirth?: Date | null
   startDate?: Date | null
   exitDate?: Date | null
+  firstName?: string
+  lastName?: string
+  phoneNumber?: string
+  pendingInvite?: boolean
+  clientName?: string | null
+  contributions?: { month: Date; amount: number; status?: string }[]
 }
 
 // Contribution Schema

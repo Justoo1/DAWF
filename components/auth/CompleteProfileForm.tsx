@@ -34,8 +34,7 @@ const CompleteProfileForm = () => {
     const checkAuth = async () => {
       const session = await authClient.getSession()
       if (!session.data) {
-        // Not authenticated, redirect to sign-up
-        router.push("/sign-up")
+        router.push("/sign-in")
       } else {
         // Check if user already has birthday set
         const user = session.data.user as { dateOfBirth?: Date | null }

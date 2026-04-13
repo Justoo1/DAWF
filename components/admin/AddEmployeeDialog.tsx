@@ -24,18 +24,23 @@ import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
 import { createEmployee } from "@/lib/actions/users.action"
 import { fetchDepartments } from "@/lib/actions/department.actions"
-import { Calendar, Mail, PlusCircle, User } from "lucide-react"
+import { fetchClients } from "@/lib/actions/clients.actions"
+import { Calendar, Mail, Phone, PlusCircle, User } from "lucide-react"
 import { useEffect } from 'react'
 
 export function AddEmployeeDialog() {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [departments, setDepartments] = useState<{id: string, name: string}[]>([])
+  const [clients, setClients] = useState<{id: string, name: string}[]>([])
   const { toast } = useToast()
 
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
     email: '',
+    clientId: '',
     department: '',
     dateOfBirth: '',
     startDate: '',
@@ -53,6 +58,11 @@ export function AddEmployeeDialog() {
           setDepartments(res.departments.map(d => ({ id: d.id, name: d.name })));
         }
       });
+      fetchClients().then(res => {
+        if (res.success && res.clients) {
+          setClients([...res.clients]);
+        }
+      });
     }
   }, [open]);
 
@@ -62,8 +72,11 @@ export function AddEmployeeDialog() {
 
     try {
       const result = await createEmployee({
-        name: formData.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phoneNumber: formData.phoneNumber,
         email: formData.email,
+        clientId: formData.clientId,
         department: (formData.department === "none" || !formData.department) ? undefined : formData.department,
         dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined,
         startDate: formData.startDate ? new Date(formData.startDate) : undefined,
@@ -79,13 +92,15 @@ export function AddEmployeeDialog() {
       if (result.success) {
         toast({
           title: 'Success',
-          description: 'Employee added successfully',
+          description: 'Employee added. A verification email has been sent.',
         })
         setOpen(false)
-        // Reset form
         setFormData({
-          name: '',
+          firstName: '',
+          lastName: '',
+          phoneNumber: '',
           email: '',
+          clientId: '',
           department: '',
           dateOfBirth: '',
           startDate: '',
@@ -126,28 +141,53 @@ export function AddEmployeeDialog() {
         <DialogHeader className="border-b border-border/60 px-6 py-4 text-left">
           <DialogTitle>Add New Employee</DialogTitle>
           <DialogDescription>
-            Manually add an employee record. This is useful for employees who have left the company
-            and no longer have access to register themselves.
+            Create an employee record and assign a client. The employee will receive an email to verify their address before they can use the app.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-6">
             <div className="space-y-4">
-            {/* Name */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First name *</Label>
+                <Input
+                  id="firstName"
+                  required
+                  className="h-11 rounded-lg"
+                  leftIcon={<User className="h-4 w-4" />}
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  placeholder="Jane"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last name *</Label>
+                <Input
+                  id="lastName"
+                  required
+                  className="h-11 rounded-lg"
+                  leftIcon={<User className="h-4 w-4" />}
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  placeholder="Doe"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
+              <Label htmlFor="phoneNumber">Phone number *</Label>
               <Input
-                id="name"
+                id="phoneNumber"
+                type="tel"
                 required
                 className="h-11 rounded-lg"
-                leftIcon={<User className="h-4 w-4" />}
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="John Doe"
+                leftIcon={<Phone className="h-4 w-4" />}
+                value={formData.phoneNumber}
+                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                placeholder="+233 …"
               />
             </div>
 
-            {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email">Email *</Label>
               <Input
@@ -158,11 +198,30 @@ export function AddEmployeeDialog() {
                 leftIcon={<Mail className="h-4 w-4" />}
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="john.doe@example.com"
+                placeholder="jane.doe@devopsafricalimited.com"
               />
             </div>
 
-            {/* Department */}
+            <div className="space-y-2">
+              <Label htmlFor="client">Client *</Label>
+              <Select
+                required
+                value={formData.clientId}
+                onValueChange={(value) => setFormData({ ...formData, clientId: value })}
+              >
+                <SelectTrigger className="h-11 rounded-lg">
+                  <SelectValue placeholder="Select client" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="department">Department</Label>
               <Select
@@ -183,7 +242,6 @@ export function AddEmployeeDialog() {
               </Select>
             </div>
 
-            {/* Date of Birth */}
             <div className="space-y-2">
               <Label htmlFor="dateOfBirth">Date of Birth</Label>
               <Input
@@ -197,7 +255,6 @@ export function AddEmployeeDialog() {
               <p className="text-xs text-muted-foreground">Used for automatic birthday event generation</p>
             </div>
 
-            {/* Start Date */}
             <div className="space-y-2">
               <Label htmlFor="startDate">Employment Start Date</Label>
               <Input
@@ -211,7 +268,6 @@ export function AddEmployeeDialog() {
               <p className="text-xs text-muted-foreground">Used for work anniversary event generation</p>
             </div>
 
-            {/* Role */}
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
               <Select
@@ -230,7 +286,6 @@ export function AddEmployeeDialog() {
               </Select>
             </div>
 
-            {/* Active Status */}
             <div className="flex items-center justify-between">
               <Label htmlFor="isActive">Active Employee</Label>
               <Switch
@@ -240,7 +295,6 @@ export function AddEmployeeDialog() {
               />
             </div>
 
-            {/* Contributor Status */}
             <div className="flex items-center justify-between">
               <Label htmlFor="isContributor">Contributing to Welfare Fund</Label>
               <Switch
@@ -250,7 +304,6 @@ export function AddEmployeeDialog() {
               />
             </div>
 
-            {/* Exit Date (for inactive employees) */}
             {!formData.isActive && (
               <>
                 <div className="space-y-2">
@@ -286,7 +339,7 @@ export function AddEmployeeDialog() {
             <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || !formData.clientId}>
               {loading ? 'Adding...' : 'Add Employee'}
             </Button>
           </DialogFooter>

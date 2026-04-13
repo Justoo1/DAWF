@@ -129,10 +129,28 @@ enum AccrualType {
 // MODELS
 // ============================================
 
+model Client {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+
+  @@map("clients")
+}
+
 model User {
   id                     String                  @id @default(cuid())
   email                  String                  @unique
   name                   String
+  firstName              String                  @default("")
+  lastName               String                  @default("")
+  phoneNumber            String                  @default("")
+  /// Admin-created accounts stay true until the employee completes email verification.
+  pendingInvite          Boolean                 @default(false)
+  clientId               String
+  client                 Client                  @relation(fields: [clientId], references: [id], onDelete: Restrict)
   department             String?
   password               String                  @default("")
   role                   UserRole                @default(EMPLOYEE)
@@ -162,6 +180,7 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
+  @@index([clientId])
   @@map("users")
 }
 

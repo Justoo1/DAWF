@@ -61,9 +61,9 @@ const Login = () => {
           Sign in with Google
         </Button>
         
-        <div className="text-left py-2 font-medium">
-          Don&apos;t have an account ? <Link href="/sign-up" className="text-[#F15A24] hover:underline font-bold transition-all ml-1">Sign Up</Link>
-        </div>
+        <p className="text-sm text-white/70 text-left py-2">
+          Accounts are created by an administrator. If you need access, contact your HR admin.
+        </p>
 
         <div className="w-full h-px bg-white/10" />
 
