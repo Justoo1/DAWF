@@ -337,7 +337,7 @@ export async function rejectLeaveRequest(requestId: string, approverId: string, 
       userId: request.userId,
       type: NotificationType.ROOM_BOOKING_REJECTED,
       title: "Leave Request Declined",
-      message: `Your leave request has been reclined. Reason: ${reason || "No reason provided."}`,
+      message: `Your leave request has been declined. Reason: ${reason || "No reason provided."}`,
       linkUrl: "/leave"
     });
 

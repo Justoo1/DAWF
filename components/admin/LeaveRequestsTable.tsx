@@ -22,6 +22,10 @@ import {
 } from "@/components/ui/select"
 import { format } from "date-fns"
 import LeaveRequestActions from "./LeaveRequestActions"
+import {
+  LeaveRequestDetailDialog,
+  type AdminLeaveRequestRow,
+} from "./LeaveRequestDetailDialog"
 import { cn } from "@/lib/utils"
 import {
   adminTableShellClass,
@@ -33,28 +37,8 @@ import {
   adminTableClassName,
 } from "@/lib/admin-ui"
 
-interface LeaveRequest {
-  id: string
-  startDate: Date
-  endDate: Date
-  days: number
-  status: string
-  reason: string | null
-  createdAt: Date
-  isUnmanaged: boolean
-  managerName: string
-  user: {
-    name: string
-    email: string
-    department: string | null
-  }
-  policy: {
-    name: string
-  }
-}
-
 interface LeaveRequestsTableProps {
-  initialRequests: LeaveRequest[]
+  initialRequests: AdminLeaveRequestRow[]
   currentTab: string
 }
 
@@ -62,6 +46,7 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
   const [searchQuery, setSearchQuery] = useState("")
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'createdAt', direction: 'desc' })
   const [typeFilter, setTypeFilter] = useState("all")
+  const [selectedRequest, setSelectedRequest] = useState<AdminLeaveRequestRow | null>(null)
 
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
     if (sortConfig?.key !== columnKey) return <ChevronDown className="ml-1 h-3 w-3 opacity-30" />
@@ -115,9 +100,9 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
           case 'duration':
             aValue = a.days; bValue = b.days; break;
           case 'date':
-            aValue = a.startDate.getTime(); bValue = b.startDate.getTime(); break;
+            aValue = new Date(a.startDate).getTime(); bValue = new Date(b.startDate).getTime(); break;
           case 'createdAt':
-            aValue = a.createdAt.getTime(); bValue = b.createdAt.getTime(); break;
+            aValue = new Date(a.createdAt).getTime(); bValue = new Date(b.createdAt).getTime(); break;
         }
 
         if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1
@@ -133,6 +118,12 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
 
   return (
     <div className="space-y-6">
+      <LeaveRequestDetailDialog
+        request={selectedRequest}
+        onOpenChange={(open) => {
+          if (!open) setSelectedRequest(null)
+        }}
+      />
       {/* Toolbar */}
       <div
         className={cn(
@@ -233,7 +224,23 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
                 </tr>
               ) : (
                 filteredAndSortedRequests.map((request) => (
-                  <tr key={request.id} className={cn(adminTbodyRowClass, "group duration-200")}>
+                  <tr
+                    key={request.id}
+                    role="button"
+                    tabIndex={0}
+                    title="View request details"
+                    className={cn(
+                      adminTbodyRowClass,
+                      "group duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10A074] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950"
+                    )}
+                    onClick={() => setSelectedRequest(request)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault()
+                        setSelectedRequest(request)
+                      }
+                    }}
+                  >
                     <td className={cn(adminTdClass, "px-8 py-4")}>
                       <div className="flex items-center gap-4">
                         <div className="h-11 w-11 rounded-2xl bg-[#10A074]/10 dark:bg-emerald-500/15 flex items-center justify-center text-[#10A074] dark:text-emerald-400 font-black text-xs">
@@ -281,7 +288,10 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
                         </div>
                       )}
                     </td>
-                    <td className={cn(adminTdClass, "px-8 py-4 text-right")}>
+                    <td
+                      className={cn(adminTdClass, "px-8 py-4 text-right")}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                         <LeaveRequestActions requestId={request.id} employeeName={request.user.name} />
                     </td>
                   </tr>

@@ -198,18 +198,18 @@ const LeaveRequestPage = () => {
 
     if (isLoading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-background">
-                <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
+            <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950">
+                <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-background text-foreground pb-8 dark:bg-zinc-950 dark:text-zinc-100">
+        <div className="min-h-screen bg-zinc-50 text-foreground pb-10 dark:bg-zinc-950 dark:text-zinc-100">
             {/* Minimal Header */}
-            <header className="px-6 py-5 md:px-12 lg:px-20 flex items-center justify-between sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-zinc-200 dark:bg-zinc-950/80 dark:border-zinc-800">
-                <div className="space-y-1">
-                    <Link href="/dawf" className="flex items-center gap-2 text-zinc-600 hover:text-emerald-600 dark:text-zinc-500 dark:hover:text-emerald-500 transition-all group">
+            <header className="px-6 py-5 md:px-12 lg:px-20 flex items-center justify-between sticky top-0 z-40 border-b border-zinc-200/90 bg-white/90 backdrop-blur-xl shadow-[0_1px_0_rgba(0,0,0,0.04)] dark:border-zinc-800 dark:bg-zinc-950/80 dark:shadow-none">
+                <div className="space-y-1.5">
+                    <Link href="/dawf" className="flex items-center gap-2 text-zinc-600 hover:text-emerald-700 dark:text-zinc-500 dark:hover:text-emerald-500 transition-all group">
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                         <span className="text-[11px] font-semibold uppercase tracking-[0.15em]">Back to Dashboard</span>
                     </Link>
@@ -223,7 +223,7 @@ const LeaveRequestPage = () => {
                             <FileText className="w-4 h-4 mr-2" /> Request Leave
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
                         <DialogHeader>
                             <DialogTitle className="text-2xl font-black uppercase italic">Request Leave</DialogTitle>
                             <DialogDescription>
@@ -343,19 +343,22 @@ const LeaveRequestPage = () => {
                 </Dialog>
             </header>
 
-            <main className="mx-auto w-full max-w-[1600px] px-6 py-6 md:px-12 lg:px-20">
-                <div className="grid lg:grid-cols-[1fr,380px] gap-8 lg:gap-10">
+            <main className="mx-auto w-full max-w-[1600px] px-6 py-8 md:px-12 lg:px-20">
+                <div className="grid lg:grid-cols-[1fr,400px] gap-10 lg:gap-12">
                     
                     {/* Primary Flow */}
-                    <div className="space-y-8">
-                        {/* Section Header */}
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-[1px] bg-emerald-400 dark:bg-emerald-500/30" />
-                            <h2 className="text-xs font-black uppercase tracking-[0.4em] text-emerald-600 dark:text-emerald-500">Leave Balances</h2>
+                    <div className="space-y-7">
+                        {/* Section Header — unified with My Requests */}
+                        <div className="flex items-center gap-3 min-w-0">
+                            <span className="h-1 w-10 shrink-0 rounded-full bg-emerald-500 dark:bg-emerald-500/80" aria-hidden />
+                            <h2 className="text-xs font-black uppercase tracking-[0.32em] text-zinc-900 dark:text-emerald-500">
+                                Leave balances
+                            </h2>
+                            <div className="flex-1 h-px min-w-[2rem] bg-zinc-200 dark:bg-zinc-800/60" />
                         </div>
 
                         {/* Balances: leave type cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                             {policies.filter((p: LeavePolicy) => p.isActive).length > 0 ? policies.filter((p: LeavePolicy) => p.isActive).map((policy: LeavePolicy) => {
                                 const balance = balances.find((b: LeaveBalance) => b.policyId === policy.id)
                                 const hasBalance = balance !== undefined
@@ -372,39 +375,43 @@ const LeaveRequestPage = () => {
                                 const daysRemaining = totalDays - daysUsed
 
                                 return (
-                                    <div key={policy.id} className="group relative overflow-hidden bg-white border border-zinc-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 dark:bg-zinc-900/30 dark:border-white/[0.05] dark:hover:border-emerald-500/30 dark:hover:shadow-none">
-                                        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 dark:from-emerald-500/20" />
+                                    <div
+                                        key={policy.id}
+                                        className="group relative overflow-hidden rounded-2xl border border-zinc-200/90 bg-white p-6 shadow-sm ring-1 ring-zinc-950/[0.04] transition-all duration-300 hover:border-emerald-300/90 hover:shadow-md hover:ring-emerald-500/10 dark:bg-zinc-900/30 dark:border-white/[0.05] dark:ring-0 dark:hover:border-emerald-500/30 dark:hover:shadow-none"
+                                    >
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-500/[0.12] to-transparent rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 dark:from-emerald-500/20" />
                                         <div className="relative">
                                             <div className="flex items-start justify-between mb-4">
-                                                <div className={`p-3 rounded-xl ${hasBalance ? 'bg-emerald-50 dark:bg-emerald-500/10' : 'bg-zinc-100 dark:bg-zinc-800'}`}>
-                                                    <FileText className={`w-5 h-5 ${hasBalance ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400 dark:text-zinc-500'}`} />
+                                                <div className={`p-3 rounded-xl ring-1 ring-inset ${hasBalance ? 'bg-emerald-50 ring-emerald-200/60 dark:bg-emerald-500/10 dark:ring-emerald-500/20' : 'bg-zinc-100 ring-zinc-200/80 dark:bg-zinc-800 dark:ring-zinc-700/50'}`}>
+                                                    <FileText className={`w-5 h-5 ${hasBalance ? 'text-emerald-700 dark:text-emerald-400' : 'text-zinc-500 dark:text-zinc-500'}`} />
                                                 </div>
-                                                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider dark:text-zinc-500">
+                                                <span className="text-[10px] font-bold tabular-nums text-zinc-600 uppercase tracking-wider dark:text-zinc-500">
                                                     {new Date().getFullYear()}
                                                 </span>
                                             </div>
-                                            <h4 className="text-base font-bold text-zinc-900 dark:text-white leading-tight mb-4 line-clamp-2">
+                                            <h4 className="text-base font-bold text-zinc-900 dark:text-white leading-snug mb-4 line-clamp-2">
                                                 {policy.name}
                                             </h4>
                                             {totalDays > 0 ? (
-                                                <div className="space-y-3">
+                                                <div className="space-y-3.5">
                                                     <div className="flex items-baseline gap-2">
-                                                        <span className="text-4xl font-black text-zinc-900 dark:text-white tracking-tight">
+                                                        <span className="text-4xl font-black tabular-nums text-zinc-900 dark:text-white tracking-tight">
                                                             {daysRemaining}
                                                         </span>
-                                                        <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                                                            Days Left
+                                                        <span className="text-[11px] font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+                                                            Days left
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center justify-between text-sm">
-                                                        <span className="text-zinc-500 dark:text-zinc-400">
-                                                            <span className="font-semibold text-zinc-700 dark:text-zinc-300">{daysUsed}</span> used
+                                                    <div className="flex items-center justify-between gap-2 text-[13px]">
+                                                        <span className="text-zinc-600 dark:text-zinc-400">
+                                                            <span className="font-semibold tabular-nums text-zinc-800 dark:text-zinc-200">{daysUsed}</span>
+                                                            <span className="font-medium"> used</span>
                                                         </span>
-                                                        <span className="text-zinc-400 dark:text-zinc-500">
+                                                        <span className="shrink-0 text-zinc-500 dark:text-zinc-500 tabular-nums">
                                                             of {totalDays} total
                                                         </span>
                                                     </div>
-                                                    <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden dark:bg-zinc-800">
+                                                    <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200/90 dark:bg-zinc-800">
                                                         <div 
                                                             className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-700 ease-out" 
                                                             style={{ width: `${totalDays > 0 ? (daysUsed / totalDays) * 100 : 0}%` }}
@@ -430,7 +437,7 @@ const LeaveRequestPage = () => {
                                     </div>
                                 )
                             }) : (
-                                <div className="col-span-full p-12 border border-dashed border-zinc-300 rounded-2xl text-center bg-white dark:border-zinc-800/50 dark:bg-transparent">
+                                <div className="col-span-full rounded-2xl border border-dashed border-zinc-300 bg-white/80 p-12 text-center shadow-sm dark:border-zinc-800/50 dark:bg-transparent dark:shadow-none">
                                     <FileText className="w-12 h-12 text-zinc-300 mx-auto mb-4 dark:text-zinc-600" />
                                     <p className="text-sm font-bold text-zinc-600 mb-2 dark:text-zinc-400">No Leave Balances Found</p>
                                     <p className="text-xs text-zinc-500 dark:text-zinc-500">
@@ -442,50 +449,62 @@ const LeaveRequestPage = () => {
                     </div>
 
                     {/* Secondary: My Requests */}
-                    <div className="space-y-5">
-                        <div className="flex items-center gap-3">
-                            <h2 className="text-xs font-black uppercase tracking-[0.4em] text-zinc-600 dark:text-zinc-500">My Requests</h2>
-                            <div className="flex-1 h-[1px] bg-zinc-200 dark:bg-zinc-800/30" />
+                    <div className="space-y-6 lg:sticky lg:top-28 lg:self-start">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <span className="h-1 w-10 shrink-0 rounded-full bg-emerald-500 dark:bg-emerald-500/80" aria-hidden />
+                            <h2 className="text-xs font-black uppercase tracking-[0.32em] text-zinc-900 dark:text-emerald-500">
+                                My requests
+                            </h2>
+                            <div className="flex-1 h-px min-w-[2rem] bg-zinc-200 dark:bg-zinc-800/60" />
                         </div>
 
                         <div className="space-y-3">
                             {requests.length > 0 ? requests.map((req: LeaveRequest) => (
-                                <div key={req.id} className="p-4 bg-white border border-zinc-200 rounded-lg hover:border-zinc-300 transition-all group shadow-sm dark:bg-zinc-900/20 dark:border-white/[0.05] dark:hover:bg-zinc-900/40 dark:shadow-none">
+                                <div
+                                    key={req.id}
+                                    className="group rounded-xl border border-zinc-200/90 bg-white p-4 shadow-sm ring-1 ring-zinc-950/[0.04] transition-all hover:border-zinc-300 hover:shadow dark:bg-zinc-900/20 dark:border-white/[0.05] dark:ring-0 dark:hover:bg-zinc-900/40 dark:hover:shadow-none"
+                                >
                                     <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className={`text-[8px] font-black uppercase tracking-[0.3em] px-2 py-0.5 rounded-full ${
-                                                req.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-500' :
-                                                req.status === 'REJECTED' ? 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500' :
-                                                'bg-zinc-100 text-zinc-700 dark:bg-zinc-500/10 dark:text-zinc-500'
-                                            }`}>
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span
+                                                className={`text-[9px] font-bold uppercase tracking-[0.2em] px-2.5 py-1 rounded-md border ${
+                                                    req.status === "APPROVED"
+                                                        ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400"
+                                                        : req.status === "REJECTED"
+                                                          ? "border-red-200 bg-red-50 text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400"
+                                                          : "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200"
+                                                }`}
+                                            >
                                                 {req.status}
                                             </span>
-                                            <span className="text-[8px] font-black text-zinc-400 tracking-[0.2em] uppercase dark:text-zinc-700">
-                                                #{req.id.slice(-4)}
+                                            <span className="text-[10px] font-semibold tabular-nums text-zinc-500 tracking-wide dark:text-zinc-600">
+                                                #{req.id.slice(-4).toUpperCase()}
                                             </span>
                                         </div>
-                                        
+
                                         <div className="space-y-1">
-                                            <h4 className="text-xs font-black text-zinc-900 uppercase tracking-wider dark:text-white">{req.policy.name}</h4>
-                                            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest leading-loose dark:text-zinc-600">
-                                                {format(new Date(req.startDate), 'MMM dd')} → {format(new Date(req.endDate), 'MMM dd')}
+                                            <h4 className="text-sm font-bold leading-snug text-zinc-900 dark:text-white">{req.policy.name}</h4>
+                                            <p className="text-[11px] font-semibold text-zinc-700 uppercase tracking-wide dark:text-zinc-400">
+                                                {format(new Date(req.startDate), "MMM d")} → {format(new Date(req.endDate), "MMM d, yyyy")}
                                             </p>
                                         </div>
 
-                                        <div className="pt-2 border-t border-zinc-100 flex items-center justify-between dark:border-white/[0.05]">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[9px] font-black text-zinc-900 tracking-widest dark:text-white">{req.days}d</span>
-                                            </div>
-                                            <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest italic dark:text-zinc-600">
-                                                via {req.managerName?.split(' ')[0] || "System"}
+                                        <div className="flex items-center justify-between gap-2 border-t border-zinc-100 pt-3 dark:border-white/[0.06]">
+                                            <span className="text-xs font-bold tabular-nums text-zinc-800 dark:text-zinc-100">
+                                                {req.days} {req.days === 1 ? "day" : "days"}
+                                            </span>
+                                            <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-500">
+                                                {req.managerName ? `Via ${req.managerName.split(" ")[0]}` : "Via system"}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
                             )) : (
-                                <div className="p-8 border border-dashed border-zinc-300 rounded-lg flex flex-col items-center gap-3 bg-white opacity-50 dark:border-zinc-900 dark:bg-transparent dark:opacity-30">
-                                    <CalendarIcon className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
-                                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.3em] dark:text-zinc-600">No Leave Requests Yet</p>
+                                <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-zinc-300 bg-white/90 p-8 shadow-sm dark:border-zinc-900 dark:bg-transparent dark:shadow-none">
+                                    <CalendarIcon className="h-6 w-6 text-zinc-500 dark:text-zinc-500" />
+                                    <p className="text-center text-[10px] font-bold uppercase tracking-[0.28em] text-zinc-600 dark:text-zinc-600">
+                                        No leave requests yet
+                                    </p>
                                 </div>
                             )}
                         </div>
