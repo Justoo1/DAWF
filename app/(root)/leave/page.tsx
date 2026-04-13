@@ -207,7 +207,7 @@ const LeaveRequestPage = () => {
     return (
         <div className="min-h-screen bg-background text-foreground pb-8 dark:bg-zinc-950 dark:text-zinc-100">
             {/* Minimal Header */}
-            <header className="px-6 py-5 md:px-12 lg:px-20 flex items-center justify-between sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-zinc-200 dark:bg-zinc-950/80 dark:border-zinc-800">
+            <header className="px-6 py-5 md:px-12 lg:px-20 flex items-center justify-between sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-zinc-200 dark:bg-zinc-950/80 dark:border-zinc-800">
                 <div className="space-y-1">
                     <Link href="/dawf" className="flex items-center gap-2 text-zinc-600 hover:text-emerald-600 dark:text-zinc-500 dark:hover:text-emerald-500 transition-all group">
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
@@ -232,12 +232,21 @@ const LeaveRequestPage = () => {
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-5 mt-6">
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1 dark:text-zinc-500">
-                                    Policy Category <span className="text-red-500">*</span>
+                                <Label
+                                    htmlFor="leave-type"
+                                    className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1 dark:text-zinc-500"
+                                >
+                                    Leave Type <span className="text-red-500">*</span>
                                 </Label>
-                                <Select value={selectedPolicy} onValueChange={setSelectedPolicy}>
-                                    <SelectTrigger className="h-11 rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold hover:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:hover:bg-zinc-950 transition-colors">
-                                        <SelectValue placeholder="Select Policy" />
+                                <Select
+                                    value={selectedPolicy || undefined}
+                                    onValueChange={setSelectedPolicy}
+                                >
+                                    <SelectTrigger
+                                        id="leave-type"
+                                        className="h-11 rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold hover:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:hover:bg-zinc-950 transition-colors"
+                                    >
+                                        <SelectValue placeholder="Select leave type" />
                                     </SelectTrigger>
                                     <SelectContent className="bg-white border-zinc-200 text-zinc-900 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-300">
                                         {policies.filter((p) => p.isActive).map((p) => (
@@ -345,7 +354,7 @@ const LeaveRequestPage = () => {
                             <h2 className="text-xs font-black uppercase tracking-[0.4em] text-emerald-600 dark:text-emerald-500">Leave Balances</h2>
                         </div>
 
-                        {/* Balances: Leave Type Cards */}
+                        {/* Balances: leave type cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                             {policies.filter((p: LeavePolicy) => p.isActive).length > 0 ? policies.filter((p: LeavePolicy) => p.isActive).map((policy: LeavePolicy) => {
                                 const balance = balances.find((b: LeaveBalance) => b.policyId === policy.id)

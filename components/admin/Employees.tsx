@@ -358,9 +358,9 @@ const Employees = ({
           if (!open) setEditingEmployee(null);
         }}
       />
-      <AdminToolbar>
+      <AdminToolbar className="shadow-premium dark:shadow-black/30">
         {/* Top half: Search */}
-        <div className="p-6 px-8 border-b border-slate-100">
+        <div className="p-6 px-8 border-b border-slate-100 dark:border-zinc-800">
           <AdminSearchField
             placeholder="Search employees by name, ID or email..."
             value={searchTerm}
@@ -368,13 +368,13 @@ const Employees = ({
           />
         </div>
         {/* Bottom half: Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-3 sm:gap-4 px-6 sm:px-8 py-5 bg-white">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-3 sm:gap-4 px-6 sm:px-8 py-5 bg-slate-50/80 dark:bg-zinc-900/50">
           <div className="w-full sm:w-48">
             <Select value={deptFilter} onValueChange={setDeptFilter}>
-              <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+              <SelectTrigger className="h-10 rounded-lg border-slate-200 dark:border-zinc-700 text-[13px] font-medium text-slate-600 dark:text-zinc-200 bg-white dark:bg-zinc-900/90 shadow-sm dark:shadow-none">
                 <SelectValue placeholder="All Departments" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="dark:border-zinc-800 dark:bg-zinc-950">
                 <SelectItem value="all">All Departments</SelectItem>
                 {departments.map((dept) => (
                   <SelectItem key={dept} value={dept}>
@@ -387,10 +387,10 @@ const Employees = ({
 
           <div className="w-full sm:w-48">
             <Select value={clientFilter} onValueChange={setClientFilter}>
-              <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+              <SelectTrigger className="h-10 rounded-lg border-slate-200 dark:border-zinc-700 text-[13px] font-medium text-slate-600 dark:text-zinc-200 bg-white dark:bg-zinc-900/90 shadow-sm dark:shadow-none">
                 <SelectValue placeholder="All clients" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="dark:border-zinc-800 dark:bg-zinc-950">
                 <SelectItem value="all">All clients</SelectItem>
                 {clientFilterOptions.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
@@ -403,10 +403,10 @@ const Employees = ({
 
           <div className="w-full sm:w-40">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+              <SelectTrigger className="h-10 rounded-lg border-slate-200 dark:border-zinc-700 text-[13px] font-medium text-slate-600 dark:text-zinc-200 bg-white dark:bg-zinc-900/90 shadow-sm dark:shadow-none">
                 <SelectValue placeholder="Status: All" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="dark:border-zinc-800 dark:bg-zinc-950">
                 <SelectItem value="all">Status: All</SelectItem>
                 <SelectItem value="active">Active Only</SelectItem>
                 <SelectItem value="inactive">Inactive Only</SelectItem>
@@ -422,10 +422,10 @@ const Employees = ({
                   setVerificationFilter(v as "all" | "unverified")
                 }
               >
-                <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+                <SelectTrigger className="h-10 rounded-lg border-slate-200 dark:border-zinc-700 text-[13px] font-medium text-slate-600 dark:text-zinc-200 bg-white dark:bg-zinc-900/90 shadow-sm dark:shadow-none">
                   <SelectValue placeholder="Email verification" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="dark:border-zinc-800 dark:bg-zinc-950">
                   <SelectItem value="all">Email: All</SelectItem>
                   <SelectItem value="unverified">Email: Not verified</SelectItem>
                 </SelectContent>
@@ -440,7 +440,7 @@ const Employees = ({
             searchTerm) && (
             <Button 
               variant="ghost" 
-              className="text-xs text-slate-400 hover:text-primary h-10 px-2"
+              className="text-xs text-slate-400 dark:text-zinc-500 hover:text-primary dark:hover:text-emerald-400 h-10 px-2"
               onClick={() => {
                 setSearchTerm("");
                 setDeptFilter("all");

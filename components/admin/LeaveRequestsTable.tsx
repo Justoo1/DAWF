@@ -1,17 +1,14 @@
 "use client"
 
 import React, { useState, useMemo } from "react"
-import { 
-  Search, 
-  Filter, 
-  ChevronDown, 
-  ChevronUp, 
-  MoreHorizontal,
+import {
+  Search,
+  Filter,
+  ChevronDown,
+  ChevronUp,
   Clock,
   ShieldCheck,
   AlertCircle,
-  User as UserIcon,
-  Calendar as CalendarIcon
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -26,6 +23,15 @@ import {
 import { format } from "date-fns"
 import LeaveRequestActions from "./LeaveRequestActions"
 import { cn } from "@/lib/utils"
+import {
+  adminTableShellClass,
+  adminToolbarClass,
+  adminTheadRowClass,
+  adminThClass,
+  adminTdClass,
+  adminTbodyRowClass,
+  adminTableClassName,
+} from "@/lib/admin-ui"
 
 interface LeaveRequest {
   id: string
@@ -128,26 +134,31 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
   return (
     <div className="space-y-6">
       {/* Toolbar */}
-      <div className="bg-white p-6 px-8 rounded-3xl border border-slate-50 shadow-premium flex flex-col md:flex-row items-center justify-between gap-4">
+      <div
+        className={cn(
+          adminToolbarClass,
+          "rounded-3xl p-6 px-8 shadow-premium dark:shadow-black/30 flex flex-col md:flex-row items-center justify-between gap-4"
+        )}
+      >
         <div className="relative w-full md:w-[400px]">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-zinc-500 pointer-events-none" />
           <Input
             placeholder="Search by name, department or leave type..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-12 pl-12 rounded-2xl bg-slate-50 border-none ring-offset-0 focus-visible:ring-1 focus-visible:ring-[#10A074] placeholder:text-slate-400 text-[14px]"
+            className="h-12 pl-12 rounded-2xl bg-slate-50 dark:bg-zinc-900/80 border border-transparent dark:border-zinc-800 ring-offset-0 focus-visible:ring-1 focus-visible:ring-[#10A074] dark:focus-visible:ring-emerald-500 placeholder:text-slate-400 dark:placeholder:text-zinc-500 text-[14px] text-slate-900 dark:text-zinc-100"
           />
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="h-12 w-full md:w-[200px] rounded-2xl bg-slate-50 border-none ring-offset-0 focus:ring-1 focus:ring-[#10A074]">
+            <SelectTrigger className="h-12 w-full md:w-[200px] rounded-2xl bg-slate-50 dark:bg-zinc-900/80 border border-transparent dark:border-zinc-800 ring-offset-0 focus:ring-1 focus:ring-[#10A074] dark:focus:ring-emerald-500 text-slate-900 dark:text-zinc-100">
               <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-slate-400" />
+                <Filter className="h-4 w-4 text-slate-400 dark:text-zinc-500" />
                 <SelectValue placeholder="All Types" />
               </div>
             </SelectTrigger>
-            <SelectContent className="rounded-2xl border-slate-100">
+            <SelectContent className="rounded-2xl border-slate-100 dark:border-zinc-800 dark:bg-zinc-950">
               <SelectItem value="all">All Types</SelectItem>
               {uniqueTypes.map(type => (
                 <SelectItem key={type} value={type}>{type}</SelectItem>
@@ -159,7 +170,7 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
             <Button 
                 variant="ghost" 
                 onClick={() => { setSearchQuery(""); setTypeFilter("all"); }}
-                className="text-slate-400 hover:text-[#10A074] font-bold text-xs uppercase tracking-widest"
+                className="text-slate-400 dark:text-zinc-500 hover:text-[#10A074] dark:hover:text-emerald-400 font-bold text-xs uppercase tracking-widest"
             >
                 Reset
             </Button>
@@ -168,101 +179,109 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
       </div>
 
       {/* Table Content */}
-      <div className="bg-white rounded-[32px] border border-slate-50 shadow-premium overflow-hidden">
+      <div
+        className={cn(
+          adminTableShellClass,
+          "rounded-[32px] shadow-premium dark:shadow-black/30 overflow-hidden"
+        )}
+      >
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className={adminTableClassName()}>
             <thead>
-              <tr className="bg-slate-50/50">
+              <tr className={cn(adminTheadRowClass, "bg-slate-50/80 dark:bg-zinc-900/60")}>
                 <th 
-                  className="px-8 py-5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest cursor-pointer group"
+                  className={cn(adminThClass, "px-8 py-5 cursor-pointer group")}
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center">Employee <SortIcon columnKey="name" /></div>
                 </th>
                 <th 
-                  className="px-6 py-5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest cursor-pointer group"
+                  className={cn(adminThClass, "px-6 py-5 cursor-pointer group")}
                   onClick={() => handleSort('type')}
                 >
                   <div className="flex items-center">Leave Type <SortIcon columnKey="type" /></div>
                 </th>
                 <th 
-                  className="px-6 py-5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest cursor-pointer group"
+                  className={cn(adminThClass, "px-6 py-5 cursor-pointer group")}
                   onClick={() => handleSort('duration')}
                 >
                   <div className="flex items-center">Duration <SortIcon columnKey="duration" /></div>
                 </th>
                 <th 
-                  className="px-6 py-5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest cursor-pointer group"
+                  className={cn(adminThClass, "px-6 py-5 cursor-pointer group")}
                   onClick={() => handleSort('date')}
                 >
                   <div className="flex items-center">Schedule <SortIcon columnKey="date" /></div>
                 </th>
-                <th className="px-6 py-5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                <th className={cn(adminThClass, "px-6 py-5")}>
                   Approval Routing
                 </th>
-                <th className="px-8 py-5 text-right text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                <th className={cn(adminThClass, "px-8 py-5 text-right")}>
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-50 dark:divide-zinc-800/80">
               {filteredAndSortedRequests.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-8 py-20 text-center">
-                    <div className="flex flex-col items-center justify-center space-y-3 opacity-40">
-                      <Clock className="h-12 w-12 text-slate-300" />
-                      <p className="text-slate-500 font-medium">No leave requests found</p>
+                    <div className="flex flex-col items-center justify-center space-y-3 opacity-50 dark:opacity-60">
+                      <Clock className="h-12 w-12 text-slate-300 dark:text-zinc-600" />
+                      <p className="text-slate-500 dark:text-zinc-400 font-medium">No leave requests found</p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 filteredAndSortedRequests.map((request) => (
-                  <tr key={request.id} className="group hover:bg-slate-50/50 transition-all duration-200">
-                    <td className="px-8 py-4">
+                  <tr key={request.id} className={cn(adminTbodyRowClass, "group duration-200")}>
+                    <td className={cn(adminTdClass, "px-8 py-4")}>
                       <div className="flex items-center gap-4">
-                        <div className="h-11 w-11 rounded-2xl bg-[#10A074]/10 flex items-center justify-center text-[#10A074] font-black text-xs">
+                        <div className="h-11 w-11 rounded-2xl bg-[#10A074]/10 dark:bg-emerald-500/15 flex items-center justify-center text-[#10A074] dark:text-emerald-400 font-black text-xs">
                           {request.user.name.split(' ').map(n => n[0]).join('')}
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-bold text-slate-800 truncate">{request.user.name}</span>
-                          <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">{request.user.department || 'N/A'}</span>
+                          <span className="text-sm font-bold text-slate-800 dark:text-zinc-100 truncate">{request.user.name}</span>
+                          <span className="text-[11px] font-medium text-slate-400 dark:text-zinc-500 uppercase tracking-wider">{request.user.department || 'N/A'}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <Badge variant="outline" className="rounded-xl border-slate-100 bg-slate-50 text-slate-600 font-bold text-[10px] px-3 py-1">
+                    <td className={cn(adminTdClass, "px-6 py-4")}>
+                      <Badge
+                        variant="outline"
+                        className="rounded-xl border-slate-200 bg-slate-50 text-slate-700 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-200 font-bold text-[10px] px-3 py-1"
+                      >
                         {request.policy.name}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-slate-700">
+                    <td className={cn(adminTdClass, "px-6 py-4 text-sm font-bold text-slate-700 dark:text-zinc-200")}>
                       {request.days} Days
                     </td>
-                    <td className="px-6 py-4">
+                    <td className={cn(adminTdClass, "px-6 py-4")}>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-700">{format(new Date(request.startDate), 'MMM dd, yyyy')}</span>
-                        <span className="text-[11px] font-medium text-slate-400">to {format(new Date(request.endDate), 'MMM dd, yyyy')}</span>
+                        <span className="text-sm font-bold text-slate-700 dark:text-zinc-200">{format(new Date(request.startDate), 'MMM dd, yyyy')}</span>
+                        <span className="text-[11px] font-medium text-slate-400 dark:text-zinc-500">to {format(new Date(request.endDate), 'MMM dd, yyyy')}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className={cn(adminTdClass, "px-6 py-4")}>
                       {request.isUnmanaged ? (
                         <div className="flex items-center gap-2 group/tip relative">
-                          <AlertCircle className="h-4 w-4 text-amber-500" />
+                          <AlertCircle className="h-4 w-4 text-amber-500 dark:text-amber-400" />
                           <div className="flex flex-col">
-                            <span className="text-[11px] font-black text-amber-600 uppercase tracking-tighter italic">ADMIN REQUIRED</span>
-                            <span className="text-[10px] text-slate-400 font-medium leading-none">No Dept Manager assigned</span>
+                            <span className="text-[11px] font-black text-amber-600 dark:text-amber-400/90 uppercase tracking-tighter italic">ADMIN REQUIRED</span>
+                            <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-medium leading-none">No Dept Manager assigned</span>
                           </div>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <ShieldCheck className="h-4 w-4 text-[#10A074]" />
+                          <ShieldCheck className="h-4 w-4 text-[#10A074] dark:text-emerald-400" />
                           <div className="flex flex-col">
-                             <span className="text-[11px] font-black text-[#10A074] uppercase tracking-tighter">DEPT MANAGER</span>
-                             <span className="text-[10px] text-slate-400 font-medium leading-none">{request.managerName}</span>
+                             <span className="text-[11px] font-black text-[#10A074] dark:text-emerald-400 uppercase tracking-tighter">DEPT MANAGER</span>
+                             <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-medium leading-none">{request.managerName}</span>
                           </div>
                         </div>
                       )}
                     </td>
-                    <td className="px-8 py-4 text-right">
+                    <td className={cn(adminTdClass, "px-8 py-4 text-right")}>
                         <LeaveRequestActions requestId={request.id} employeeName={request.user.name} />
                     </td>
                   </tr>

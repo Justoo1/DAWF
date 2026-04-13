@@ -29,10 +29,10 @@ export function ManageEmployeesToolbar({
         />
         <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
           <Select defaultValue="__all_departments__">
-            <SelectTrigger className="h-10 w-[min(100vw-2rem,220px)] rounded-lg border-border/60 bg-muted/40 shadow-none focus:ring-2 focus:ring-primary/25">
+            <SelectTrigger className="h-10 w-[min(100vw-2rem,220px)] rounded-lg border-border/60 bg-muted/40 dark:bg-zinc-900/80 dark:border-zinc-700 dark:text-zinc-200 shadow-none focus:ring-2 focus:ring-primary/25">
               <SelectValue placeholder="Department" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="dark:border-zinc-800 dark:bg-zinc-950">
               <SelectItem value="__all_departments__">All Departments</SelectItem>
               {departments.map((dept) => (
                 <SelectItem key={dept} value={dept}>
@@ -42,10 +42,10 @@ export function ManageEmployeesToolbar({
             </SelectContent>
           </Select>
           <Select defaultValue="active">
-            <SelectTrigger className="h-10 w-[min(100vw-2rem,200px)] rounded-lg border-border/60 bg-muted/40 shadow-none focus:ring-2 focus:ring-primary/25">
+            <SelectTrigger className="h-10 w-[min(100vw-2rem,200px)] rounded-lg border-border/60 bg-muted/40 dark:bg-zinc-900/80 dark:border-zinc-700 dark:text-zinc-200 shadow-none focus:ring-2 focus:ring-primary/25">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="dark:border-zinc-800 dark:bg-zinc-950">
               <SelectItem value="active">Status: Active</SelectItem>
               <SelectItem value="inactive">Status: Inactive</SelectItem>
               <SelectItem value="all">Status: All</SelectItem>

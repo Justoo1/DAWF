@@ -51,7 +51,7 @@ export const Navbar = () => {
 
   return (
     <>
-      <header className='sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border px-6 py-4 md:px-12 2xl:px-80'>
+      <header className="sticky top-0 z-[100] bg-background/80 backdrop-blur-md border-b border-border px-6 py-4 md:px-12 2xl:px-80">
         <nav className="flex items-center justify-between mx-auto max-w-[1400px]">
           {/* Logo/Home */}
           <Link href="/" className="flex items-center gap-3 group">
