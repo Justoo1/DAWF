@@ -16,7 +16,7 @@ export function AdminTableCard({
     <section className={cn(adminTableShellClass, className)}>
       <div className="overflow-x-auto">{children}</div>
       {footer ? (
-        <div className="border-t border-slate-100 bg-white px-6 py-5 sm:px-8">
+        <div className="border-t border-slate-100 bg-white px-6 py-5 sm:px-8 dark:border-slate-800 dark:bg-zinc-950">
           {footer}
         </div>
       ) : null}

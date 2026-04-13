@@ -42,23 +42,23 @@ export function AdminStatCard({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-xl border border-slate-100 bg-white p-5 md:p-6 shadow-sm",
+        "flex flex-col gap-3 rounded-xl border border-slate-100 bg-white p-5 md:p-6 shadow-sm dark:border-slate-800 dark:bg-zinc-950",
         className
       )}
     >
       <div className="flex items-start justify-between">
-        <p className="text-[13px] font-[800] uppercase tracking-wider text-slate-500">
+        <p className="text-[13px] font-[800] uppercase tracking-wider text-slate-500 dark:text-slate-400">
           {title}
         </p>
         {icon && (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400 dark:bg-slate-800/90 dark:text-slate-300">
             {icon}
           </div>
         )}
       </div>
 
       <div className="flex flex-col gap-1">
-        <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+        <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
           {value}
         </h3>
         
@@ -68,10 +68,10 @@ export function AdminStatCard({
               className={cn(
                 "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold tracking-wide",
                 trendIsPositive === undefined
-                  ? "bg-slate-100 text-slate-600"
+                  ? "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                   : trendIsPositive
-                  ? "bg-emerald-100 text-emerald-800"
-                  : "bg-rose-100 text-rose-800"
+                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                  : "bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300"
               )}
             >
               {trendIsPositive !== undefined && (
@@ -88,7 +88,7 @@ export function AdminStatCard({
               {trend}
             </span>
             {trendLabel && (
-              <span className="text-[12px] font-medium text-slate-400">
+              <span className="text-[12px] font-medium text-slate-400 dark:text-slate-500">
                 {trendLabel}
               </span>
             )}

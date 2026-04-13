@@ -256,6 +256,12 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
     }));
   };
 
+  const openDepartmentEdit = (dept: DepartmentRow) => {
+    setEditDept(dept);
+    setEditName(dept.name);
+    setEditManagerId(dept.managerId || "");
+  };
+
   const filtered = useMemo(() => {
     let result = departments;
 
@@ -461,13 +467,28 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
                 const managerDisplay = dept.managerName || "Unassigned";
                 
                 return (
-                  <tr key={dept.id} className={adminTbodyRowClass}>
+                  <tr
+                    key={dept.id}
+                    tabIndex={0}
+                    aria-label={`Edit department ${dept.name}`}
+                    className={cn(
+                      adminTbodyRowClass,
+                      "group cursor-pointer hover:bg-slate-50/90 dark:hover:bg-slate-800/50"
+                    )}
+                    onClick={() => openDepartmentEdit(dept)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openDepartmentEdit(dept);
+                      }
+                    }}
+                  >
                     <td className={adminTdClass}>
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
                           <Building2 className="h-5 w-5" aria-hidden />
                         </div>
-                        <span className="font-semibold text-foreground">
+                        <span className="font-semibold text-foreground underline-offset-2 group-hover:underline group-hover:text-primary dark:group-hover:text-emerald-400">
                           {dept.name}
                         </span>
                       </div>
@@ -500,7 +521,10 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
                         {dept.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </td>
-                    <td className={cn(adminTdClass, "text-right")}>
+                    <td
+                      className={cn(adminTdClass, "text-right")}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -516,11 +540,7 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
                             <Button
                               variant="ghost"
                               className="w-full justify-start gap-2 h-9 text-sm"
-                              onClick={() => {
-                                setEditDept(dept);
-                                setEditName(dept.name);
-                                setEditManagerId(dept.managerId || "");
-                              }}
+                              onClick={() => openDepartmentEdit(dept)}
                             >
                               <Edit className="h-4 w-4" />
                               Edit details

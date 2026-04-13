@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import ProfileMenu from "../shared/ProfileMenu";
-import { ChevronLeft, ChevronRight, Menu, Settings, HelpCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, HelpCircle, LayoutGrid, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { fetchUserWithContributions } from "@/lib/actions/users.action";
@@ -81,12 +81,21 @@ const Header = ({
             >
               Admin Dashboard
             </Link>
-            <div className="h-4 w-px bg-border/60 rotate-12" />
+            <div className="h-4 w-px bg-border/60 rotate-12" aria-hidden />
             <Link
               href="/"
               className="font-medium text-foreground hover:text-primary transition-colors truncate"
             >
               Home
+            </Link>
+            <div className="h-4 w-px bg-border/60 rotate-12" aria-hidden />
+            <Link
+              href="/dawf"
+              className="inline-flex items-center gap-1.5 font-medium text-foreground hover:text-primary transition-colors"
+              title="Employee welfare dashboard"
+            >
+              <LayoutGrid className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+              <span className="truncate">DAWF</span>
             </Link>
           </div>
         </div>
@@ -104,11 +113,14 @@ const Header = ({
 
         <div className="shrink-0 flex items-center justify-end gap-1 sm:gap-2 min-w-[3rem]">
           <div className="hidden sm:flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="hover:text-primary hover:bg-primary/10 text-foreground transition-colors text-slate-500">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="text-slate-500 transition-colors hover:bg-primary/10 hover:text-primary"
+              aria-label="Help"
+            >
               <HelpCircle className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="hover:text-primary hover:bg-primary/10 text-foreground transition-colors text-slate-500">
-              <Settings className="h-5 w-5" />
             </Button>
           </div>
           {userInfo?.id && (

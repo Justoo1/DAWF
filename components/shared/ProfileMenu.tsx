@@ -3,12 +3,13 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { LogOut, Mail, User as UserIcon, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, LogOut, Mail, Settings } from "lucide-react"
 import { UserValues } from "@/lib/validation"
 import { authClient } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { canAccessAdmin, type UserRole } from "@/lib/permissions"
 
 interface ProfileMenuProps {
     user: UserValues
@@ -18,8 +19,17 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const pathname = usePathname()
   const router = useRouter()
   const { toast } = useToast()
+
+  const settingsHref = (pathname?.startsWith("/admin") ?? false)
+    ? "/admin/settings"
+    : "/settings"
+
+  const showAdminDashboardLink =
+    canAccessAdmin(user.role as UserRole) &&
+    !(pathname?.startsWith("/admin") ?? false)
 
   const initials = user.name?.split(" ").map((name) => name.charAt(0)).join("").toUpperCase()
 
@@ -95,50 +105,74 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute right-0 mt-4 w-80 rounded-2xl bg-zinc-950/90 backdrop-blur-xl p-6 shadow-2xl border border-zinc-800 animate-in fade-in zoom-in duration-200"
+          className="absolute right-0 z-[100] mt-4 w-80 rounded-2xl border border-border bg-popover p-6 text-popover-foreground shadow-xl animate-in fade-in zoom-in duration-200 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
           onMouseEnter={clearCloseTimeout}
           onMouseLeave={handleClose}
         >
-          <div className="flex gap-4 items-center">
-            <Avatar className="h-16 w-16 flex-shrink-0 border-2 border-emerald-500/20">
-              <AvatarFallback className="bg-emerald-500 text-white font-black text-xl">{initials}</AvatarFallback>
+          <div className="flex items-center gap-4">
+            <Avatar className="h-16 w-16 shrink-0 border-2 border-primary/25 dark:border-emerald-500/30">
+              <AvatarFallback className="bg-emerald-600 text-lg font-black text-white dark:bg-emerald-500">
+                {initials}
+              </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0 space-y-0.5">
-              <h4 className="text-lg font-black text-white tracking-tight truncate uppercase">{user?.name}</h4>
-              <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] opacity-80">
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <h4 className="truncate text-lg font-black uppercase tracking-tight text-foreground">
+                {user?.name}
+              </h4>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
                 {user?.role?.toLowerCase()}
               </p>
               <div className="flex items-center pt-2">
-                <Mail className="mr-2 h-3 w-3 text-zinc-500 flex-shrink-0" />
-                <span className="text-[10px] font-bold text-zinc-400 truncate tracking-wide" title={user?.email}>
+                <Mail className="mr-2 h-3 w-3 shrink-0 text-muted-foreground" aria-hidden />
+                <span
+                  className="truncate text-[10px] font-semibold tracking-wide text-muted-foreground"
+                  title={user?.email}
+                >
                   {user?.email}
                 </span>
               </div>
             </div>
           </div>
-          
-          <div className="mt-8 grid gap-3">
-            {(user?.role === "ADMIN" || user?.role === "MANAGER") && (
-              <Link href="/admin">
-                <Button variant="outline" className="w-full justify-start bg-zinc-900/50 border-zinc-800 text-zinc-300 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all rounded-xl py-6 font-black text-[11px] uppercase tracking-widest">
-                  <ShieldCheck className="mr-3 h-4 w-4" />
-                  Admin Control
-                </Button>
+
+          <nav
+            className="mt-6 space-y-0.5 border-t border-border pt-4 dark:border-zinc-800"
+            aria-label="Account"
+          >
+            {showAdminDashboardLink ? (
+              <Link
+                href="/admin"
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted dark:hover:bg-zinc-800/80"
+                onClick={() => setIsOpen(false)}
+              >
+                <LayoutDashboard className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+                Admin dashboard
               </Link>
-            )}
-            
-            <Button 
-                variant="outline" 
-                className="w-full justify-start bg-zinc-900 border-zinc-800 text-red-500 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/50 transition-all rounded-xl py-6 font-black text-[11px] uppercase tracking-widest mt-2" 
-                onClick={handleLogout}
+            ) : null}
+            <Link
+              href={settingsHref}
+              className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted dark:hover:bg-zinc-800/80"
+              onClick={() => setIsOpen(false)}
             >
-              <LogOut className="mr-3 h-4 w-4" />
-              Sign Out
-            </Button>
-          </div>
-          
-          <div className="mt-6 pt-4 border-t border-zinc-800 flex justify-center">
-            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em]">DEVOPS AFRICA Welfare System</span>
+              <Settings className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
+              Settings
+            </Link>
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+              onClick={() => {
+                setIsOpen(false)
+                void handleLogout()
+              }}
+            >
+              <LogOut className="h-4 w-4 shrink-0" aria-hidden />
+              Sign out
+            </button>
+          </nav>
+
+          <div className="mt-6 flex justify-center border-t border-border pt-4 dark:border-zinc-800">
+            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+              DEVOPS AFRICA Welfare System
+            </span>
           </div>
         </div>
       )}

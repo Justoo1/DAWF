@@ -53,7 +53,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
   if (clients.length === 0) {
     return (
       <AdminTableCard>
-        <p className="p-8 text-center text-sm text-slate-500">
+        <p className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
           No clients yet. Create one to assign employees.
         </p>
       </AdminTableCard>
@@ -85,7 +85,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                 key={c.id}
                 className={cn(
                   adminTbodyRowClass,
-                  "cursor-pointer hover:bg-slate-50/90 dark:hover:bg-slate-900/40 transition-colors"
+                  "group cursor-pointer hover:bg-slate-50/90 dark:hover:bg-slate-800/50 transition-colors"
                 )}
                 onClick={() => setEditing(c)}
                 onKeyDown={(e) => {
@@ -98,7 +98,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                 aria-label={`Edit client ${c.name}`}
               >
                 <td className={adminTdClass}>
-                  <span className="font-semibold text-slate-900 dark:text-slate-100">
+                  <span className="font-semibold text-slate-900 dark:text-slate-50 underline-offset-2 group-hover:text-primary group-hover:underline dark:group-hover:text-emerald-400">
                     {c.name}
                   </span>
                 </td>
@@ -108,8 +108,8 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                     variant="outline"
                     className={
                       c.isActive
-                        ? "border-emerald-300 text-emerald-800 bg-emerald-50"
-                        : "border-slate-300 text-slate-600"
+                        ? "border-emerald-300 text-emerald-800 bg-emerald-50 dark:border-emerald-500/40 dark:bg-emerald-950/50 dark:text-emerald-300"
+                        : "border-slate-300 text-slate-600 dark:border-slate-600 dark:bg-slate-900/50 dark:text-slate-300"
                     }
                   >
                     {c.isActive ? "Active" : "Inactive"}
