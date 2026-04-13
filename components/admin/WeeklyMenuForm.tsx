@@ -14,6 +14,7 @@ import {
   FormMessage,
   FormDescription
 } from "@/components/ui/form"
+import { RequiredMark } from "@/components/ui/required-mark"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -103,7 +104,9 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
       selectionOpenDate: "",
       selectionCloseDate: "",
       menuItems: []
-    }
+    },
+    mode: "onChange",
+    reValidateMode: "onChange",
   })
 
   // Filter foods based on selected vendor
@@ -190,7 +193,10 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
             name="vendorId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Food Vendor *</FormLabel>
+                <FormLabel className="inline-flex items-center gap-1">
+                  Food Vendor
+                  <RequiredMark />
+                </FormLabel>
                 <Select
                   onValueChange={(value) => {
                     field.onChange(value)
@@ -225,7 +231,10 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
               name="weekStartDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Week Start Date (Monday) *</FormLabel>
+                  <FormLabel className="inline-flex items-center gap-1">
+                    Week Start Date (Monday)
+                    <RequiredMark />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="date"
@@ -243,7 +252,10 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
               name="weekEndDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Week End Date (Friday) *</FormLabel>
+                  <FormLabel className="inline-flex items-center gap-1">
+                    Week End Date (Friday)
+                    <RequiredMark />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="date"
@@ -263,7 +275,10 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
               name="selectionOpenDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Selection Open Date *</FormLabel>
+                  <FormLabel className="inline-flex items-center gap-1">
+                    Selection Open Date
+                    <RequiredMark />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="datetime-local"
@@ -284,7 +299,10 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
               name="selectionCloseDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Selection Close Date *</FormLabel>
+                  <FormLabel className="inline-flex items-center gap-1">
+                    Selection Close Date
+                    <RequiredMark />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="datetime-local"
@@ -351,7 +369,10 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
                     name={`menuItems.${item.index}.foodId`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Select Food *</FormLabel>
+                        <FormLabel className="inline-flex items-center gap-1">
+                          Select Food
+                          <RequiredMark />
+                        </FormLabel>
                         <Select
                           onValueChange={(value) => {
                             field.onChange(value)
@@ -388,7 +409,10 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
                       name={`menuItems.${item.index}.itemName`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Item Name (Auto-filled) *</FormLabel>
+                          <FormLabel className="inline-flex items-center gap-1">
+                            Item Name (Auto-filled)
+                            <RequiredMark />
+                          </FormLabel>
                           <FormControl>
                             <Input
                               {...field}

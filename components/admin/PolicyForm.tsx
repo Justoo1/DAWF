@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { RequiredMark } from '@/components/ui/required-mark'
 import { createPolicy, updatePolicy, Policy } from '@/lib/actions/policy.actions'
 import { ArrowLeft, Save } from 'lucide-react'
 import Link from 'next/link'
@@ -114,7 +115,10 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
 
       <div className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="title" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Policy Title</Label>
+          <Label htmlFor="title" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
+            Policy Title
+            <RequiredMark />
+          </Label>
           <Input
             id="title"
             value={formData.title}
@@ -127,8 +131,10 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="slug" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-            URL Slug {mode === 'edit' && <span className="text-xs text-gray-400 font-normal ml-1">(cannot be changed)</span>}
+          <Label htmlFor="slug" className="inline-flex flex-wrap items-center gap-x-1 gap-y-0 text-sm font-semibold text-slate-700 dark:text-slate-300">
+            URL Slug
+            {mode === 'create' ? <RequiredMark /> : null}
+            {mode === 'edit' && <span className="text-xs font-normal text-gray-400">(cannot be changed)</span>}
           </Label>
           <Input
             id="slug"
@@ -145,7 +151,10 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="content" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Policy Content</Label>
+          <Label htmlFor="content" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
+            Policy Content
+            <RequiredMark />
+          </Label>
           <div className="mt-2 border rounded-xl overflow-hidden border-slate-200 dark:border-slate-800">
             <RichTextEditor
               content={formData.content}

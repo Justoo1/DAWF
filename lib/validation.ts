@@ -2,6 +2,23 @@ import { z } from 'zod'
 
 const phoneLike = /^[\d\s\-+().]{7,32}$/
 
+/** Admin clients page — add client modal. */
+export const addClientFormSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, { message: "Client name is required" })
+    .max(200, { message: "Name is too long" }),
+})
+export type AddClientFormValues = z.infer<typeof addClientFormSchema>
+export const addClientFormDefaultValues: AddClientFormValues = { name: "" }
+
+/** Admin clients — edit client (name + active flag). */
+export const editClientFormSchema = addClientFormSchema.extend({
+  isActive: z.boolean(),
+})
+export type EditClientFormValues = z.infer<typeof editClientFormSchema>
+
 const addEmployeeFormObjectSchema = z.object({
   firstName: z
     .string()
@@ -444,7 +461,7 @@ export const FoodSchema = z.object({
   description: z.string().optional(),
   price: z.number().positive().optional(),
   category: z.string().optional(),
-  vendorId: z.string(),
+  vendorId: z.string().min(1, { message: "Please select a vendor" }),
   isSpecialOrder: z.boolean().default(false),
   isActive: z.boolean().default(true)
 })
@@ -506,7 +523,7 @@ export const WeeklyFoodMenuSchema = z.object({
 export type WeeklyFoodMenu = z.infer<typeof WeeklyFoodMenuSchema>
 
 export const WeeklyFoodMenuCreateSchema = z.object({
-  vendorId: z.string(),
+  vendorId: z.string().min(1, { message: "Please select a food vendor" }),
   weekStartDate: z.string(),
   weekEndDate: z.string(),
   selectionOpenDate: z.string(),

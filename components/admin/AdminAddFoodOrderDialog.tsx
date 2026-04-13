@@ -14,6 +14,7 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form"
+import { RequiredMark } from "@/components/ui/required-mark"
 import {
   Popover,
   PopoverContent,
@@ -92,7 +93,9 @@ const AdminAddFoodOrderDialog = ({ menu }: AdminAddFoodOrderDialogProps) => {
       targetUserId: '',
       menuId: menu.id!,
       selections: defaultSelections
-    }
+    },
+    mode: "onChange",
+    reValidateMode: "onChange",
   })
 
   // Fetch employees when dialog opens
@@ -219,7 +222,10 @@ const AdminAddFoodOrderDialog = ({ menu }: AdminAddFoodOrderDialogProps) => {
                 name="targetUserId"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Select Employee</FormLabel>
+                    <FormLabel className="inline-flex items-center gap-1">
+                      Select Employee
+                      <RequiredMark />
+                    </FormLabel>
                     <Popover open={comboboxOpen} onOpenChange={setComboboxOpen} modal={false}>
                       <PopoverTrigger asChild>
                         <FormControl>

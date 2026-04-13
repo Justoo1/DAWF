@@ -40,6 +40,7 @@ import {
   type AddEmployeeFormValues,
 } from "@/lib/validation"
 import { Calendar, Mail, Phone, PlusCircle, User } from "lucide-react"
+import { RequiredMark } from "@/components/ui/required-mark"
 import {
   EmployeeSaveSuccessDialog,
   type EmployeeSaveSummary,
@@ -54,14 +55,6 @@ function sanitizePersonName(value: string) {
 /** Keep only characters allowed by phone validation: digits, space, + - ( ) . */
 function sanitizePhoneInput(value: string) {
   return value.replace(/[^\d\s\-+().]/g, "")
-}
-
-function RequiredMark() {
-  return (
-    <span className="text-red-600 font-semibold leading-none" aria-hidden>
-      *
-    </span>
-  )
 }
 
 export function AddEmployeeDialog() {

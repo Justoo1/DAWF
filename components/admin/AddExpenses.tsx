@@ -5,6 +5,8 @@ import { z } from 'zod'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { RequiredMark } from '@/components/ui/required-mark'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
@@ -15,12 +17,12 @@ import { Banknote, Calendar, User } from 'lucide-react'
 
 const ExpenseCreateSchema = z.object({
   type: z.enum(['BIRTHDAY', 'FUNERAL', 'MARRIAGE', 'CHILDBIRTH', 'EMPLOYEE_DEPARTURE', 'OTHER']),
-  amount: z.number(),
+  amount: z.number().positive({ message: 'Amount must be greater than 0' }),
   date: z.preprocess((val) => new Date(val as string), z.date()),
-  recipient: z.string(),
+  recipient: z.string().min(1, { message: 'Recipient is required' }),
   description: z.string().optional(),
   approvedBy: z.string().optional(),
-  userId: z.string(),
+  userId: z.string().min(1, { message: 'Select an employee' }),
   status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).default('APPROVED')
 })
 
@@ -48,7 +50,7 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
       expenses: [
         {
           type: expense ? expense.type  : ExpenseType.BIRTHDAY,
-          amount: expense ? expense.amount : 0,
+          amount: expense ? expense.amount : 1,
           date: expense ? expense.date : new Date(),
           recipient: expense ? expense.recipient : '',
           description: expense ? expense.description! : '',
@@ -57,7 +59,9 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
           status: expense ? expense.status : ExpenseStatus.APPROVED
         }
       ]
-    }
+    },
+    mode: "onChange",
+    reValidateMode: "onChange",
   })
 
   const { fields, append, remove } = useFieldArray({
@@ -87,6 +91,10 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {fields.map((field, index) => (
           <div key={field.id} className="p-4 border rounded-md space-y-2">
+            <Label className="inline-flex items-center gap-1 text-sm font-medium">
+              Employee
+              <RequiredMark />
+            </Label>
             <Controller
               name={`expenses.${index}.userId`}
               control={control}
@@ -107,6 +115,10 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
             />
             {errors.expenses?.[index]?.userId && <p className="text-red-500">{errors.expenses[index]?.userId?.message}</p>}
             
+            <Label className="inline-flex items-center gap-1 text-sm font-medium">
+              Expense type
+              <RequiredMark />
+            </Label>
             <Controller
               name={`expenses.${index}.type`}
               control={control}
@@ -128,6 +140,10 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
             />
             {errors.expenses?.[index]?.type && <p className="text-red-500">{errors.expenses[index]?.type?.toString()}</p>}
 
+            <Label className="inline-flex items-center gap-1 text-sm font-medium">
+              Amount
+              <RequiredMark />
+            </Label>
             <Controller
               name={`expenses.${index}.amount`}
               control={control}
@@ -144,6 +160,10 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
             />
             {errors.expenses?.[index]?.amount && <p className="text-red-500">{errors.expenses[index]?.amount?.message}</p>}
 
+            <Label className="inline-flex items-center gap-1 text-sm font-medium">
+              Date
+              <RequiredMark />
+            </Label>
             <Controller
               name={`expenses.${index}.date`}
               control={control}
@@ -159,6 +179,10 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
             />
             {errors.expenses?.[index]?.date && <p className="text-red-500">{errors.expenses[index]?.date?.message}</p>}
 
+            <Label className="inline-flex items-center gap-1 text-sm font-medium">
+              Recipient
+              <RequiredMark />
+            </Label>
             <Controller
               name={`expenses.${index}.recipient`}
               control={control}
@@ -191,7 +215,7 @@ const AddExpensesPage = ({ employees, expense, hideRemoveButton, hideAddButton, 
         <div className="flex gap-3">
           {!hideAddButton && (<Button type="button" onClick={() => append({
             type: ExpenseType.BIRTHDAY,
-            amount: 0,
+            amount: 1,
             date: new Date(),
             recipient: '',
             description: '',

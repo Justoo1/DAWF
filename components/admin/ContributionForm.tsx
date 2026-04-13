@@ -14,6 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import { RequiredMark } from "@/components/ui/required-mark"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -54,7 +55,9 @@ const ContributionForm = ({ employees, contribution, update }: ContributionFormP
       year: contribution ? contribution.year : new Date().getFullYear(),
       quarter: contribution ? contribution.quarter : Math.ceil((new Date().getMonth() + 1) / 3),
       userId : contribution ? contribution.userId : ''
-    }
+    },
+    mode: "onChange",
+    reValidateMode: "onChange",
   })
 
   // const selectedMonth = form.watch('month')
@@ -125,7 +128,10 @@ const ContributionForm = ({ employees, contribution, update }: ContributionFormP
           name="userId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Employee</FormLabel>
+              <FormLabel className="inline-flex items-center gap-1">
+                Employee
+                <RequiredMark />
+              </FormLabel>
               <Select 
                 onValueChange={field.onChange} 
                 defaultValue={field.value}
@@ -157,7 +163,10 @@ const ContributionForm = ({ employees, contribution, update }: ContributionFormP
             name="amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Amount</FormLabel>
+                <FormLabel className="inline-flex items-center gap-1">
+                  Amount
+                  <RequiredMark />
+                </FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
@@ -176,7 +185,10 @@ const ContributionForm = ({ employees, contribution, update }: ContributionFormP
             name="month"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Month</FormLabel>
+                <FormLabel className="inline-flex items-center gap-1">
+                  Month
+                  <RequiredMark />
+                </FormLabel>
                 <FormControl>
                   <Input 
                     type="month" 
@@ -196,7 +208,10 @@ const ContributionForm = ({ employees, contribution, update }: ContributionFormP
             name="year"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Year</FormLabel>
+                <FormLabel className="inline-flex items-center gap-1">
+                  Year
+                  <RequiredMark />
+                </FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
@@ -216,7 +231,10 @@ const ContributionForm = ({ employees, contribution, update }: ContributionFormP
             name="quarter"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Quarter</FormLabel>
+                <FormLabel className="inline-flex items-center gap-1">
+                  Quarter
+                  <RequiredMark />
+                </FormLabel>
                 <Select 
                   onValueChange={(value) => field.onChange(Number(value))} 
                   value={field.value.toString()}

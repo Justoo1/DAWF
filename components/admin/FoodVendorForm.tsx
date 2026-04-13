@@ -14,6 +14,7 @@ import {
   FormMessage,
   FormDescription
 } from "@/components/ui/form"
+import { RequiredMark } from "@/components/ui/required-mark"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from '@/hooks/use-toast'
@@ -38,7 +39,9 @@ const FoodVendorForm = ({ vendor, isEdit }: FoodVendorFormProps) => {
       email: vendor?.email || "",
       description: vendor?.description || "",
       isActive: vendor?.isActive ?? true
-    }
+    },
+    mode: "onChange",
+    reValidateMode: "onChange",
   })
 
   async function onSubmit(values: z.infer<typeof FoodVendorSchema>) {
@@ -83,7 +86,10 @@ const FoodVendorForm = ({ vendor, isEdit }: FoodVendorFormProps) => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Vendor Name *</FormLabel>
+              <FormLabel className="inline-flex items-center gap-1">
+                Vendor Name
+                <RequiredMark />
+              </FormLabel>
               <FormControl>
                 <Input
                   {...field}

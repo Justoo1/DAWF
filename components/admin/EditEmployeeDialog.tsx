@@ -48,6 +48,7 @@ import {
   type UserValues,
 } from '@/lib/validation'
 import { Calendar, Info, Mail, Pencil, Phone, User } from 'lucide-react'
+import { RequiredMark } from '@/components/ui/required-mark'
 import { useRouter } from 'next/navigation'
 import {
   EmployeeSaveSuccessDialog,
@@ -63,14 +64,6 @@ function sanitizePersonName(value: string) {
 
 function sanitizePhoneInput(value: string) {
   return value.replace(/[^\d\s\-+().]/g, '')
-}
-
-function RequiredMark() {
-  return (
-    <span className="text-red-600 font-semibold leading-none" aria-hidden>
-      *
-    </span>
-  )
 }
 
 function toYmd(d: Date | string | null | undefined): string {

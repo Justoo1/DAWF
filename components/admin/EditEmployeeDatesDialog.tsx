@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { RequiredMark } from "@/components/ui/required-mark"
 import { useToast } from "@/hooks/use-toast"
 import { updateEmployeeDates } from "@/lib/actions/users.action"
 import { CalendarIcon } from "lucide-react"
@@ -117,7 +118,10 @@ export function EditEmployeeDatesDialog({
               {/* Date of Birth - Only visible to Admins */}
               {isAdmin && (
                 <div className="grid gap-2">
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                  <Label htmlFor="dateOfBirth" className="inline-flex items-center gap-1">
+                    Date of Birth
+                    <RequiredMark />
+                  </Label>
                   <Input
                     id="dateOfBirth"
                     type="date"
@@ -131,7 +135,10 @@ export function EditEmployeeDatesDialog({
 
               {/* Start Date - Visible to both Admins and Managers */}
               <div className="grid gap-2">
-                <Label htmlFor="startDate">Employment Start Date</Label>
+                <Label htmlFor="startDate" className="inline-flex items-center gap-1">
+                  Employment Start Date
+                  <RequiredMark />
+                </Label>
                 <Input
                   id="startDate"
                   type="date"

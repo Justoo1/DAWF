@@ -14,6 +14,7 @@ import {
   FormMessage,
   FormDescription
 } from "@/components/ui/form"
+import { RequiredMark } from "@/components/ui/required-mark"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -67,7 +68,9 @@ const FoodForm = ({ vendors, food, isEdit }: FoodFormProps) => {
       vendorId: "",
       isSpecialOrder: false,
       isActive: true
-    }
+    },
+    mode: "onChange",
+    reValidateMode: "onChange",
   })
 
   async function onSubmit(values: z.infer<typeof FoodCreateSchema>) {
@@ -111,7 +114,10 @@ const FoodForm = ({ vendors, food, isEdit }: FoodFormProps) => {
           name="vendorId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Vendor *</FormLabel>
+              <FormLabel className="inline-flex items-center gap-1">
+                Vendor
+                <RequiredMark />
+              </FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger className="h-11 rounded-lg">
@@ -136,7 +142,10 @@ const FoodForm = ({ vendors, food, isEdit }: FoodFormProps) => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Food Name *</FormLabel>
+              <FormLabel className="inline-flex items-center gap-1">
+                Food Name
+                <RequiredMark />
+              </FormLabel>
               <FormControl>
                 <Input
                   {...field}

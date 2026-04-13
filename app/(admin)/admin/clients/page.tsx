@@ -3,14 +3,11 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import prisma from "@/lib/prisma"
 import { AddClientDialog } from "@/components/admin/AddClientDialog"
-import {
-  adminTableClassName,
-  adminTdClass,
-  adminThClass,
-  adminTheadRowClass,
-  adminTbodyRowClass,
-} from "@/lib/admin-ui"
-import { Badge } from "@/components/ui/badge"
+import { ClientsTable } from "@/components/admin/ClientsTable"
+import { AdminPageContent } from "@/components/admin/layout/AdminPageContent"
+import { AdminPageHeader } from "@/components/admin/layout/AdminPageHeader"
+import { AdminStatCard, AdminStatCardsWrapper } from "@/components/admin/layout/AdminStatCards"
+import { Building2, CheckCircle2, CircleOff, Users } from "lucide-react"
 
 export default async function AdminClientsPage() {
   const session = await auth.api.getSession({
@@ -37,56 +34,55 @@ export default async function AdminClientsPage() {
     },
   })
 
-  return (
-    <div className="space-y-6 p-6 md:p-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            Clients
-          </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-            Manage client organizations. Employees are assigned to a client when they are added.
-          </p>
-        </div>
-        <AddClientDialog />
-      </div>
+  const totalClients = clients.length
+  const activeClients = clients.filter((c) => c.isActive).length
+  const inactiveClients = totalClients - activeClients
+  const totalEmployeesAssigned = clients.reduce(
+    (sum, c) => sum + c._count.users,
+    0
+  )
 
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-zinc-950 shadow-sm overflow-hidden">
-        <table className={adminTableClassName()}>
-          <thead>
-            <tr className={adminTheadRowClass}>
-              <th className={adminThClass}>Client</th>
-              <th className={adminThClass}>Employees</th>
-              <th className={adminThClass}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {clients.map((c) => (
-              <tr key={c.id} className={adminTbodyRowClass}>
-                <td className={adminTdClass}>
-                  <span className="font-semibold text-slate-900 dark:text-slate-100">{c.name}</span>
-                </td>
-                <td className={adminTdClass}>{c._count.users}</td>
-                <td className={adminTdClass}>
-                  <Badge
-                    variant="outline"
-                    className={
-                      c.isActive
-                        ? "border-emerald-300 text-emerald-800 bg-emerald-50"
-                        : "border-slate-300 text-slate-600"
-                    }
-                  >
-                    {c.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {clients.length === 0 ? (
-          <p className="p-8 text-center text-sm text-slate-500">No clients yet. Create one to assign employees.</p>
-        ) : null}
-      </div>
-    </div>
+  const rows = clients.map((c) => ({
+    id: c.id,
+    name: c.name,
+    isActive: c.isActive,
+    employeeCount: c._count.users,
+  }))
+
+  return (
+    <main className="admin-main">
+      <AdminPageContent>
+        <AdminPageHeader
+          title="Clients"
+          description="Manage client organizations. Employees are assigned to a client when they are added."
+          action={<AddClientDialog />}
+        />
+
+        <AdminStatCardsWrapper>
+          <AdminStatCard
+            title="Total clients"
+            value={totalClients}
+            icon={<Building2 size={20} strokeWidth={2.5} />}
+          />
+          <AdminStatCard
+            title="Active"
+            value={activeClients}
+            icon={<CheckCircle2 size={20} strokeWidth={2.5} />}
+          />
+          <AdminStatCard
+            title="Inactive"
+            value={inactiveClients}
+            icon={<CircleOff size={20} strokeWidth={2.5} />}
+          />
+          <AdminStatCard
+            title="Employees assigned"
+            value={totalEmployeesAssigned}
+            icon={<Users size={20} strokeWidth={2.5} />}
+          />
+        </AdminStatCardsWrapper>
+
+        <ClientsTable clients={rows} />
+      </AdminPageContent>
+    </main>
   )
 }

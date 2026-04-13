@@ -14,6 +14,7 @@ import {
   FormMessage,
   FormDescription
 } from "@/components/ui/form"
+import { RequiredMark } from "@/components/ui/required-mark"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from '@/hooks/use-toast'
@@ -46,7 +47,9 @@ const ConferenceRoomForm = ({ room, isEdit, onSuccess, onCancel }: ConferenceRoo
       description: room?.description || "",
       isActive: room?.isActive ?? true,
       amenities: room?.amenities || ""
-    }
+    },
+    mode: "onChange",
+    reValidateMode: "onChange",
   })
 
   const addAmenity = () => {
@@ -114,7 +117,10 @@ const ConferenceRoomForm = ({ room, isEdit, onSuccess, onCancel }: ConferenceRoo
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Room Name</FormLabel>
+              <FormLabel className="inline-flex items-center gap-1">
+                Room Name
+                <RequiredMark />
+              </FormLabel>
               <FormControl>
                 <Input
                   type="text"
@@ -133,7 +139,10 @@ const ConferenceRoomForm = ({ room, isEdit, onSuccess, onCancel }: ConferenceRoo
           name="capacity"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Capacity</FormLabel>
+              <FormLabel className="inline-flex items-center gap-1">
+                Capacity
+                <RequiredMark />
+              </FormLabel>
               <FormControl>
                 <Input
                   type="number"

@@ -76,3 +76,85 @@ export async function createClient(data: { name: string }) {
     };
   }
 }
+
+export async function updateClient(data: {
+  id: string;
+  name: string;
+  isActive: boolean;
+}) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session?.user) {
+      return { success: false, error: "Unauthorized" };
+    }
+    const me = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true },
+    });
+    if (!me || me.role !== "ADMIN") {
+      return { success: false, error: "Only admins can update clients" };
+    }
+
+    const name = data.name.trim();
+    if (!name) {
+      return { success: false, error: "Client name is required" };
+    }
+
+    const duplicate = await prisma.client.findFirst({
+      where: { name, NOT: { id: data.id } },
+    });
+    if (duplicate) {
+      return {
+        success: false,
+        error: "A client with this name already exists",
+      };
+    }
+
+    await prisma.client.update({
+      where: { id: data.id },
+      data: { name, isActive: data.isActive },
+    });
+    revalidatePath("/admin/clients");
+    return { success: true };
+  } catch (error) {
+    console.error("updateClient", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update client",
+    };
+  }
+}
+
+export async function setClientActive(data: { id: string; isActive: boolean }) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session?.user) {
+      return { success: false, error: "Unauthorized" };
+    }
+    const me = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true },
+    });
+    if (!me || me.role !== "ADMIN") {
+      return { success: false, error: "Only admins can change client status" };
+    }
+
+    await prisma.client.update({
+      where: { id: data.id },
+      data: { isActive: data.isActive },
+    });
+    revalidatePath("/admin/clients");
+    return { success: true };
+  } catch (error) {
+    console.error("setClientActive", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to update client status",
+    };
+  }
+}

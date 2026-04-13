@@ -14,6 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import { RequiredMark } from "@/components/ui/required-mark"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -54,7 +55,9 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
       maxAttendees: event ? event.maxAttendees! : undefined,
       isRecurring: event ? event.isRecurring : false,
       recurrencePattern: event ? event.recurrencePattern! : undefined,
-    }
+    },
+    mode: "onChange",
+    reValidateMode: "onChange",
   })
 
     const { watch, setValue } = form;
@@ -134,7 +137,10 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
           name="category"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Event Category</FormLabel>
+              <FormLabel className="inline-flex items-center gap-1">
+                Event Category
+                <RequiredMark />
+              </FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger className="h-11 rounded-lg">
@@ -155,7 +161,10 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
           name="type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Event Type</FormLabel>
+              <FormLabel className="inline-flex items-center gap-1">
+                Event Type
+                <RequiredMark />
+              </FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger className="h-11 rounded-lg">
@@ -196,7 +205,10 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
                 name="title"
                 render={({ field }) => (
                 <FormItem className='w-full'>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel className="inline-flex items-center gap-1">
+                      Title
+                      <RequiredMark />
+                    </FormLabel>
                     <FormControl>
                     <Input 
                         type="text" 
@@ -277,7 +289,10 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
                 name="start"
                 render={({ field }) => (
                 <FormItem className='w-full'>
-                    <FormLabel>Starts At</FormLabel>
+                    <FormLabel className="inline-flex items-center gap-1">
+                      Starts At
+                      <RequiredMark />
+                    </FormLabel>
                     <FormControl>
                     <Input
                         type="datetime-local"
@@ -298,7 +313,10 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
             name="end"
             render={({ field }) => (
                 <FormItem className='w-full'>
-                    <FormLabel>End At</FormLabel>
+                    <FormLabel className="inline-flex items-center gap-1">
+                      End At
+                      <RequiredMark />
+                    </FormLabel>
                     <FormControl>
                     <Input
                         type="datetime-local"
@@ -323,7 +341,10 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
             name="year"
             render={({ field }) => (
               <FormItem className='w-full'>
-                <FormLabel>Year</FormLabel>
+                <FormLabel className="inline-flex items-center gap-1">
+                  Year
+                  <RequiredMark />
+                </FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
@@ -343,7 +364,10 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
             name="month"
             render={({ field }) => (
               <FormItem className='w-full'>
-                <FormLabel>Month</FormLabel>
+                <FormLabel className="inline-flex items-center gap-1">
+                  Month
+                  <RequiredMark />
+                </FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
@@ -363,7 +387,10 @@ const EventAdd = ({ update, event, userId }: EventAddProps) => {
             name="quarter"
             render={({ field }) => (
               <FormItem className='w-full'>
-                <FormLabel>Quarter</FormLabel>
+                <FormLabel className="inline-flex items-center gap-1">
+                  Quarter
+                  <RequiredMark />
+                </FormLabel>
                 <Select
                   onValueChange={(value) => field.onChange(Number(value))}
                   value={field.value.toString()}
