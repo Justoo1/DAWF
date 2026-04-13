@@ -8,6 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth-client";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { getEmailLoginState } from "@/lib/actions/auth-login.action";
 import { AlertCircle } from "lucide-react";
 
@@ -249,13 +250,13 @@ const Login = () => {
               <label htmlFor="login-password" className="text-sm font-medium text-white/90">
                 Password
               </label>
-              <Input
+              <PasswordInput
                 id="login-password"
-                type="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={inputClass}
+                toggleButtonClassName="text-white/70 hover:bg-white/10 hover:text-white focus-visible:ring-white/30"
               />
             </div>
             <div className="flex justify-end">

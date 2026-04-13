@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
@@ -101,13 +101,13 @@ export function SetPasswordForm() {
             <label htmlFor="new-password" className="text-sm font-medium text-white/90">
               Password
             </label>
-            <Input
+            <PasswordInput
               id="new-password"
-              type="password"
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="h-12 rounded-xl bg-white/10 border-white/20 text-white placeholder:text-white/40"
+              toggleButtonClassName="text-white/70 hover:bg-white/10 hover:text-white focus-visible:ring-white/30"
               required
               minLength={8}
             />
@@ -116,13 +116,13 @@ export function SetPasswordForm() {
             <label htmlFor="confirm-password" className="text-sm font-medium text-white/90">
               Confirm password
             </label>
-            <Input
+            <PasswordInput
               id="confirm-password"
-              type="password"
               autoComplete="new-password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               className="h-12 rounded-xl bg-white/10 border-white/20 text-white placeholder:text-white/40"
+              toggleButtonClassName="text-white/70 hover:bg-white/10 hover:text-white focus-visible:ring-white/30"
               required
               minLength={8}
             />

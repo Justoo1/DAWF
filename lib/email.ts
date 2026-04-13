@@ -9,9 +9,8 @@ interface SendEmailParams {
   html: string;
 }
 
+/** Plain server utility — do not mark as a Server Action; auth callbacks call this directly. */
 export async function sendEmail({ to, subject, html }: SendEmailParams) {
-  "use server"
-
   try {
     const data = await resend.emails.send({
       from: fromEmail,

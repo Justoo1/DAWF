@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import {
   Form,
   FormControl,
@@ -361,8 +362,7 @@ export function AddEmployeeDialog() {
                         <FormItem>
                           <FormLabel>Initial password (optional)</FormLabel>
                           <FormControl>
-                            <Input
-                              type="password"
+                            <PasswordInput
                               autoComplete="new-password"
                               className="h-11 rounded-lg"
                               placeholder="Min. 8 characters"

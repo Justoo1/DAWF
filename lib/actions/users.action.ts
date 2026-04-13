@@ -561,8 +561,10 @@ export async function createEmployee(data: {
       return { success: false, error: 'Unauthorized: Only admins can add new employees' }
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email: data.email }
+    const email = data.email.trim().toLowerCase()
+
+    const existingUser = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: 'insensitive' } },
     })
 
     if (existingUser) {
@@ -586,7 +588,7 @@ export async function createEmployee(data: {
 
     const firstName = data.firstName.trim()
     const lastName = data.lastName.trim()
-    const displayName = `${firstName} ${lastName}`.trim() || data.email
+    const displayName = `${firstName} ${lastName}`.trim() || email
 
     let plainInitialPassword: string | null = null
     let mustChangePassword = false
@@ -609,7 +611,7 @@ export async function createEmployee(data: {
         lastName,
         phoneNumber: data.phoneNumber.trim(),
         name: displayName,
-        email: data.email,
+        email,
         clientId: data.clientId,
         pendingInvite: true,
         department: data.department,

@@ -86,12 +86,27 @@ export const auth = betterAuth({
         select: { verificationEmailPasswordPlain: true },
       });
       const initialPassword = row?.verificationEmailPasswordPlain ?? undefined;
-      void sendEmployeeVerificationEmail(
-        user.email,
-        user.name || user.email,
-        url,
-        initialPassword ? { initialPassword } : undefined
-      );
+      try {
+        const result = await sendEmployeeVerificationEmail(
+          user.email,
+          user.name || user.email,
+          url,
+          initialPassword ? { initialPassword } : undefined
+        );
+        if (
+          result &&
+          typeof result === "object" &&
+          "success" in result &&
+          (result as { success: boolean }).success === false
+        ) {
+          console.error(
+            "sendEmployeeVerificationEmail: Resend reported failure",
+            result
+          );
+        }
+      } catch (e) {
+        console.error("sendEmployeeVerificationEmail failed:", e);
+      }
       if (initialPassword) {
         await prisma.user.update({
           where: { id: user.id },
