@@ -50,6 +50,9 @@ export function ProfileChecker() {
         }
 
         if (gate.mustChangePassword) {
+          if (pathname === "/dawf" || pathname.startsWith("/dawf/")) {
+            return
+          }
           router.push("/change-initial-password")
           return
         }

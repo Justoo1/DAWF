@@ -151,6 +151,8 @@ model User {
   pendingInvite          Boolean                 @default(false)
   /// True when the user must set a new password after signing in (admin-set or generated initial password).
   mustChangePassword     Boolean                 @default(false)
+  /// Set only when an admin provides/generates an initial password; included once in the verification email, then cleared.
+  verificationEmailPasswordPlain String?         @map("verification_email_password_plain")
   clientId               String
   client                 Client                  @relation(fields: [clientId], references: [id], onDelete: Restrict)
   department             String?

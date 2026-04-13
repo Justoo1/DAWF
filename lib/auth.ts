@@ -81,11 +81,23 @@ export const auth = betterAuth({
   emailVerification: {
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
+      const row = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { verificationEmailPasswordPlain: true },
+      });
+      const initialPassword = row?.verificationEmailPasswordPlain ?? undefined;
       void sendEmployeeVerificationEmail(
         user.email,
         user.name || user.email,
-        url
+        url,
+        initialPassword ? { initialPassword } : undefined
       );
+      if (initialPassword) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { verificationEmailPasswordPlain: null },
+        });
+      }
     },
     // Runs before `emailVerified` is written (see better-auth verify-email route).
     async onEmailVerification(user: { email: string }) {

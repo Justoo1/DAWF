@@ -6,6 +6,7 @@ import { ContributionStatus, Prisma, UserRole } from '@prisma/client';
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { generateRandomString, hashPassword } from 'better-auth/crypto'
+import { postEmailVerificationCallbackUrl } from '@/lib/auth-app-url'
 
 /**
  * Better Auth's sendVerificationEmail uses the session cookie when present: it only allows
@@ -646,9 +647,12 @@ export async function createEmployee(data: {
           updatedAt: now,
         },
       })
+      await prisma.$executeRaw(
+        Prisma.sql`UPDATE "users" SET "verification_email_password_plain" = ${plainInitialPassword} WHERE "id" = ${user.id}`
+      )
     }
 
-    const verificationCallback = plainInitialPassword ? '/' : '/set-password'
+    const verificationCallback = postEmailVerificationCallbackUrl()
 
     try {
       await auth.api.sendVerificationEmail({
@@ -833,7 +837,7 @@ export async function updateEmployeeProfile(
     if (emailChanged) {
       const cred = existing.accounts[0]
       const hasCredentialPassword = !!(cred?.password && cred.password.length > 0)
-      const verificationCallback = hasCredentialPassword ? '/' : '/set-password'
+      const verificationCallback = postEmailVerificationCallbackUrl()
       try {
         await auth.api.sendVerificationEmail({
           body: {
@@ -975,7 +979,7 @@ export async function adminResendEmployeeVerificationEmail(userId: string) {
   }
   const cred = user.accounts[0]
   const hasCredentialPassword = !!(cred?.password && cred.password.length > 0)
-  const verificationCallback = hasCredentialPassword ? '/' : '/set-password'
+  const verificationCallback = postEmailVerificationCallbackUrl()
   try {
     await auth.api.sendVerificationEmail({
       body: {

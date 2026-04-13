@@ -29,7 +29,7 @@ export function ChangeInitialPasswordForm() {
       }
       const gate = await getAccountGateState();
       if (gate.authenticated && !gate.mustChangePassword) {
-        router.replace("/");
+        router.replace("/dawf");
         return;
       }
       setChecking(false);
@@ -68,7 +68,7 @@ export function ChangeInitialPasswordForm() {
         title: "Password updated",
         description: "You can continue using DEVOPS AFRICA.",
       });
-      window.location.assign("/");
+      window.location.assign("/dawf");
     } catch (err) {
       toast({
         title: "Error",

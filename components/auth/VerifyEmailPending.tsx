@@ -7,6 +7,7 @@ import { authClient } from "@/lib/auth-client"
 import { Loader, Mail } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { postEmailVerificationCallbackUrlForClient } from "@/lib/auth-app-url"
 
 export function VerifyEmailPending() {
   const { toast } = useToast()
@@ -24,7 +25,7 @@ export function VerifyEmailPending() {
       }
       const u = session.data.user as { email?: string; pendingInvite?: boolean }
       if (!u.pendingInvite) {
-        router.replace("/")
+        router.replace("/dawf")
         return
       }
       setEmail(u.email ?? null)
@@ -39,7 +40,7 @@ export function VerifyEmailPending() {
     try {
       await authClient.sendVerificationEmail({
         email,
-        callbackURL: "/sign-in",
+        callbackURL: postEmailVerificationCallbackUrlForClient(),
       })
       toast({
         title: "Email sent",
