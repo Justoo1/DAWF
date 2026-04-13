@@ -7,9 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  getAccountGateState,
-} from "@/lib/actions/account-gate.action";
+import { fetchAccountGateState } from "@/lib/account-gate-client";
 import { submitInitialPasswordChange } from "@/lib/actions/auth-login.action";
 
 export function ChangeInitialPasswordForm() {
@@ -27,7 +25,7 @@ export function ChangeInitialPasswordForm() {
         router.replace("/sign-in");
         return;
       }
-      const gate = await getAccountGateState();
+      const gate = await fetchAccountGateState();
       if (gate.authenticated && !gate.mustChangePassword) {
         router.replace("/dawf");
         return;

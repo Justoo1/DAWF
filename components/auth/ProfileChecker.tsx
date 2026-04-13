@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
-import { getAccountGateState } from "@/lib/actions/account-gate.action"
+import { fetchAccountGateState } from "@/lib/account-gate-client"
 
 export function ProfileChecker() {
   const router = useRouter()
@@ -33,7 +33,7 @@ export function ProfileChecker() {
           return
         }
 
-        const gate = await getAccountGateState()
+        const gate = await fetchAccountGateState()
         if (!gate.authenticated) {
           return
         }
