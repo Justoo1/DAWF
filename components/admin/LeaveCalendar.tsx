@@ -3,7 +3,6 @@
 import React, { useMemo, useState, useRef, useEffect } from "react"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
-import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import { EventInput } from "@fullcalendar/core"
 import { Card, CardContent } from "@/components/ui/card"
@@ -16,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns"
+import { format } from "date-fns"
 import {
   Tooltip,
   TooltipContent,
@@ -97,17 +96,16 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
 
   const filteredEvents = useMemo(() => {
     const calendarEvents: EventInput[] = []
-    
-    // Group leaves by date to handle "X people" display
+
+    // Group approved leaves by calendar day (department filter applied)
     const leavesByDate: Record<string, Leave[]> = {}
-    
-    leaves.forEach(leave => {
+
+    leaves.forEach((leave) => {
       if (selectedDept !== "all" && leave.user.department !== selectedDept) return
-      
-      // For multi-day leaves, we need to consider each day
+
       let curr = new Date(leave.startDate)
       const end = new Date(leave.endDate)
-      
+
       while (curr <= end) {
         const dateStr = format(curr, "yyyy-MM-dd")
         if (!leavesByDate[dateStr]) leavesByDate[dateStr] = []
@@ -116,67 +114,48 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
       }
     })
 
-    // 1. Add Daily Headcount Label to EVERY day in the view
-    const start = startOfMonth(currentDate)
-    const end = endOfMonth(currentDate)
-    let dayIter = new Date(start)
-    dayIter.setDate(dayIter.getDate() - 7) // Buffer for previous weeks showing in grid
-    const stopDate = new Date(end)
-    stopDate.setDate(stopDate.getDate() + 7)
-
-    while (dayIter <= stopDate) {
-      const dateStr = format(dayIter, "yyyy-MM-dd")
-      calendarEvents.push({
-        id: `headcount-${dateStr}`,
-        title: `Total Employees: ${totalHeadcount}`,
-        start: dateStr,
-        allDay: true,
-        backgroundColor: "#F1F5F9", // Slate 100
-        textColor: "#64748B",       // Slate 500
-        borderColor: "transparent",
-        classNames: ["headcount-banner"],
-        extendedProps: { type: 'headcount' }
-      })
-      dayIter.setDate(dayIter.getDate() + 1)
-    }
-
-    // 2. Add Leaves (Grouped)
+    // One white/dashed banner per day that has people on leave (same visual as former "headcount" style)
     Object.entries(leavesByDate).forEach(([dateStr, dayLeaves]) => {
-      const names = dayLeaves.map(l => l.user.name)
-      const label = `Total On Leave: ${dayLeaves.length}`
-      
+      const uniqueByRequest = Array.from(new Map(dayLeaves.map((l) => [l.id, l])).values())
+      const names = uniqueByRequest.map((l) => l.user.name)
+      const count = uniqueByRequest.length
+      const label =
+        count === 1
+          ? `On leave: 1 person`
+          : `On leave: ${count} people`
+
       calendarEvents.push({
-        id: `group-${dateStr}`,
+        id: `onleave-${dateStr}`,
         title: label,
         start: dateStr,
         allDay: true,
-        backgroundColor: "#10A074", 
+        backgroundColor: "#F8FAFC",
+        textColor: "#475569",
         borderColor: "transparent",
-        classNames: ["leave-banner", "status-banner"],
-        extendedProps: { 
-          type: 'leave', 
-          count: dayLeaves.length,
-          names: names
-        }
+        classNames: ["headcount-banner", "on-leave-banner"],
+        extendedProps: {
+          type: "leave-day",
+          count,
+          names,
+        },
       })
     })
 
-    // 3. Add Holidays
     holidays.forEach((holiday) => {
       calendarEvents.push({
         id: holiday.id,
         title: `Public Holiday: ${holiday.name}`,
         start: holiday.date,
         allDay: true,
-        backgroundColor: "#F43F5E", 
+        backgroundColor: "#F43F5E",
         borderColor: "transparent",
         classNames: ["holiday-banner"],
-        extendedProps: { type: 'holiday' }
+        extendedProps: { type: "holiday" },
       })
     })
 
     return calendarEvents
-  }, [leaves, holidays, selectedDept])
+  }, [leaves, holidays, selectedDept, currentDate])
 
   return (
     <TooltipProvider>
@@ -233,7 +212,8 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
         <div className="space-y-4">
           <div className="flex justify-between items-center px-2">
               <div className="text-[13px] font-medium text-slate-400 dark:text-zinc-500">
-                  Total Events Found: <span className="text-slate-900 dark:text-zinc-100 font-bold">{filteredEvents.length}</span>
+                  Events in view:{" "}
+                  <span className="font-bold text-slate-900 dark:text-zinc-100">{filteredEvents.length}</span>
               </div>
           </div>
 
@@ -288,33 +268,46 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
                   dayHeaderFormat={{ weekday: 'short' }}
                   eventDisplay="block"
                   eventContent={(arg) => {
-                    const type = arg.event.extendedProps.type;
-                    const names = arg.event.extendedProps.names as string[] || [];
-                    
+                    const type = arg.event.extendedProps.type as string
+                    const names = (arg.event.extendedProps.names as string[]) || []
+
+                    const isHoliday = type === "holiday"
+                    const isLeaveDay = type === "leave-day"
+
                     const content = (
-                      <div className="px-2 py-1.5 flex items-center justify-start min-h-[28px] group transition-all cursor-default">
-                        <span className="text-[10px] font-bold text-white whitespace-normal break-words uppercase tracking-tight leading-tight">
+                      <div className="group flex min-h-[28px] cursor-default items-center justify-start px-2 py-1.5 transition-all">
+                        <span
+                          className={`text-[10px] font-bold uppercase leading-tight tracking-tight break-words whitespace-normal ${
+                            isHoliday
+                              ? "text-white"
+                              : "text-slate-600 dark:text-zinc-300"
+                          }`}
+                        >
                           {arg.event.title}
                         </span>
                       </div>
-                    );
+                    )
 
-                    if (type === 'leave' && names.length > 0) {
+                    if (isLeaveDay && names.length > 0) {
                       return (
                         <Tooltip>
-                          <TooltipTrigger asChild>
-                            {content}
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="bg-slate-900/95 text-white border-none p-3 rounded-xl shadow-2xl backdrop-blur-md">
-                            <div className="space-y-2 max-w-[200px]">
-                              <p className="text-[10px] font-black text-[#10A074] uppercase tracking-widest border-b border-slate-700 pb-1 mb-1.5 flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#10A074] animate-pulse" />
-                                On Leave Today
+                          <TooltipTrigger asChild>{content}</TooltipTrigger>
+                          <TooltipContent
+                            side="top"
+                            className="rounded-xl border-none bg-slate-900/95 p-3 text-white shadow-2xl backdrop-blur-md"
+                          >
+                            <div className="max-w-[220px] space-y-2">
+                              <p className="mb-1.5 flex items-center gap-2 border-b border-slate-700 pb-1 text-[10px] font-black uppercase tracking-widest text-[#10A074]">
+                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#10A074]" />
+                                On leave this day
                               </p>
                               <ul className="grid gap-1">
                                 {names.map((name, i) => (
-                                  <li key={i} className="text-[12px] font-medium text-slate-100 flex items-center gap-1.5">
-                                    <div className="w-1 h-1 rounded-full bg-slate-400" />
+                                  <li
+                                    key={i}
+                                    className="flex items-center gap-1.5 text-[12px] font-medium text-slate-100"
+                                  >
+                                    <span className="h-1 w-1 rounded-full bg-slate-400" />
                                     {name}
                                   </li>
                                 ))}
@@ -322,10 +315,10 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
                             </div>
                           </TooltipContent>
                         </Tooltip>
-                      );
+                      )
                     }
-                    
-                    return content;
+
+                    return content
                   }}
                 />
               </div>
@@ -382,25 +375,16 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
         .custom-calendar .fc-day-today .fc-daygrid-day-number {
           color: #10A074 !important;
         }
-        .custom-calendar .headcount-banner {
+        .custom-calendar .headcount-banner,
+        .custom-calendar .on-leave-banner {
           border: 1px dashed #cbd5e1 !important;
           background-color: #f8fafc !important;
           margin-bottom: 4px !important;
         }
-        .custom-calendar .headcount-banner .text-white {
-          color: #64748b !important;
-        }
-        .custom-calendar .headcount-banner span {
-            color: #64748b !important;
-        }
-        .custom-calendar .leave-banner {
-          border-left: 5px solid #064e3b !important;
-          background-color: #10b981 !important;
-          margin-bottom: 2px !important;
-        }
-        .custom-calendar .status-banner .fc-event-title:before {
-            content: "👥 ";
-            margin-right: 4px;
+        .dark .custom-calendar .headcount-banner,
+        .dark .custom-calendar .on-leave-banner {
+          border-color: #3f3f46 !important;
+          background-color: rgba(24, 24, 27, 0.6) !important;
         }
         .custom-calendar .holiday-banner {
           border-left: 5px solid #881337 !important;
