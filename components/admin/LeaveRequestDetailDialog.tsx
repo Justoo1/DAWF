@@ -21,6 +21,8 @@ export type AdminLeaveRequestRow = {
   createdAt: Date | string
   isUnmanaged: boolean
   managerName: string
+  /** Approver user when leave was approved or declined */
+  manager?: { name: string | null } | null
   user: {
     name: string
     email: string
@@ -183,6 +185,17 @@ function LeaveRequestDetailBody({ request }: { request: AdminLeaveRequestRow }) 
               </div>
             )}
           </div>
+
+          {(request.status === "APPROVED" || request.status === "REJECTED") && (
+            <div className="rounded-xl border border-slate-100 p-4 dark:border-zinc-800">
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500 mb-1">
+                {request.status === "APPROVED" ? "Approved by" : "Declined by"}
+              </p>
+              <p className="text-sm font-semibold text-slate-800 dark:text-zinc-200">
+                {request.manager?.name?.trim() || "—"}
+              </p>
+            </div>
+          )}
 
           <p className="text-[10px] font-mono text-slate-400 dark:text-zinc-600">ID: {request.id}</p>
         </div>

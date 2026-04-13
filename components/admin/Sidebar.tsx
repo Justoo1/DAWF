@@ -148,8 +148,7 @@ export function Sidebar({
     isActive("/admin/clients") ||
     isActive("/admin/leave-management/departments");
 
-  const leaveManagementActive =
-    isActive("/admin/leave-management") || isActive("/admin/manage-employees");
+  const leaveManagementActive = isActive("/admin/leave-management");
 
   return (
     <>
@@ -316,10 +315,10 @@ export function Sidebar({
                     showTooltips={showTooltips}
                   />
                   <NavItem
-                    href="/admin/manage-employees"
+                    href="/admin/leave-management/leaves"
                     label="Leaves"
                     icon={CalendarDays}
-                    active={isActive("/admin/manage-employees")}
+                    active={isActive("/admin/leave-management/leaves")}
                     collapsed={collapsed}
                     showTooltips={showTooltips}
                   />

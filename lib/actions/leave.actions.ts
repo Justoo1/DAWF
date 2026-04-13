@@ -179,7 +179,7 @@ export async function submitLeaveRequest(data: {
     }
 
     revalidatePath("/admin/leave-management");
-    revalidatePath("/admin/manage-employees");
+    revalidatePath("/admin/leave-management/leaves");
     revalidatePath("/leave");
     
     return { success: true, request };
@@ -292,6 +292,7 @@ export async function approveLeaveRequest(requestId: string, approverId: string)
     });
 
     revalidatePath("/admin/leave-management/requests");
+    revalidatePath("/admin/leave-management/leaves");
     revalidatePath("/leave");
     return { success: true };
   } catch (error) {
@@ -342,6 +343,7 @@ export async function rejectLeaveRequest(requestId: string, approverId: string, 
     });
 
     revalidatePath("/admin/leave-management/requests");
+    revalidatePath("/admin/leave-management/leaves");
     revalidatePath("/leave");
     return { success: true };
   } catch (error) {
