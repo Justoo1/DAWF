@@ -555,10 +555,18 @@ export async function createEmployee(data: {
     }
 
     const client = await prisma.client.findFirst({
-      where: { id: data.clientId, isActive: true },
+      where: { id: data.clientId },
+      select: { id: true, isActive: true },
     })
     if (!client) {
-      return { success: false, error: 'Invalid client selected' }
+      return { success: false, error: 'Client not found' }
+    }
+    if (!client.isActive) {
+      return {
+        success: false,
+        error:
+          'That client is inactive. Enable it on the Clients page or choose an active client.',
+      }
     }
 
     const firstName = data.firstName.trim()
@@ -722,10 +730,18 @@ export async function updateEmployeeProfile(
     }
 
     const client = await prisma.client.findFirst({
-      where: { id: data.clientId, isActive: true },
+      where: { id: data.clientId },
+      select: { id: true, isActive: true },
     })
     if (!client) {
-      return { success: false, error: 'Invalid client selected' }
+      return { success: false, error: 'Client not found' }
+    }
+    if (!client.isActive) {
+      return {
+        success: false,
+        error:
+          'That client is inactive. Enable it on the Clients page or choose an active client.',
+      }
     }
 
     const firstName = data.firstName.trim()

@@ -116,6 +116,7 @@ export function EditEmployeeDialog({
     []
   )
   const [clients, setClients] = useState<{ id: string; name: string }[]>([])
+  const [clientsReady, setClientsReady] = useState(false)
   const [successOpen, setSuccessOpen] = useState(false)
   const [successSummary, setSuccessSummary] = useState<EmployeeSaveSummary | null>(
     null
@@ -136,19 +137,34 @@ export function EditEmployeeDialog({
   })
 
   useEffect(() => {
-    if (open) {
-      void fetchDepartments().then((res) => {
-        if (res.success && res.departments) {
-          setDepartments(res.departments.map((d) => ({ id: d.id, name: d.name })))
-        }
-      })
-      void fetchClients().then((res) => {
-        if (res.success && res.clients) {
-          setClients([...res.clients])
-        }
-      })
+    if (!open) {
+      setClientsReady(false)
+      return
     }
+    setClientsReady(false)
+    void fetchDepartments().then((res) => {
+      if (res.success && res.departments) {
+        setDepartments(res.departments.map((d) => ({ id: d.id, name: d.name })))
+      } else {
+        setDepartments([])
+      }
+    })
+    void fetchClients().then((res) => {
+      const next =
+        res.success && res.clients ? [...res.clients] : []
+      setClients(next)
+      setClientsReady(true)
+    })
   }, [open])
+
+  /** Only active clients are listed; clear field if current assignment is inactive. */
+  useEffect(() => {
+    if (!open || !clientsReady) return
+    const cid = form.getValues('clientId')
+    if (cid && !clients.some((c) => c.id === cid)) {
+      form.setValue('clientId', '', { shouldValidate: true })
+    }
+  }, [open, clients, clientsReady, form])
 
   useEffect(() => {
     if (open && employee) {

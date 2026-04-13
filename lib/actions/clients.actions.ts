@@ -5,6 +5,7 @@ import prisma from "../prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
+/** Active clients only — used for employee create/edit pickers so inactive orgs cannot be assigned. */
 export async function fetchClients() {
   try {
     const session = await auth.api.getSession({

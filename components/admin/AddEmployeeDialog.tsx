@@ -69,6 +69,7 @@ export function AddEmployeeDialog() {
   const [loading, setLoading] = useState(false)
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([])
   const [clients, setClients] = useState<{ id: string; name: string }[]>([])
+  const [clientsReady, setClientsReady] = useState(false)
   const { toast } = useToast()
 
   const form = useForm<AddEmployeeFormValues>({
@@ -81,19 +82,34 @@ export function AddEmployeeDialog() {
   const generateInitialPassword = form.watch('generateInitialPassword')
 
   useEffect(() => {
-    if (open) {
-      void fetchDepartments().then((res) => {
-        if (res.success && res.departments) {
-          setDepartments(res.departments.map((d) => ({ id: d.id, name: d.name })))
-        }
-      })
-      void fetchClients().then((res) => {
-        if (res.success && res.clients) {
-          setClients([...res.clients])
-        }
-      })
+    if (!open) {
+      setClientsReady(false)
+      return
     }
+    setClientsReady(false)
+    void fetchDepartments().then((res) => {
+      if (res.success && res.departments) {
+        setDepartments(res.departments.map((d) => ({ id: d.id, name: d.name })))
+      } else {
+        setDepartments([])
+      }
+    })
+    void fetchClients().then((res) => {
+      const next =
+        res.success && res.clients ? [...res.clients] : []
+      setClients(next)
+      setClientsReady(true)
+    })
   }, [open])
+
+  /** Drop selection if it is not an active client (e.g. stale UI or client was disabled). */
+  useEffect(() => {
+    if (!open || !clientsReady) return
+    const cid = form.getValues('clientId')
+    if (cid && !clients.some((c) => c.id === cid)) {
+      form.setValue('clientId', '', { shouldValidate: true })
+    }
+  }, [open, clients, clientsReady, form])
 
   const handleSubmit = async (values: AddEmployeeFormValues) => {
     setLoading(true)
