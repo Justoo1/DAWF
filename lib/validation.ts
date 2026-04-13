@@ -67,9 +67,11 @@ function refineEmployeeDatesAndExit(
     startDate: string
     welfareContributionsBeforeExit?: string
   },
-  ctx: z.RefinementCtx
+  ctx: z.RefinementCtx,
+  options?: { requireExitDateWhenInactive?: boolean }
 ) {
-  if (!data.isActive) {
+  const requireExit = options?.requireExitDateWhenInactive ?? true
+  if (requireExit && !data.isActive) {
     if (!data.exitDate?.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -146,19 +148,21 @@ export const addEmployeeFormSchema = addEmployeeFormObjectSchema.superRefine(
         })
       }
     }
-    refineEmployeeDatesAndExit(data, ctx)
+    refineEmployeeDatesAndExit(data, ctx, { requireExitDateWhenInactive: true })
   }
 )
 
 export type AddEmployeeFormValues = z.infer<typeof addEmployeeFormSchema>
 
-/** Admin edit employee — same rules as add, including work email; no initial password fields. */
+/** Admin edit employee — exit date optional when marking inactive (can be filled later). */
 export const editEmployeeFormSchema = addEmployeeFormObjectSchema
   .omit({
     generateInitialPassword: true,
     initialPassword: true,
   })
-  .superRefine((data, ctx) => refineEmployeeDatesAndExit(data, ctx))
+  .superRefine((data, ctx) =>
+    refineEmployeeDatesAndExit(data, ctx, { requireExitDateWhenInactive: false })
+  )
 
 export type EditEmployeeFormValues = z.infer<typeof editEmployeeFormSchema>
 

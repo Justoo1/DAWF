@@ -2,10 +2,19 @@
 
 import { revalidatePath } from 'next/cache'
 import prisma from '../prisma'
-import { ContributionStatus, UserRole } from '@prisma/client';
+import { ContributionStatus, Prisma, UserRole } from '@prisma/client';
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { generateRandomString, hashPassword } from 'better-auth/crypto'
+
+/**
+ * Better Auth's sendVerificationEmail uses the session cookie when present: it only allows
+ * verified users to request mail for *their own* address. Admin flows must email *another*
+ * user's address, so we call the API without forwarding the admin's cookies.
+ */
+function headersForSendVerificationToOtherUser(): Headers {
+  return new Headers()
+}
 
 export async function fetchUserWithContributions(email: string) {
   try {
@@ -359,9 +368,14 @@ export async function updateEmployeeStatus(userId: string, isActive: boolean) {
       return { success: false, error: 'Unauthorized: Only admins can update employee status' }
     }
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: { isActive }
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { isActive },
+      })
+      if (!isActive) {
+        await tx.session.deleteMany({ where: { userId } })
+      }
     })
     revalidatePath('/admin/employees')
     revalidatePath('/admin/manage-employees')
@@ -607,9 +621,16 @@ export async function createEmployee(data: {
         welfareContributionsBeforeExit: data.welfareContributionsBeforeExit,
         emailVerified: false,
         password: '',
-        mustChangePassword,
-      }
+      },
     })
+
+    // Set via raw SQL so employee creation still works if the generated Prisma Client
+    // is stale (missing `mustChangePassword` in types) after a schema change.
+    if (mustChangePassword) {
+      await prisma.$executeRaw(
+        Prisma.sql`UPDATE "users" SET "mustChangePassword" = ${true} WHERE "id" = ${user.id}`
+      )
+    }
 
     if (plainInitialPassword) {
       const hashed = await hashPassword(plainInitialPassword)
@@ -635,7 +656,7 @@ export async function createEmployee(data: {
           email: user.email,
           callbackURL: verificationCallback,
         },
-        headers: await headers(),
+        headers: headersForSendVerificationToOtherUser(),
       })
     } catch (err) {
       console.error("Failed to send verification email:", err)
@@ -800,6 +821,8 @@ export async function updateEmployeeProfile(
             ],
           },
         })
+      } else if (!active) {
+        await tx.session.deleteMany({ where: { userId } })
       }
       await tx.user.update({
         where: { id: userId },
@@ -817,7 +840,7 @@ export async function updateEmployeeProfile(
             email: newEmail,
             callbackURL: verificationCallback,
           },
-          headers: await headers(),
+          headers: headersForSendVerificationToOtherUser(),
         })
       } catch (e) {
         console.error('updateEmployeeProfile: sendVerificationEmail', e)
@@ -959,7 +982,7 @@ export async function adminResendEmployeeVerificationEmail(userId: string) {
         email: user.email,
         callbackURL: verificationCallback,
       },
-      headers: await headers()
+      headers: headersForSendVerificationToOtherUser(),
     })
   } catch (err) {
     console.error('adminResendEmployeeVerificationEmail', err)

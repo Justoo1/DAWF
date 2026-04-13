@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { UserValues } from "@/lib/validation";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { KeyRound, Mail, Pencil, Trash2Icon, MoreHorizontal } from "lucide-react";
+import {
+  KeyRound,
+  Mail,
+  Pencil,
+  Trash2Icon,
+  MoreHorizontal,
+  UserCheck,
+  UserX,
+} from "lucide-react";
 import { UserAvatarHover } from "./UserAvatarHover";
 import {
   adminResendEmployeeVerificationEmail,
@@ -27,7 +35,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { EditEmployeeDatesDialog } from "./EditEmployeeDatesDialog";
 import { EditEmployeeDialog } from "./EditEmployeeDialog";
@@ -242,6 +249,7 @@ const Employees = ({
         description: `Employee marked as ${newStatus ? "active" : "inactive"}`,
       });
       revalidateUserPath("/admin/employees");
+      router.refresh();
     } else {
       toast({
         variant: "destructive",
@@ -614,6 +622,32 @@ const Employees = ({
                             >
                               <Pencil className="mr-2 h-4 w-4 shrink-0" />
                               Edit employee
+                            </Button>
+                          )}
+                          {isAdmin && record.isActive && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="h-9 w-full justify-start rounded-lg px-2 text-popover-foreground hover:bg-accent hover:text-accent-foreground"
+                              onClick={() =>
+                                void handleStatusToggle(record.id, record.isActive)
+                              }
+                            >
+                              <UserX className="mr-2 h-4 w-4 shrink-0" />
+                              Disable account
+                            </Button>
+                          )}
+                          {isAdmin && !record.isActive && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="h-9 w-full justify-start rounded-lg px-2 text-popover-foreground hover:bg-accent hover:text-accent-foreground"
+                              onClick={() =>
+                                void handleStatusToggle(record.id, record.isActive)
+                              }
+                            >
+                              <UserCheck className="mr-2 h-4 w-4 shrink-0" />
+                              Enable account
                             </Button>
                           )}
                           {(isAdmin || isManager) && (

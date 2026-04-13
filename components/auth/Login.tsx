@@ -80,6 +80,11 @@ const Login = () => {
             "No account exists for this email. Ask your administrator to add you."
           );
           break;
+        case "account_disabled":
+          setInlineHint(
+            "This account has been disabled. Contact your administrator if you need access."
+          );
+          break;
         case "needs_verification":
           setInlineHint(
             "Verify your email first. Check your inbox for the invitation link, or ask your admin to resend it."

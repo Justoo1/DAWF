@@ -578,10 +578,7 @@ export function EditEmployeeDialog({
                       name="exitDate"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="inline-flex items-center gap-1">
-                            Exit Date
-                            <RequiredMark />
-                          </FormLabel>
+                          <FormLabel>Exit Date (optional)</FormLabel>
                           <FormControl>
                             <Input
                               type="date"

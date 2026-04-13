@@ -8,6 +8,7 @@ import { generateRandomString, hashPassword } from "better-auth/crypto";
 export type EmailLoginState =
   | { status: "invalid_email" }
   | { status: "not_provisioned" }
+  | { status: "account_disabled" }
   | { status: "needs_verification" }
   | { status: "needs_password_setup" }
   | { status: "ready" };
@@ -22,6 +23,7 @@ export async function getEmailLoginState(
   const user = await prisma.user.findFirst({
     where: { email: { equals: trimmed, mode: "insensitive" } },
     select: {
+      isActive: true,
       emailVerified: true,
       pendingInvite: true,
       accounts: {
@@ -32,6 +34,7 @@ export async function getEmailLoginState(
     },
   });
   if (!user) return { status: "not_provisioned" };
+  if (!user.isActive) return { status: "account_disabled" };
   if (!user.emailVerified || user.pendingInvite) {
     return { status: "needs_verification" };
   }

@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { Prisma } from "@prisma/client";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import prisma from "./prisma";
 import {
   sendEmployeeVerificationEmail,
@@ -94,5 +95,40 @@ export const auth = betterAuth({
     async afterEmailVerification(user: { email: string }) {
       await clearPendingInviteForEmail(user.email);
     },
+  },
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== "/sign-in/email") return;
+      const body = ctx.body as { email?: string } | undefined;
+      const email = body?.email?.trim();
+      if (!email) return;
+      const user = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: "insensitive" } },
+        select: { isActive: true },
+      });
+      if (user && !user.isActive) {
+        throw new APIError("FORBIDDEN", {
+          message: "This account has been disabled. Contact your administrator.",
+        });
+      }
+    }),
+    after: createAuthMiddleware(async (ctx) => {
+      const newSession = ctx.context.newSession as
+        | { user?: { id?: string } }
+        | null
+        | undefined;
+      const userId = newSession?.user?.id;
+      if (!userId) return;
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { isActive: true },
+      });
+      if (user && !user.isActive) {
+        await prisma.session.deleteMany({ where: { userId } });
+        throw new APIError("FORBIDDEN", {
+          message: "This account has been disabled. Contact your administrator.",
+        });
+      }
+    }),
   },
 });
