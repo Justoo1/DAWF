@@ -75,6 +75,7 @@ const Employees = ({
   const [statusFilter, setStatusFilter] = useState("all");
   const [verificationFilter, setVerificationFilter] = useState<"all" | "unverified">("all");
   const [deptFilter, setDeptFilter] = useState("all");
+  const [clientFilter, setClientFilter] = useState("all");
   const [sortConfig, setSortConfig] = useState<{
     key: keyof UserValues;
     direction: "asc" | "desc";
@@ -87,6 +88,19 @@ const Employees = ({
   const departments = Array.from(
     new Set(employees.map((e) => e.department).filter(Boolean))
   ).sort() as string[];
+
+  const clientFilterOptions = (() => {
+    const map = new Map<string, string>();
+    for (const e of employees) {
+      const id = e.clientId;
+      if (!id) continue;
+      const label = e.clientName?.trim() || id;
+      if (!map.has(id)) map.set(id, label);
+    }
+    return [...map.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  })();
 
   const filteredRecords = employees
     .filter((record) => {
@@ -104,6 +118,8 @@ const Employees = ({
           : !record.isActive;
       const matchesDept =
         deptFilter === "all" ? true : record.department === deptFilter;
+      const matchesClient =
+        clientFilter === "all" ? true : record.clientId === clientFilter;
       const needsEmailVerification =
         !record.emailVerified || !!record.pendingInvite;
       const matchesVerification =
@@ -112,6 +128,7 @@ const Employees = ({
         matchesSearch &&
         matchesStatus &&
         matchesDept &&
+        matchesClient &&
         matchesVerification
       );
     })
@@ -335,6 +352,22 @@ const Employees = ({
             </Select>
           </div>
 
+          <div className="w-full sm:w-48">
+            <Select value={clientFilter} onValueChange={setClientFilter}>
+              <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+                <SelectValue placeholder="All clients" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All clients</SelectItem>
+                {clientFilterOptions.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="w-full sm:w-40">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
@@ -368,6 +401,7 @@ const Employees = ({
           )}
 
           {(deptFilter !== "all" ||
+            clientFilter !== "all" ||
             statusFilter !== "all" ||
             verificationFilter !== "all" ||
             searchTerm) && (
@@ -377,6 +411,7 @@ const Employees = ({
               onClick={() => {
                 setSearchTerm("");
                 setDeptFilter("all");
+                setClientFilter("all");
                 setStatusFilter("all");
                 setVerificationFilter("all");
               }}

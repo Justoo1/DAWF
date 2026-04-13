@@ -13,16 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import {
   Form,
@@ -50,6 +40,11 @@ import {
   type AddEmployeeFormValues,
 } from "@/lib/validation"
 import { Calendar, Mail, Phone, PlusCircle, User } from "lucide-react"
+import {
+  EmployeeSaveSuccessDialog,
+  type EmployeeSaveSummary,
+} from "@/components/admin/EmployeeSaveSuccessDialog"
+import { buildEmployeeSaveSummary } from "@/components/admin/build-employee-save-summary"
 
 /** Strip digits so names stay letters-only (allows spaces, hyphens, apostrophes, unicode letters). */
 function sanitizePersonName(value: string) {
@@ -71,8 +66,13 @@ function RequiredMark() {
 
 export function AddEmployeeDialog() {
   const [open, setOpen] = useState(false)
-  const [revealPasswordOpen, setRevealPasswordOpen] = useState(false)
-  const [revealedPassword, setRevealedPassword] = useState<string | null>(null)
+  const [successOpen, setSuccessOpen] = useState(false)
+  const [successSummary, setSuccessSummary] = useState<EmployeeSaveSummary | null>(
+    null
+  )
+  const [successTempPassword, setSuccessTempPassword] = useState<string | null>(
+    null
+  )
   const [loading, setLoading] = useState(false)
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([])
   const [clients, setClients] = useState<{ id: string; name: string }[]>([])
@@ -137,17 +137,13 @@ export function AddEmployeeDialog() {
       })
 
       if (result.success) {
+        const clientName =
+          clients.find((c) => c.id === values.clientId)?.name ?? "—"
+        setSuccessSummary(buildEmployeeSaveSummary(values, clientName))
+        setSuccessTempPassword(result.generatedPassword ?? null)
         setOpen(false)
         form.reset(addEmployeeDefaultValues)
-        if (result.generatedPassword) {
-          setRevealedPassword(result.generatedPassword)
-          setRevealPasswordOpen(true)
-        } else {
-          toast({
-            title: 'Success',
-            description: 'Employee added. A verification email has been sent.',
-          })
-        }
+        setSuccessOpen(true)
       } else {
         toast({
           variant: 'destructive',
@@ -169,39 +165,19 @@ export function AddEmployeeDialog() {
 
   return (
     <>
-      <AlertDialog
-        open={revealPasswordOpen}
+      <EmployeeSaveSuccessDialog
+        open={successOpen}
         onOpenChange={(v) => {
-          setRevealPasswordOpen(v)
-          if (!v) setRevealedPassword(null)
+          setSuccessOpen(v)
+          if (!v) {
+            setSuccessSummary(null)
+            setSuccessTempPassword(null)
+          }
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Temporary password (copy now)</AlertDialogTitle>
-            <AlertDialogDescription>
-              This password is shown only once. Share it with the employee through a secure channel.
-              They will choose a new password after they verify their email and sign in.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="rounded-md bg-muted px-3 py-2 font-mono text-sm break-all">
-            {revealedPassword}
-          </div>
-          <AlertDialogFooter className="gap-2 sm:gap-0">
-            <AlertDialogCancel>Close</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (revealedPassword) {
-                  void navigator.clipboard.writeText(revealedPassword)
-                  toast({ title: 'Copied to clipboard' })
-                }
-              }}
-            >
-              Copy password
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        variant="add"
+        summary={successSummary}
+        temporaryPassword={successTempPassword}
+      />
 
       <Dialog
         open={open}

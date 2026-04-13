@@ -12,6 +12,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Input } from '@/components/ui/input'
 import {
   Form,
@@ -42,8 +47,15 @@ import {
   type EditEmployeeFormValues,
   type UserValues,
 } from '@/lib/validation'
-import { Calendar, Mail, Pencil, Phone, User } from 'lucide-react'
+import { Calendar, Info, Mail, Pencil, Phone, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import {
+  EmployeeSaveSuccessDialog,
+  type EmployeeSaveSummary,
+} from '@/components/admin/EmployeeSaveSuccessDialog'
+import { EmailVerificationSentDialog } from '@/components/admin/EmailVerificationSentDialog'
+import { buildEmployeeSaveSummary } from '@/components/admin/build-employee-save-summary'
+import { EDIT_EMPLOYEE_EMAIL_CHANGE_DETAILS } from '@/lib/admin-employee-copy'
 
 function sanitizePersonName(value: string) {
   return value.replace(/\d/g, '')
@@ -111,6 +123,15 @@ export function EditEmployeeDialog({
     []
   )
   const [clients, setClients] = useState<{ id: string; name: string }[]>([])
+  const [successOpen, setSuccessOpen] = useState(false)
+  const [successSummary, setSuccessSummary] = useState<EmployeeSaveSummary | null>(
+    null
+  )
+  const [pendingVerifyEmail, setPendingVerifyEmail] = useState<string | null>(
+    null
+  )
+  const [verifyDialogOpen, setVerifyDialogOpen] = useState(false)
+  const [verifyDialogEmail, setVerifyDialogEmail] = useState('')
   const { toast } = useToast()
   const router = useRouter()
 
@@ -174,12 +195,13 @@ export function EditEmployeeDialog({
       })
 
       if (result.success) {
-        toast({
-          title: 'Saved',
-          description: result.emailChanged
-            ? 'Email updated. A verification link was sent to the new address; previous sessions for this employee were signed out.'
-            : 'Employee updated successfully.',
-        })
+        const clientName =
+          clients.find((c) => c.id === values.clientId)?.name ?? '—'
+        setSuccessSummary(buildEmployeeSaveSummary(values, clientName))
+        setPendingVerifyEmail(
+          result.emailChanged ? values.email.trim() : null
+        )
+        setSuccessOpen(true)
         onOpenChange(false)
         revalidateUserPath('/admin/employees')
         router.refresh()
@@ -199,19 +221,67 @@ export function EditEmployeeDialog({
     }
   }
 
+  const watchedEmail = form.watch('email')
+  const emailChangePending =
+    !!employee &&
+    watchedEmail?.trim().toLowerCase() !==
+      employee.email?.trim().toLowerCase()
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <EmployeeSaveSuccessDialog
+        open={successOpen}
+        onOpenChange={(v) => {
+          setSuccessOpen(v)
+          if (!v) {
+            setSuccessSummary(null)
+            const next = pendingVerifyEmail
+            setPendingVerifyEmail(null)
+            if (next) {
+              setVerifyDialogEmail(next)
+              setVerifyDialogOpen(true)
+            }
+          }
+        }}
+        variant="edit"
+        summary={successSummary}
+      />
+      <EmailVerificationSentDialog
+        open={verifyDialogOpen}
+        onOpenChange={(v) => {
+          setVerifyDialogOpen(v)
+          if (!v) setVerifyDialogEmail('')
+        }}
+        email={verifyDialogEmail}
+      />
+
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[min(90vh,920px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[700px]">
         <DialogHeader className="border-b border-border/60 px-6 py-4 text-left">
-          <DialogTitle className="flex items-center gap-2">
-            <Pencil className="h-5 w-5" />
-            Edit employee
-          </DialogTitle>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5" />
+              Edit employee
+            </DialogTitle>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-fit shrink-0 gap-1.5 text-xs"
+                >
+                  <Info className="h-3.5 w-3.5" />
+                  About email updates
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 text-sm leading-relaxed" align="end">
+                <p>{EDIT_EMPLOYEE_EMAIL_CHANGE_DETAILS}</p>
+              </PopoverContent>
+            </Popover>
+          </div>
           <DialogDescription>
-            Update profile and email. Changing email clears verification until they
-            confirm the new address, ends their sessions, and sends a new
-            verification message. Google sign-in only works if their Google account
-            uses the same email.
+            Update employee details and work email.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -319,6 +389,13 @@ export function EditEmployeeDialog({
                           {...field}
                         />
                       </FormControl>
+                      {emailChangePending ? (
+                        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-100">
+                          You are changing this person&apos;s email. After you save,
+                          we will send a verification link to the new address and
+                          sign them out everywhere until they confirm it.
+                        </p>
+                      ) : null}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -552,5 +629,6 @@ export function EditEmployeeDialog({
         </Form>
       </DialogContent>
     </Dialog>
+    </>
   )
 }
