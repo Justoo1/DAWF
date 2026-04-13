@@ -7,6 +7,10 @@ import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { generateRandomString, hashPassword } from 'better-auth/crypto'
 import { postEmailVerificationCallbackUrl } from '@/lib/auth-app-url'
+import {
+  getPasswordPolicyFailureMessage,
+  passwordMeetsPolicy,
+} from '@/lib/password-policy'
 
 /**
  * Better Auth's sendVerificationEmail uses the session cookie when present: it only allows
@@ -519,8 +523,19 @@ export async function updateUserDepartment(userId: string, department: string) {
   }
 }
 
+/** Meets the same policy as user-chosen passwords (for verification email + sign-in). */
 function buildGeneratedInitialPassword(): string {
-  return generateRandomString(10, "a-z", "0-9")
+  const lower = generateRandomString(4, "a-z");
+  const upper = generateRandomString(2, "A-Z");
+  const digit = generateRandomString(2, "0-9");
+  const symbol = generateRandomString(1, "!@#$%&*");
+  const extra = generateRandomString(3, "a-z", "A-Z", "0-9");
+  const chars = (lower + upper + digit + symbol + extra).split("");
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+  return chars.join("");
 }
 
 export async function createEmployee(data: {
@@ -598,8 +613,11 @@ export async function createEmployee(data: {
       mustChangePassword = true
     } else if (data.initialPassword?.trim()) {
       const p = data.initialPassword.trim()
-      if (p.length < 8) {
-        return { success: false, error: 'Initial password must be at least 8 characters' }
+      if (!passwordMeetsPolicy(p)) {
+        return {
+          success: false,
+          error: getPasswordPolicyFailureMessage(p),
+        }
       }
       plainInitialPassword = p
       mustChangePassword = true

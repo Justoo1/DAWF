@@ -4,6 +4,10 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 import { generateRandomString, hashPassword } from "better-auth/crypto";
+import {
+  getPasswordPolicyFailureMessage,
+  passwordMeetsPolicy,
+} from "@/lib/password-policy";
 
 export type EmailLoginState =
   | { status: "invalid_email" }
@@ -95,11 +99,11 @@ export async function submitInitialPasswordChange(newPassword: string) {
     };
   }
   const trimmed = newPassword.trim();
-  if (trimmed.length < 8) {
-    return { success: false, error: "Password must be at least 8 characters" };
-  }
-  if (trimmed.length > 128) {
-    return { success: false, error: "Password is too long" };
+  if (!passwordMeetsPolicy(trimmed)) {
+    return {
+      success: false,
+      error: getPasswordPolicyFailureMessage(trimmed),
+    };
   }
   const hashed = await hashPassword(trimmed);
   const cred = await prisma.account.findFirst({

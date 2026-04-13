@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { PasswordInput } from "@/components/ui/password-input"
+import { PasswordRequirementsHints } from "@/components/auth/PasswordRequirementsHints"
 import {
   Form,
   FormControl,
@@ -365,10 +366,16 @@ export function AddEmployeeDialog() {
                             <PasswordInput
                               autoComplete="new-password"
                               className="h-11 rounded-lg"
-                              placeholder="Min. 8 characters"
+                              placeholder="Strong password (see requirements below)"
+                              maxLength={128}
                               {...field}
                             />
                           </FormControl>
+                          <PasswordRequirementsHints
+                            password={field.value || ""}
+                            variant="light"
+                            className="mt-1"
+                          />
                           <p className="text-xs text-muted-foreground">
                             If set, the employee uses this until they choose a new one. Leave empty if they will set a password only from the verification email.
                           </p>

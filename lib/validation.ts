@@ -1,4 +1,8 @@
 import { z } from 'zod'
+import {
+  getPasswordPolicyFailureMessage,
+  passwordMeetsPolicy,
+} from '@/lib/password-policy'
 
 const phoneLike = /^[\d\s\-+().]{7,32}$/
 
@@ -133,17 +137,10 @@ export const addEmployeeFormSchema = addEmployeeFormObjectSchema.superRefine(
   (data, ctx) => {
     if (!data.generateInitialPassword && data.initialPassword?.trim()) {
       const p = data.initialPassword.trim()
-      if (p.length < 8) {
+      if (!passwordMeetsPolicy(p)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Initial password must be at least 8 characters',
-          path: ['initialPassword'],
-        })
-      }
-      if (p.length > 128) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Password must be at most 128 characters',
+          message: getPasswordPolicyFailureMessage(p),
           path: ['initialPassword'],
         })
       }
@@ -207,7 +204,14 @@ export const UserSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   department: z.string().optional(),
   role: z.enum(['EMPLOYEE', 'MANAGER', 'ADMIN', 'FOOD_COMMITTEE']).default('EMPLOYEE'),
-  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
+  password: z.string().superRefine((val, ctx) => {
+    if (!passwordMeetsPolicy(val)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: getPasswordPolicyFailureMessage(val),
+      })
+    }
+  }),
 })
 export type User = Omit<z.infer<typeof UserSchema>,  "password" | "department"> & {
   clerkId?: string | null
@@ -410,13 +414,14 @@ export const EventAttendeeSchema = z.object({
 })
 export type EventAttendee = z.infer<typeof EventAttendeeSchema>
 
+/** Sign-in: do not enforce “strong” rules (existing accounts may predate policy). */
 export const loginSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
-  password: z.string().min(8, {
-    message: "Password must be at least 8 characters.",
-  })
+  password: z.string().min(1, {
+    message: "Password is required.",
+  }),
 })
 
 export const signupSchema = z.object({
@@ -426,8 +431,13 @@ export const signupSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
-  password: z.string().min(8, {
-    message: "Password must be at least 8 characters.",
+  password: z.string().superRefine((val, ctx) => {
+    if (!passwordMeetsPolicy(val)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: getPasswordPolicyFailureMessage(val),
+      })
+    }
   }),
 })
 

@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
+import { PasswordRequirementsHints } from "@/components/auth/PasswordRequirementsHints";
+import {
+  getPasswordPolicyFailureMessage,
+  passwordMeetsPolicy,
+} from "@/lib/password-policy";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
@@ -35,10 +41,10 @@ export function SetPasswordForm() {
       });
       return;
     }
-    if (password.length < 8) {
+    if (!passwordMeetsPolicy(password)) {
       toast({
-        title: "Password too short",
-        description: "Use at least 8 characters.",
+        title: "Password requirements not met",
+        description: getPasswordPolicyFailureMessage(password),
         variant: "destructive",
       });
       return;
@@ -110,7 +116,9 @@ export function SetPasswordForm() {
               toggleButtonClassName="text-white/70 hover:bg-white/10 hover:text-white focus-visible:ring-white/30"
               required
               minLength={8}
+              maxLength={128}
             />
+            <PasswordRequirementsHints password={password} variant="auth" />
           </div>
           <div className="space-y-2">
             <label htmlFor="confirm-password" className="text-sm font-medium text-white/90">
@@ -125,11 +133,30 @@ export function SetPasswordForm() {
               toggleButtonClassName="text-white/70 hover:bg-white/10 hover:text-white focus-visible:ring-white/30"
               required
               minLength={8}
+              maxLength={128}
             />
+            {confirm.length > 0 ? (
+              <p
+                className={cn(
+                  "text-xs",
+                  password === confirm
+                    ? "text-emerald-300"
+                    : "text-amber-200/90"
+                )}
+              >
+                {password === confirm
+                  ? "Passwords match."
+                  : "Passwords do not match yet."}
+              </p>
+            ) : null}
           </div>
           <Button
             type="submit"
-            disabled={pending}
+            disabled={
+              pending ||
+              !passwordMeetsPolicy(password) ||
+              password !== confirm
+            }
             className="w-full h-12 bg-white text-[#121212] hover:bg-white/90 rounded-xl font-semibold"
           >
             {pending ? "Saving…" : "Save password"}
