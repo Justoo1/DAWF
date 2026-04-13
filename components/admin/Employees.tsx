@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { UserValues } from "@/lib/validation";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Trash2Icon, MoreHorizontal } from "lucide-react";
+import { KeyRound, Mail, Trash2Icon, MoreHorizontal } from "lucide-react";
 import { UserAvatarHover } from "./UserAvatarHover";
 import {
+  adminResendEmployeeVerificationEmail,
+  adminSendEmployeePasswordReset,
   deleteUser,
   revalidateUserPath,
   updateEmployeeStatus,
@@ -131,6 +133,42 @@ const Employees = ({
         variant: "destructive",
         title: "Error",
         description: deleted.error,
+      });
+    }
+  };
+
+  const handleResendVerification = async (userId: string | undefined) => {
+    if (!userId) return;
+    const result = await adminResendEmployeeVerificationEmail(userId);
+    if (result.success) {
+      toast({
+        title: "Verification email sent",
+        description: "They can use the link to verify and set a password.",
+      });
+      revalidateUserPath("/admin/employees");
+      router.refresh();
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Could not send",
+        description: result.error,
+      });
+    }
+  };
+
+  const handleSendPasswordReset = async (userId: string | undefined) => {
+    if (!userId) return;
+    const result = await adminSendEmployeePasswordReset(userId);
+    if (result.success) {
+      toast({
+        title: "Password reset sent",
+        description: "If the email exists, they will receive a reset link.",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Could not send",
+        description: result.error,
       });
     }
   };
@@ -411,7 +449,7 @@ const Employees = ({
                           <span className="sr-only">Open menu</span>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent align="end" className="w-[200px] p-2 rounded-2xl shadow-lg border-slate-100 bg-white">
+                      <PopoverContent align="end" className="w-[240px] p-2 rounded-2xl shadow-lg border-slate-100 bg-white">
                         <div className="flex flex-col gap-1">
                           <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                             Actions
@@ -427,6 +465,28 @@ const Employees = ({
                                   isAdmin={isAdmin}
                                 />
                              </div>
+                          )}
+                          {isAdmin && !record.emailVerified && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="w-full justify-start h-9 rounded-lg px-2 text-slate-700"
+                              onClick={() => handleResendVerification(record.id)}
+                            >
+                              <Mail className="mr-2 h-4 w-4 shrink-0" />
+                              Resend verification
+                            </Button>
+                          )}
+                          {isAdmin && record.emailVerified && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="w-full justify-start h-9 rounded-lg px-2 text-slate-700"
+                              onClick={() => handleSendPasswordReset(record.id)}
+                            >
+                              <KeyRound className="mr-2 h-4 w-4 shrink-0" />
+                              Send password reset
+                            </Button>
                           )}
                           {isAdmin && (
                             <Button

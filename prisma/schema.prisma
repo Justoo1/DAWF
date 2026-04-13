@@ -149,6 +149,8 @@ model User {
   phoneNumber            String                  @default("")
   /// Admin-created accounts stay true until the employee completes email verification.
   pendingInvite          Boolean                 @default(false)
+  /// True when the user must set a new password after signing in (admin-set or generated initial password).
+  mustChangePassword     Boolean                 @default(false)
   clientId               String
   client                 Client                  @relation(fields: [clientId], references: [id], onDelete: Restrict)
   department             String?

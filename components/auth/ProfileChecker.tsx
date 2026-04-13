@@ -17,7 +17,11 @@ export function ProfileChecker() {
         pathname.startsWith("/wrong-email") ||
         pathname.startsWith("/complete-profile") ||
         pathname.startsWith("/verify-email-pending") ||
-        pathname.startsWith("/account-deactivated")
+        pathname.startsWith("/account-deactivated") ||
+        pathname.startsWith("/set-password") ||
+        pathname.startsWith("/forgot-password") ||
+        pathname.startsWith("/reset-password") ||
+        pathname.startsWith("/change-initial-password")
       ) {
         return
       }
@@ -47,6 +51,11 @@ export function ProfileChecker() {
 
         if (gate.pendingInvite) {
           router.push("/verify-email-pending")
+          return
+        }
+
+        if (gate.mustChangePassword) {
+          router.push("/change-initial-password")
           return
         }
 

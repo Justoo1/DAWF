@@ -32,6 +32,9 @@ export type UserValues = Omit<z.infer<typeof UserSchema>, 'password' | "departme
   lastName?: string
   phoneNumber?: string
   pendingInvite?: boolean
+  emailVerified?: boolean
+  /** True when Better Auth credential account has a password hash (employee can sign in with email/password). */
+  hasCredentialPassword?: boolean
   clientName?: string | null
   contributions?: { month: Date; amount: number; status?: string }[]
 }

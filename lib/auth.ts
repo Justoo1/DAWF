@@ -2,7 +2,10 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { Prisma } from "@prisma/client";
 import prisma from "./prisma";
-import { sendEmployeeVerificationEmail } from "./auth-email";
+import {
+  sendEmployeeVerificationEmail,
+  sendPasswordResetEmail,
+} from "./auth-email";
 
 /** Case-insensitive match so JWT / Better Auth email lines up with how the row was stored. */
 async function clearPendingInviteForEmail(email: string) {
@@ -20,6 +23,20 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,
+    requireEmailVerification: true,
+    sendResetPassword: async ({ user, url }) => {
+      void sendPasswordResetEmail(
+        user.email,
+        user.name || user.email,
+        url
+      );
+    },
+    onPasswordReset: async ({ user }) => {
+      await prisma.user.updateMany({
+        where: { id: user.id },
+        data: { mustChangePassword: false },
+      });
+    },
   },
   socialProviders: {
     google: {
@@ -54,9 +71,14 @@ export const auth = betterAuth({
         type: "string",
         required: false,
       },
+      mustChangePassword: {
+        type: "boolean",
+        required: false,
+      },
     },
   },
   emailVerification: {
+    autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       void sendEmployeeVerificationEmail(
         user.email,

@@ -13,6 +13,7 @@ export type AccountGateState =
       domainOk: boolean;
       isActive: boolean;
       pendingInvite: boolean;
+      mustChangePassword: boolean;
     };
 
 export async function getAccountGateState(): Promise<AccountGateState> {
@@ -29,7 +30,7 @@ export async function getAccountGateState(): Promise<AccountGateState> {
 
   const u = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { isActive: true, pendingInvite: true },
+    select: { isActive: true, pendingInvite: true, mustChangePassword: true },
   });
 
   return {
@@ -37,5 +38,6 @@ export async function getAccountGateState(): Promise<AccountGateState> {
     domainOk,
     isActive: u?.isActive ?? true,
     pendingInvite: u?.pendingInvite ?? false,
+    mustChangePassword: u?.mustChangePassword ?? false,
   };
 }

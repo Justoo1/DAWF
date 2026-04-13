@@ -1,37 +1,124 @@
-'use client'
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import Link from "next/link"
-import { useToast } from "@/hooks/use-toast"
-import { authClient } from "@/lib/auth-client"
-import { Calendar } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
+import { authClient } from "@/lib/auth-client";
+import { Calendar } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { getEmailLoginState } from "@/lib/actions/auth-login.action";
+
+type Step = "email" | "password";
 
 const Login = () => {
-  const { toast } = useToast()
+  const { toast } = useToast();
+  const [step, setStep] = useState<Step>("email");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [inlineHint, setInlineHint] = useState<string | null>(null);
 
   const handleGoogleSignIn = async () => {
     try {
       await authClient.signIn.social({
         provider: "google",
         callbackURL: "/",
-      })
+      });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to sign in with Google"
+      const message =
+        error instanceof Error ? error.message : "Failed to sign in with Google";
       toast({
         title: "Error",
         description: message,
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
+
+  const handleContinueEmail = async () => {
+    setInlineHint(null);
+    setBusy(true);
+    try {
+      const state = await getEmailLoginState(email);
+      switch (state.status) {
+        case "invalid_email":
+          toast({
+            title: "Invalid email",
+            description: "Enter a valid work email address.",
+            variant: "destructive",
+          });
+          break;
+        case "not_provisioned":
+          setInlineHint(
+            "No DAWF account exists for this email. Ask your administrator to add you."
+          );
+          break;
+        case "needs_verification":
+          setInlineHint(
+            "Verify your email first. Check your inbox for the invitation link, or ask your admin to resend it."
+          );
+          break;
+        case "needs_password_setup":
+          setInlineHint(
+            "You have not set a password yet. Open the link in your verification email to choose a password, or use Forgot password to get a setup link."
+          );
+          break;
+        case "ready":
+          setStep("password");
+          setPassword("");
+          break;
+        default:
+          break;
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const { error } = await authClient.signIn.email({
+        email: email.trim(),
+        password,
+        callbackURL: "/sign-in",
+      });
+      if (error) {
+        toast({
+          title: "Sign in failed",
+          description: error.message || "Check your password and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      window.location.assign("/");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Sign in failed. Try again.";
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const inputClass =
+    "h-12 rounded-xl bg-white/10 border-white/20 text-white placeholder:text-white/40";
 
   return (
     <Card className="w-full max-w-md border-none bg-[#146C43] text-white shadow-2xl rounded-3xl overflow-hidden p-4 md:p-8">
       <CardHeader className="space-y-4 pb-8">
-        <CardTitle className="text-4xl font-bold tracking-tight">Sign In to DAWF</CardTitle>
+        <CardTitle className="text-4xl font-bold tracking-tight">
+          Sign In to DAWF
+        </CardTitle>
         <p className="text-white/70 text-base">
-          Welcome to Dawf, kindly Sign in to continue
+          Welcome to Dawf, kindly sign in to continue
         </p>
       </CardHeader>
       <CardContent className="space-y-8">
@@ -60,25 +147,121 @@ const Login = () => {
           </svg>
           Sign in with Google
         </Button>
-        
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full h-px bg-white/15" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase tracking-widest">
+            <span className="bg-[#146C43] px-3 text-white/50">or email</span>
+          </div>
+        </div>
+
+        {step === "email" ? (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="login-email" className="text-sm font-medium text-white/90">
+                Work email
+              </label>
+              <Input
+                id="login-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={inputClass}
+                placeholder="you@company.com"
+              />
+            </div>
+            {inlineHint ? (
+              <p className="text-sm text-amber-100/95 bg-black/20 rounded-lg p-3 border border-white/10">
+                {inlineHint}{" "}
+                <Link href="/forgot-password" className="underline font-medium">
+                  Forgot password
+                </Link>
+                {" · "}
+                <Link href="/verify-email-pending" className="underline font-medium">
+                  Verification help
+                </Link>
+              </p>
+            ) : null}
+            <Button
+              type="button"
+              onClick={handleContinueEmail}
+              disabled={busy || !email.trim()}
+              className="w-full h-12 bg-white/15 hover:bg-white/25 text-white border border-white/20 rounded-xl font-semibold"
+            >
+              {busy ? "Checking…" : "Continue"}
+            </Button>
+          </div>
+        ) : (
+          <form onSubmit={handleEmailSignIn} className="space-y-4">
+            <div className="flex items-center justify-between gap-2 text-sm">
+              <span className="text-white/80 truncate">{email}</span>
+              <button
+                type="button"
+                className="text-white/90 underline shrink-0"
+                onClick={() => {
+                  setStep("email");
+                  setPassword("");
+                  setInlineHint(null);
+                }}
+              >
+                Change
+              </button>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="login-password" className="text-sm font-medium text-white/90">
+                Password
+              </label>
+              <Input
+                id="login-password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div className="flex justify-end">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-white/80 hover:text-white underline-offset-4 hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
+            <Button
+              type="submit"
+              disabled={busy || !password}
+              className="w-full h-12 bg-white text-[#121212] hover:bg-white/90 rounded-xl font-semibold"
+            >
+              {busy ? "Signing in…" : "Sign in"}
+            </Button>
+          </form>
+        )}
+
         <p className="text-sm text-white/70 text-left py-2">
-          Accounts are created by an administrator. If you need access, contact your HR admin.
+          Accounts are created by an administrator. If you need access, contact
+          your HR admin.
         </p>
 
         <div className="w-full h-px bg-white/10" />
 
-        <Link 
-          href="/public-calendar" 
+        <Link
+          href="/public-calendar"
           className="flex items-center gap-3 text-white/90 hover:text-white transition-colors group"
         >
           <div className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-all border border-white/5">
-            <Calendar className="w-5 h-5" />
+            <Calendar className="h-5 w-5" />
           </div>
-          <span className="text-sm font-medium tracking-wide">View Public Calendar (no login required)</span>
+          <span className="text-sm font-medium tracking-wide">
+            View Public Calendar (no login required)
+          </span>
         </Link>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
 export default Login;

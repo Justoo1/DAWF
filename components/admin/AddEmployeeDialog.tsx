@@ -11,6 +11,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -30,10 +40,15 @@ import { useEffect } from 'react'
 
 export function AddEmployeeDialog() {
   const [open, setOpen] = useState(false)
+  const [revealPasswordOpen, setRevealPasswordOpen] = useState(false)
+  const [revealedPassword, setRevealedPassword] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [departments, setDepartments] = useState<{id: string, name: string}[]>([])
   const [clients, setClients] = useState<{id: string, name: string}[]>([])
   const { toast } = useToast()
+
+  const [generateInitialPassword, setGenerateInitialPassword] = useState(false)
+  const [initialPassword, setInitialPassword] = useState('')
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -50,6 +65,26 @@ export function AddEmployeeDialog() {
     exitDate: '',
     welfareContributionsBeforeExit: '',
   })
+
+  const resetFormFields = () => {
+    setFormData({
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+      email: '',
+      clientId: '',
+      department: '',
+      dateOfBirth: '',
+      startDate: '',
+      role: 'EMPLOYEE',
+      isActive: true,
+      isContributor: true,
+      exitDate: '',
+      welfareContributionsBeforeExit: '',
+    })
+    setGenerateInitialPassword(false)
+    setInitialPassword('')
+  }
 
   useEffect(() => {
     if (open) {
@@ -68,6 +103,14 @@ export function AddEmployeeDialog() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!generateInitialPassword && initialPassword.trim() && initialPassword.trim().length < 8) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid password',
+        description: 'Initial password must be at least 8 characters, or clear the field.',
+      })
+      return
+    }
     setLoading(true)
 
     try {
@@ -87,29 +130,22 @@ export function AddEmployeeDialog() {
         welfareContributionsBeforeExit: formData.welfareContributionsBeforeExit
           ? parseFloat(formData.welfareContributionsBeforeExit)
           : undefined,
+        generateInitialPassword,
+        initialPassword: generateInitialPassword ? undefined : (initialPassword.trim() || undefined),
       })
 
       if (result.success) {
-        toast({
-          title: 'Success',
-          description: 'Employee added. A verification email has been sent.',
-        })
         setOpen(false)
-        setFormData({
-          firstName: '',
-          lastName: '',
-          phoneNumber: '',
-          email: '',
-          clientId: '',
-          department: '',
-          dateOfBirth: '',
-          startDate: '',
-          role: 'EMPLOYEE',
-          isActive: true,
-          isContributor: true,
-          exitDate: '',
-          welfareContributionsBeforeExit: '',
-        })
+        if (result.generatedPassword) {
+          setRevealedPassword(result.generatedPassword)
+          setRevealPasswordOpen(true)
+        } else {
+          toast({
+            title: 'Success',
+            description: 'Employee added. A verification email has been sent.',
+          })
+        }
+        resetFormFields()
       } else {
         toast({
           variant: 'destructive',
@@ -130,6 +166,38 @@ export function AddEmployeeDialog() {
   }
 
   return (
+    <>
+    <AlertDialog open={revealPasswordOpen} onOpenChange={(v) => {
+      setRevealPasswordOpen(v)
+      if (!v) setRevealedPassword(null)
+    }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Temporary password (copy now)</AlertDialogTitle>
+          <AlertDialogDescription>
+            This password is shown only once. Share it with the employee through a secure channel.
+            They will choose a new password after they verify their email and sign in.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="rounded-md bg-muted px-3 py-2 font-mono text-sm break-all">
+          {revealedPassword}
+        </div>
+        <AlertDialogFooter className="gap-2 sm:gap-0">
+          <AlertDialogCancel>Close</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => {
+              if (revealedPassword) {
+                void navigator.clipboard.writeText(revealedPassword)
+                toast({ title: 'Copied to clipboard' })
+              }
+            }}
+          >
+            Copy password
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="gap-2 shadow-sm">
@@ -141,7 +209,7 @@ export function AddEmployeeDialog() {
         <DialogHeader className="border-b border-border/60 px-6 py-4 text-left">
           <DialogTitle>Add New Employee</DialogTitle>
           <DialogDescription>
-            Create an employee record and assign a client. The employee will receive an email to verify their address before they can use the app.
+            Create an employee record and assign a client. They receive a verification email. You can set an initial password or generate one; otherwise they set a password from the email link.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
@@ -201,6 +269,42 @@ export function AddEmployeeDialog() {
                 placeholder="jane.doe@devopsafricalimited.com"
               />
             </div>
+
+            <div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                <Label htmlFor="generate-password" className="text-base">Generate temporary password</Label>
+                <p className="text-xs text-muted-foreground max-w-md">
+                  Creates a short random password to share with the employee. They must set a new password after first sign-in.
+                </p>
+              </div>
+              <Switch
+                id="generate-password"
+                checked={generateInitialPassword}
+                onCheckedChange={(checked) => {
+                  setGenerateInitialPassword(checked)
+                  if (checked) setInitialPassword('')
+                }}
+              />
+            </div>
+
+            {!generateInitialPassword && (
+              <div className="space-y-2">
+                <Label htmlFor="initial-password">Initial password (optional)</Label>
+                <Input
+                  id="initial-password"
+                  type="password"
+                  autoComplete="new-password"
+                  className="h-11 rounded-lg"
+                  value={initialPassword}
+                  onChange={(e) => setInitialPassword(e.target.value)}
+                  placeholder="Min. 8 characters"
+                  minLength={initialPassword.trim() ? 8 : undefined}
+                />
+                <p className="text-xs text-muted-foreground">
+                  If set, the employee uses this until they choose a new one. Leave empty if they will set a password only from the verification email.
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="client">Client *</Label>
@@ -343,8 +447,9 @@ export function AddEmployeeDialog() {
               {loading ? 'Adding...' : 'Add Employee'}
             </Button>
           </DialogFooter>
-        </form>
+               </form>
       </DialogContent>
     </Dialog>
+    </>
   )
 }

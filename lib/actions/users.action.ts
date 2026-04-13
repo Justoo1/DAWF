@@ -5,6 +5,7 @@ import prisma from '../prisma'
 import { ContributionStatus, UserRole } from '@prisma/client';
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
+import { generateRandomString, hashPassword } from 'better-auth/crypto'
 
 export async function fetchUserWithContributions(email: string) {
   try {
@@ -168,9 +169,15 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
         isActive: true,
         isContributor: true,
         pendingInvite: true,
+        emailVerified: true,
         createdAt: true,
         client: {
           select: { id: true, name: true },
+        },
+        accounts: {
+          where: { providerId: 'credential' },
+          select: { password: true },
+          take: 1,
         },
         _count: {
           select: {
@@ -192,9 +199,12 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
 
     // Map the users to keep the API contract consistent but drastically smaller payload
     const userValues = users.map((user) => {
-      const { client, ...rest } = user
+      const { client, accounts, ...rest } = user
+      const cred = accounts[0]
+      const hasCredentialPassword = !!(cred?.password && cred.password.length > 0)
       return {
       ...rest,
+      hasCredentialPassword,
       clientName: client?.name ?? null,
       contributionsCount: user._count.contributions,
       eventsCount: user._count.events,
@@ -489,6 +499,10 @@ export async function updateUserDepartment(userId: string, department: string) {
   }
 }
 
+function buildGeneratedInitialPassword(): string {
+  return generateRandomString(10, "a-z", "0-9")
+}
+
 export async function createEmployee(data: {
   firstName: string
   lastName: string
@@ -503,6 +517,10 @@ export async function createEmployee(data: {
   isContributor?: boolean
   exitDate?: Date
   welfareContributionsBeforeExit?: number
+  /** Plain-text initial password (min 8 chars). Ignored if generateInitialPassword is true. */
+  initialPassword?: string
+  /** When true, a short random password is created; returned once in `generatedPassword`. */
+  generateInitialPassword?: boolean
 }) {
   try {
     // Check if user is authenticated and has ADMIN role
@@ -542,6 +560,21 @@ export async function createEmployee(data: {
     const lastName = data.lastName.trim()
     const displayName = `${firstName} ${lastName}`.trim() || data.email
 
+    let plainInitialPassword: string | null = null
+    let mustChangePassword = false
+
+    if (data.generateInitialPassword) {
+      plainInitialPassword = buildGeneratedInitialPassword()
+      mustChangePassword = true
+    } else if (data.initialPassword?.trim()) {
+      const p = data.initialPassword.trim()
+      if (p.length < 8) {
+        return { success: false, error: 'Initial password must be at least 8 characters' }
+      }
+      plainInitialPassword = p
+      mustChangePassword = true
+    }
+
     const user = await prisma.user.create({
       data: {
         firstName,
@@ -561,15 +594,35 @@ export async function createEmployee(data: {
         welfareContributionsBeforeExit: data.welfareContributionsBeforeExit,
         emailVerified: false,
         password: '',
+        mustChangePassword,
       }
     })
+
+    if (plainInitialPassword) {
+      const hashed = await hashPassword(plainInitialPassword)
+      const now = new Date()
+      await prisma.account.create({
+        data: {
+          id: generateRandomString(24, 'a-z', 'A-Z', '0-9'),
+          accountId: user.id,
+          providerId: 'credential',
+          userId: user.id,
+          password: hashed,
+          createdAt: now,
+          updatedAt: now,
+        },
+      })
+    }
+
+    const verificationCallback = plainInitialPassword ? '/' : '/set-password'
 
     try {
       await auth.api.sendVerificationEmail({
         body: {
           email: user.email,
-          callbackURL: "/sign-in",
+          callbackURL: verificationCallback,
         },
+        headers: await headers(),
       })
     } catch (err) {
       console.error("Failed to send verification email:", err)
@@ -577,7 +630,14 @@ export async function createEmployee(data: {
 
     revalidatePath('/admin/employees')
     revalidatePath('/admin/manage-employees')
-    return { success: true, user }
+    return {
+      success: true,
+      user,
+      generatedPassword:
+        data.generateInitialPassword && plainInitialPassword
+          ? plainInitialPassword
+          : undefined,
+    }
   } catch (error) {
     console.error('Error creating employee:', error)
     return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }
@@ -644,4 +704,85 @@ export async function updateEmployeeDates(userId: string, data: {
     console.error('Error updating employee dates:', error)
     return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }
   }
+}
+
+function authAppOrigin() {
+  return (
+    process.env.BETTER_AUTH_URL ||
+    process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
+    'http://localhost:3000'
+  ).replace(/\/$/, '')
+}
+
+async function requireAdminSessionForAuthActions(): Promise<
+  { ok: true } | { ok: false; error: string }
+> {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
+  if (!session?.user) {
+    return { ok: false, error: 'Unauthorized' }
+  }
+  const currentUser = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { role: true }
+  })
+  if (!currentUser || currentUser.role !== 'ADMIN') {
+    return { ok: false, error: 'Unauthorized: Only admins can perform this action' }
+  }
+  return { ok: true }
+}
+
+export async function adminResendEmployeeVerificationEmail(userId: string) {
+  const gate = await requireAdminSessionForAuthActions()
+  if (!gate.ok) return { success: false, error: gate.error }
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, emailVerified: true }
+  })
+  if (!user) return { success: false, error: 'User not found' }
+  if (user.emailVerified) {
+    return {
+      success: false,
+      error:
+        'This account is already verified. Use “Send password reset” if they need to set or change their password.'
+    }
+  }
+  try {
+    await auth.api.sendVerificationEmail({
+      body: {
+        email: user.email,
+        callbackURL: '/set-password'
+      },
+      headers: await headers()
+    })
+  } catch (err) {
+    console.error('adminResendEmployeeVerificationEmail', err)
+    return { success: false, error: 'Failed to send verification email' }
+  }
+  return { success: true }
+}
+
+export async function adminSendEmployeePasswordReset(userId: string) {
+  const gate = await requireAdminSessionForAuthActions()
+  if (!gate.ok) return { success: false, error: gate.error }
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true }
+  })
+  if (!user) return { success: false, error: 'User not found' }
+  const redirectTo = `${authAppOrigin()}/reset-password`
+  try {
+    await auth.api.requestPasswordReset({
+      body: {
+        email: user.email,
+        redirectTo
+      },
+      headers: await headers()
+    })
+  } catch (err) {
+    console.error('adminSendEmployeePasswordReset', err)
+    return { success: false, error: 'Failed to send password reset email' }
+  }
+  return { success: true }
 }
