@@ -52,11 +52,16 @@ import { AdminSearchField } from "@/components/admin/layout/AdminSearchField";
 import { AdminTableCard } from "@/components/admin/layout/AdminTableCard";
 import { AdminPaginationBar } from "@/components/admin/layout/AdminPaginationBar";
 import {
+  adminFilterSelectTriggerClass,
+  adminSelectContentSurfaceClass,
   adminTableClassName,
   adminTbodyRowClass,
   adminTdClass,
   adminThClass,
   adminTheadRowClass,
+  adminThSortableClass,
+  adminToolbarDividerClass,
+  adminToolbarFilterRowClass,
 } from "@/lib/admin-ui";
 import { cn } from "@/lib/utils";
 
@@ -360,7 +365,7 @@ const Employees = ({
       />
       <AdminToolbar className="shadow-premium dark:shadow-black/30">
         {/* Top half: Search */}
-        <div className="p-6 px-8 border-b border-slate-100 dark:border-zinc-800">
+        <div className={cn("p-6 px-8", adminToolbarDividerClass)}>
           <AdminSearchField
             placeholder="Search employees by name, ID or email..."
             value={searchTerm}
@@ -368,13 +373,13 @@ const Employees = ({
           />
         </div>
         {/* Bottom half: Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-3 sm:gap-4 px-6 sm:px-8 py-5 bg-slate-50/80 dark:bg-zinc-900/50">
+        <div className={adminToolbarFilterRowClass}>
           <div className="w-full sm:w-48">
             <Select value={deptFilter} onValueChange={setDeptFilter}>
-              <SelectTrigger className="h-10 rounded-lg border-slate-200 dark:border-zinc-700 text-[13px] font-medium text-slate-600 dark:text-zinc-200 bg-white dark:bg-zinc-900/90 shadow-sm dark:shadow-none">
+              <SelectTrigger className={adminFilterSelectTriggerClass}>
                 <SelectValue placeholder="All Departments" />
               </SelectTrigger>
-              <SelectContent className="dark:border-zinc-800 dark:bg-zinc-950">
+              <SelectContent className={adminSelectContentSurfaceClass}>
                 <SelectItem value="all">All Departments</SelectItem>
                 {departments.map((dept) => (
                   <SelectItem key={dept} value={dept}>
@@ -387,10 +392,10 @@ const Employees = ({
 
           <div className="w-full sm:w-48">
             <Select value={clientFilter} onValueChange={setClientFilter}>
-              <SelectTrigger className="h-10 rounded-lg border-slate-200 dark:border-zinc-700 text-[13px] font-medium text-slate-600 dark:text-zinc-200 bg-white dark:bg-zinc-900/90 shadow-sm dark:shadow-none">
+              <SelectTrigger className={adminFilterSelectTriggerClass}>
                 <SelectValue placeholder="All clients" />
               </SelectTrigger>
-              <SelectContent className="dark:border-zinc-800 dark:bg-zinc-950">
+              <SelectContent className={adminSelectContentSurfaceClass}>
                 <SelectItem value="all">All clients</SelectItem>
                 {clientFilterOptions.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
@@ -403,10 +408,10 @@ const Employees = ({
 
           <div className="w-full sm:w-40">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-10 rounded-lg border-slate-200 dark:border-zinc-700 text-[13px] font-medium text-slate-600 dark:text-zinc-200 bg-white dark:bg-zinc-900/90 shadow-sm dark:shadow-none">
+              <SelectTrigger className={adminFilterSelectTriggerClass}>
                 <SelectValue placeholder="Status: All" />
               </SelectTrigger>
-              <SelectContent className="dark:border-zinc-800 dark:bg-zinc-950">
+              <SelectContent className={adminSelectContentSurfaceClass}>
                 <SelectItem value="all">Status: All</SelectItem>
                 <SelectItem value="active">Active Only</SelectItem>
                 <SelectItem value="inactive">Inactive Only</SelectItem>
@@ -422,10 +427,10 @@ const Employees = ({
                   setVerificationFilter(v as "all" | "unverified")
                 }
               >
-                <SelectTrigger className="h-10 rounded-lg border-slate-200 dark:border-zinc-700 text-[13px] font-medium text-slate-600 dark:text-zinc-200 bg-white dark:bg-zinc-900/90 shadow-sm dark:shadow-none">
+                <SelectTrigger className={adminFilterSelectTriggerClass}>
                   <SelectValue placeholder="Email verification" />
                 </SelectTrigger>
-                <SelectContent className="dark:border-zinc-800 dark:bg-zinc-950">
+                <SelectContent className={adminSelectContentSurfaceClass}>
                   <SelectItem value="all">Email: All</SelectItem>
                   <SelectItem value="unverified">Email: Not verified</SelectItem>
                 </SelectContent>
@@ -470,26 +475,26 @@ const Employees = ({
         <table className={adminTableClassName()}>
           <thead>
             <tr className={adminTheadRowClass}>
-              <th className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")} onClick={() => handleSort("name")}>
+              <th className={cn(adminThClass, adminThSortableClass)} onClick={() => handleSort("name")}>
                 <div className="flex items-center gap-2">
                   Employee Name
                   <SortIcon field="name" activeField={sortConfig.key} direction={sortConfig.direction} />
                 </div>
               </th>
-              <th className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")} onClick={() => handleSort("department")}>
+              <th className={cn(adminThClass, adminThSortableClass)} onClick={() => handleSort("department")}>
                 <div className="flex items-center gap-2">
                   Department
                   <SortIcon field="department" activeField={sortConfig.key} direction={sortConfig.direction} />
                 </div>
               </th>
-              <th className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")} onClick={() => handleSort("clientName" as keyof UserValues)}>
+              <th className={cn(adminThClass, adminThSortableClass)} onClick={() => handleSort("clientName" as keyof UserValues)}>
                 <div className="flex items-center gap-2">
                   Client
                   <SortIcon field="clientName" activeField={String(sortConfig.key)} direction={sortConfig.direction} />
                 </div>
               </th>
               <th className={adminThClass}>Contributions</th>
-              <th className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")} onClick={() => handleSort("isActive")}>
+              <th className={cn(adminThClass, adminThSortableClass)} onClick={() => handleSort("isActive")}>
                 <div className="flex items-center gap-2">
                   Role & Status
                   <SortIcon field="isActive" activeField={sortConfig.key} direction={sortConfig.direction} />

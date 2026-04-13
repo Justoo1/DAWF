@@ -10,6 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  adminFilterSelectTriggerClass,
+  adminSelectContentSurfaceClass,
+} from "@/lib/admin-ui";
+import { cn } from "@/lib/utils";
 
 export function ManageEmployeesToolbar({
   departments,
@@ -19,7 +24,7 @@ export function ManageEmployeesToolbar({
   const [search, setSearch] = useState("");
 
   return (
-    <AdminToolbar>
+    <AdminToolbar className="shadow-premium dark:shadow-black/30">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
         <AdminSearchField
           placeholder="Search employees by name, ID or email…"
@@ -29,10 +34,15 @@ export function ManageEmployeesToolbar({
         />
         <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
           <Select defaultValue="__all_departments__">
-            <SelectTrigger className="h-10 w-[min(100vw-2rem,220px)] rounded-lg border-border/60 bg-muted/40 dark:bg-zinc-900/80 dark:border-zinc-700 dark:text-zinc-200 shadow-none focus:ring-2 focus:ring-primary/25">
+            <SelectTrigger
+              className={cn(
+                adminFilterSelectTriggerClass,
+                "w-[min(100vw-2rem,220px)] shadow-none focus:ring-2 focus:ring-primary/25"
+              )}
+            >
               <SelectValue placeholder="Department" />
             </SelectTrigger>
-            <SelectContent className="dark:border-zinc-800 dark:bg-zinc-950">
+            <SelectContent className={adminSelectContentSurfaceClass}>
               <SelectItem value="__all_departments__">All Departments</SelectItem>
               {departments.map((dept) => (
                 <SelectItem key={dept} value={dept}>
@@ -42,10 +52,15 @@ export function ManageEmployeesToolbar({
             </SelectContent>
           </Select>
           <Select defaultValue="active">
-            <SelectTrigger className="h-10 w-[min(100vw-2rem,200px)] rounded-lg border-border/60 bg-muted/40 dark:bg-zinc-900/80 dark:border-zinc-700 dark:text-zinc-200 shadow-none focus:ring-2 focus:ring-primary/25">
+            <SelectTrigger
+              className={cn(
+                adminFilterSelectTriggerClass,
+                "w-[min(100vw-2rem,200px)] shadow-none focus:ring-2 focus:ring-primary/25"
+              )}
+            >
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="dark:border-zinc-800 dark:bg-zinc-950">
+            <SelectContent className={adminSelectContentSurfaceClass}>
               <SelectItem value="active">Status: Active</SelectItem>
               <SelectItem value="inactive">Status: Inactive</SelectItem>
               <SelectItem value="all">Status: All</SelectItem>

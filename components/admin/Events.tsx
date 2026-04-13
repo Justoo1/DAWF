@@ -34,11 +34,16 @@ import { AdminToolbar } from "@/components/admin/layout/AdminToolbar"
 import { AdminSearchField } from "@/components/admin/layout/AdminSearchField"
 import { AdminTableCard } from "@/components/admin/layout/AdminTableCard"
 import {
+  adminFilterSelectTriggerClass,
+  adminSelectContentSurfaceClass,
   adminTableClassName,
   adminTbodyRowClass,
   adminTdClass,
   adminThClass,
   adminTheadRowClass,
+  adminThSortableClass,
+  adminToolbarDividerClass,
+  adminToolbarFilterRowClass,
 } from "@/lib/admin-ui"
 import { cn } from "@/lib/utils"
 import {
@@ -337,9 +342,9 @@ const AllEvents = ({ events }: Props) => {
         }
       />
 
-      <AdminToolbar>
+      <AdminToolbar className="shadow-premium dark:shadow-black/30">
         {/* Top half: Search */}
-        <div className="p-6 px-8 border-b border-slate-100 flex items-center justify-between gap-4">
+        <div className={cn("p-6 px-8 flex items-center justify-between gap-4", adminToolbarDividerClass)}>
           <div className="flex-1">
             <AdminSearchField
               placeholder="Search by title, status, type, month, or location"
@@ -354,13 +359,13 @@ const AllEvents = ({ events }: Props) => {
         </div>
 
         {/* Bottom half: Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-3 sm:gap-4 px-6 sm:px-8 py-5 bg-white">
+        <div className={adminToolbarFilterRowClass}>
           <div className="w-full sm:w-48">
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+              <SelectTrigger className={adminFilterSelectTriggerClass}>
                 <SelectValue placeholder="All Event Types" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className={adminSelectContentSurfaceClass}>
                 <SelectItem value="all">All Event Types</SelectItem>
                 {types.map((t) => (
                   <SelectItem key={t} value={t}>
@@ -373,10 +378,10 @@ const AllEvents = ({ events }: Props) => {
 
           <div className="w-full sm:w-40">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+              <SelectTrigger className={adminFilterSelectTriggerClass}>
                 <SelectValue placeholder="Status: All" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className={adminSelectContentSurfaceClass}>
                 <SelectItem value="all">Status: All</SelectItem>
                 <SelectItem value="ACTIVE">Active</SelectItem>
                 <SelectItem value="ARCHIVED">Archived</SelectItem>
@@ -387,7 +392,7 @@ const AllEvents = ({ events }: Props) => {
           {(typeFilter !== "all" || statusFilter !== "all" || searchTerm) && (
             <Button
               variant="ghost"
-              className="text-xs text-slate-400 hover:text-primary h-10 px-2"
+              className="text-xs text-slate-400 dark:text-zinc-500 hover:text-primary dark:hover:text-emerald-400 h-10 px-2"
               onClick={() => {
                 setSearchTerm("");
                 setTypeFilter("all");
@@ -405,7 +410,7 @@ const AllEvents = ({ events }: Props) => {
           <thead>
             <tr className={adminTheadRowClass}>
               <th
-                className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")}
+                className={cn(adminThClass, adminThSortableClass)}
                 onClick={() => handleSort("type")}
               >
                 <div className="flex items-center gap-2">
@@ -414,7 +419,7 @@ const AllEvents = ({ events }: Props) => {
                 </div>
               </th>
               <th
-                className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")}
+                className={cn(adminThClass, adminThSortableClass)}
                 onClick={() => handleSort("title")}
               >
                 <div className="flex items-center gap-2">
@@ -423,7 +428,7 @@ const AllEvents = ({ events }: Props) => {
                 </div>
               </th>
               <th
-                className={cn(adminThClass, "hidden md:table-cell cursor-pointer hover:bg-slate-50 transition-colors group")}
+                className={cn(adminThClass, adminThSortableClass, "hidden md:table-cell")}
                 onClick={() => handleSort("location")}
               >
                 <div className="flex items-center gap-2">
@@ -432,7 +437,7 @@ const AllEvents = ({ events }: Props) => {
                 </div>
               </th>
               <th
-                className={cn(adminThClass, "hidden lg:table-cell cursor-pointer hover:bg-slate-50 transition-colors group")}
+                className={cn(adminThClass, adminThSortableClass, "hidden lg:table-cell")}
                 onClick={() => handleSort("start")}
               >
                 <div className="flex items-center gap-2">
@@ -442,7 +447,7 @@ const AllEvents = ({ events }: Props) => {
               </th>
               <th className={cn(adminThClass, "hidden lg:table-cell")}>End</th>
               <th
-                className={cn(adminThClass, "w-28 cursor-pointer hover:bg-slate-50 transition-colors group")}
+                className={cn(adminThClass, adminThSortableClass, "w-28")}
                 onClick={() => handleSort("status")}
               >
                 <div className="flex items-center gap-2">

@@ -77,7 +77,7 @@
 @layer utilities {
   .admin-main {
     @apply flex-1 overflow-x-hidden overflow-y-auto text-foreground antialiased;
-    @apply bg-muted/60;
+    @apply bg-muted/60 dark:bg-zinc-950/80;
     @apply p-3 md:p-8 lg:p-12;
   }
   .font-outline-2 {

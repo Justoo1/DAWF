@@ -15,7 +15,7 @@ const ContributionAddPage = async () => {
 
   return (
     <main className="admin-main">
-        <div className="mx-auto max-w-7xl lg:p-8 bg-white rounded-md shadow-sm">
+        <div className="mx-auto max-w-7xl lg:p-8 bg-white dark:bg-zinc-950 rounded-md shadow-sm border border-slate-200 dark:border-zinc-800">
             <ContributionForm employees={employees.users} />
         </div>
         <QuickActions />

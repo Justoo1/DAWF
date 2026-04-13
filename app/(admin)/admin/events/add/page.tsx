@@ -24,8 +24,8 @@ const AddEventPage = async () => {
 
   return (
       <main className="admin-main">
-      <div className="mx-auto max-w-7xl lg:p-8 bg-white rounded-md shadow-sm">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Add Event</h2>
+      <div className="mx-auto max-w-7xl lg:p-8 bg-white dark:bg-zinc-950 rounded-md shadow-sm border border-slate-200 dark:border-zinc-800">
+        <h2 className="text-2xl font-semibold text-gray-800 dark:text-zinc-100 mb-6">Add Event</h2>
         <EventAdd userId={data.user!.id} />
       </div>
       <QuickActions />

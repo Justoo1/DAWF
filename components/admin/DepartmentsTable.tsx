@@ -59,11 +59,16 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
+  adminFilterSelectTriggerClass,
+  adminSelectContentSurfaceClass,
   adminTableClassName,
   adminTbodyRowClass,
   adminTdClass,
   adminThClass,
   adminTheadRowClass,
+  adminThSortableClass,
+  adminToolbarDividerClass,
+  adminToolbarFilterRowClass,
 } from "@/lib/admin-ui";
 import { 
   fetchDepartments, 
@@ -338,9 +343,9 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
         />
       </AdminStatCardsWrapper>
 
-      <AdminToolbar>
+      <AdminToolbar className="shadow-premium dark:shadow-black/30">
         {/* Top half: Search */}
-        <div className="p-6 px-8 border-b border-slate-100 flex items-center gap-4">
+        <div className={cn("p-6 px-8 flex items-center gap-4", adminToolbarDividerClass)}>
           <div className="flex-1">
             <AdminSearchField
               placeholder="Search departments by name or manager…"
@@ -354,20 +359,20 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
             onClick={loadDepartments} 
             title="Refresh records" 
             disabled={loading} 
-            className="shrink-0 h-11 w-11 rounded-xl bg-slate-50 border-slate-200"
+            className="shrink-0 h-11 w-11 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border-slate-200 dark:border-zinc-700 dark:text-zinc-300"
           >
-            <RefreshCw className={cn("h-4 w-4 text-slate-500", loading && "animate-spin")} />
+            <RefreshCw className={cn("h-4 w-4 text-slate-500 dark:text-zinc-400", loading && "animate-spin")} />
           </Button>
         </div>
 
         {/* Bottom half: Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-3 sm:gap-4 px-6 sm:px-8 py-5 bg-white">
+        <div className={adminToolbarFilterRowClass}>
           <div className="w-full sm:w-44">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-10 rounded-lg border-slate-200 text-[13px] font-medium text-slate-600 bg-white shadow-sm">
+              <SelectTrigger className={adminFilterSelectTriggerClass}>
                 <SelectValue placeholder="Status: All" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className={adminSelectContentSurfaceClass}>
                 <SelectItem value="all">Status: All</SelectItem>
                 <SelectItem value="active">Active Only</SelectItem>
                 <SelectItem value="inactive">Inactive Only</SelectItem>
@@ -378,7 +383,7 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
           {(statusFilter !== "all" || search) && (
             <Button
               variant="ghost"
-              className="text-xs text-slate-400 hover:text-primary h-10 px-2"
+              className="text-xs text-slate-400 dark:text-zinc-500 hover:text-primary dark:hover:text-emerald-400 h-10 px-2"
               onClick={() => {
                 setSearch("");
                 setStatusFilter("all");
@@ -407,7 +412,7 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
           <thead>
             <tr className={adminTheadRowClass}>
               <th
-                className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")}
+                className={cn(adminThClass, adminThSortableClass)}
                 onClick={() => handleSort("name")}
               >
                 <div className="flex items-center gap-2">
@@ -416,7 +421,7 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
                 </div>
               </th>
               <th
-                className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")}
+                className={cn(adminThClass, adminThSortableClass)}
                 onClick={() => handleSort("managerName")}
               >
                 <div className="flex items-center gap-2">
@@ -425,7 +430,7 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
                 </div>
               </th>
               <th
-                className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")}
+                className={cn(adminThClass, adminThSortableClass)}
                 onClick={() => handleSort("employeesCount")}
               >
                 <div className="flex items-center gap-2">
@@ -434,7 +439,7 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
                 </div>
               </th>
               <th
-                className={cn(adminThClass, "cursor-pointer hover:bg-slate-50 transition-colors group")}
+                className={cn(adminThClass, adminThSortableClass)}
                 onClick={() => handleSort("isActive")}
               >
                 <div className="flex items-center gap-2">

@@ -190,20 +190,20 @@ const AdminAddFoodOrderDialog = ({ menu }: AdminAddFoodOrderDialogProps) => {
           />
 
           {/* Slide-over Content */}
-          <div className="fixed inset-y-0 right-0 w-full max-w-3xl bg-white shadow-xl z-50 overflow-y-auto">
+          <div className="fixed inset-y-0 right-0 w-full max-w-3xl bg-white dark:bg-zinc-950 shadow-xl z-50 overflow-y-auto border-l border-slate-200 dark:border-zinc-800">
             {/* Header */}
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-start justify-between z-10">
+            <div className="sticky top-0 bg-white dark:bg-zinc-950 border-b border-slate-200 dark:border-zinc-800 px-6 py-4 flex items-start justify-between z-10">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Add Food Order for Employee</h2>
-                <p className="text-sm text-gray-600 mt-1">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-zinc-100">Add Food Order for Employee</h2>
+                <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
                   Select an employee and their food choices for the week. This is useful for employees who forgot to select or cannot access the app.
                 </p>
               </div>
               <button
                 onClick={() => setOpen(false)}
-                className="rounded-md p-2 hover:bg-gray-100 transition-colors"
+                className="rounded-md p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
               >
-                <X className="h-5 w-5 text-gray-500" />
+                <X className="h-5 w-5 text-gray-500 dark:text-zinc-400" />
               </button>
             </div>
 

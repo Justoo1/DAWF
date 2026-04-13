@@ -23,6 +23,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { adminFilterSelectTriggerClass, adminSelectContentSurfaceClass } from "@/lib/admin-ui"
+import { cn } from "@/lib/utils"
 
 interface Leave {
   id: string
@@ -180,28 +182,38 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
     <TooltipProvider>
       <div className="space-y-6">
         {/* Filters Row */}
-        <div className="flex flex-col md:flex-row items-end gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-50">
+        <div className="flex flex-col md:flex-row items-end gap-4 bg-slate-50/80 dark:bg-zinc-900/50 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-zinc-800">
           <div className="space-y-1.5 flex-1 w-full md:w-auto">
-            <label className="text-[13px] font-semibold text-slate-500 ml-1">Year</label>
+            <label className="text-[13px] font-semibold text-slate-500 dark:text-zinc-400 ml-1">Year</label>
             <span className="sr-only">Year filter</span>
             <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-100 ring-offset-0 focus:ring-1 focus:ring-[#10A074]">
+              <SelectTrigger
+                className={cn(
+                  adminFilterSelectTriggerClass,
+                  "h-11 rounded-xl border-slate-100 dark:border-zinc-700 ring-offset-0 focus:ring-1 focus:ring-[#10A074] dark:focus:ring-emerald-500"
+                )}
+              >
                 <SelectValue placeholder="Select year" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className={adminSelectContentSurfaceClass}>
                 {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-1.5 flex-1 w-full md:w-auto">
-            <label className="text-[13px] font-semibold text-slate-500 ml-1">Select HR Group</label>
+            <label className="text-[13px] font-semibold text-slate-500 dark:text-zinc-400 ml-1">Select HR Group</label>
             <span className="sr-only">Department filter</span>
             <Select value={selectedDept} onValueChange={setSelectedDept}>
-              <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-100 ring-offset-0 focus:ring-1 focus:ring-[#10A074]">
+              <SelectTrigger
+                className={cn(
+                  adminFilterSelectTriggerClass,
+                  "h-11 rounded-xl border-slate-100 dark:border-zinc-700 ring-offset-0 focus:ring-1 focus:ring-[#10A074] dark:focus:ring-emerald-500"
+                )}
+              >
                 <SelectValue placeholder="Select HR Group" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className={adminSelectContentSurfaceClass}>
                 <SelectItem value="all">All Groups</SelectItem>
                 {departments.map(dept => (
                   <SelectItem key={dept} value={dept}>{dept}</SelectItem>
@@ -220,42 +232,42 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
 
         <div className="space-y-4">
           <div className="flex justify-between items-center px-2">
-              <div className="text-[13px] font-medium text-slate-400">
-                  Total Events Found: <span className="text-slate-900 font-bold">{filteredEvents.length}</span>
+              <div className="text-[13px] font-medium text-slate-400 dark:text-zinc-500">
+                  Total Events Found: <span className="text-slate-900 dark:text-zinc-100 font-bold">{filteredEvents.length}</span>
               </div>
           </div>
 
-          <Card className="border-none shadow-premium bg-white overflow-hidden rounded-3xl">
-            <div className="flex flex-col md:flex-row justify-between items-center p-6 pb-6 gap-6 border-b border-slate-50">
+          <Card className="border-none shadow-premium dark:shadow-black/30 bg-white dark:bg-zinc-950 overflow-hidden rounded-3xl border border-slate-100 dark:border-zinc-800">
+            <div className="flex flex-col md:flex-row justify-between items-center p-6 pb-6 gap-6 border-b border-slate-50 dark:border-zinc-800">
               <div className="flex flex-col gap-4">
-                  <h2 className="text-2xl font-black tracking-tight text-slate-800">{viewTitle}</h2>
+                  <h2 className="text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-100">{viewTitle}</h2>
                   <div className="flex flex-wrap gap-2">
-                      <div className="flex items-center gap-2 bg-[#10A074]/10 px-4 py-1.5 rounded-xl border border-[#10A074]/20">
-                          <div className="w-2 h-2 rounded-full bg-[#10A074]" />
-                          <span className="text-[12px] font-bold text-[#10A074] uppercase tracking-wider">Total Headcount: {totalHeadcount}</span>
+                      <div className="flex items-center gap-2 bg-[#10A074]/10 dark:bg-emerald-500/15 px-4 py-1.5 rounded-xl border border-[#10A074]/20 dark:border-emerald-500/30">
+                          <div className="w-2 h-2 rounded-full bg-[#10A074] dark:bg-emerald-400" />
+                          <span className="text-[12px] font-bold text-[#10A074] dark:text-emerald-400 uppercase tracking-wider">Total Headcount: {totalHeadcount}</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-rose-50 px-4 py-1.5 rounded-xl border border-rose-100">
+                      <div className="flex items-center gap-2 bg-rose-50 dark:bg-rose-950/40 px-4 py-1.5 rounded-xl border border-rose-100 dark:border-rose-900/50">
                           <div className="w-2 h-2 rounded-full bg-rose-500" />
-                          <span className="text-[12px] font-bold text-rose-600 uppercase tracking-wider">Leaves This Month: {leaves.length}</span>
+                          <span className="text-[12px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Leaves This Month: {leaves.length}</span>
                       </div>
                   </div>
               </div>
               
-              <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-2xl self-end md:self-center">
+              <div className="flex items-center gap-1 bg-slate-100 dark:bg-zinc-900/80 p-1.5 rounded-2xl self-end md:self-center ring-1 ring-transparent dark:ring-zinc-800">
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={handleToday}
-                  className="h-9 px-4 rounded-xl text-slate-600 hover:bg-white hover:text-[#10A074] transition-all font-bold text-xs"
+                  className="h-9 px-4 rounded-xl text-slate-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800 hover:text-[#10A074] dark:hover:text-emerald-400 transition-all font-bold text-xs"
                 >
                   today
                 </Button>
-                <div className="w-[1px] h-4 bg-slate-200 mx-1" />
+                <div className="w-[1px] h-4 bg-slate-200 dark:bg-zinc-700 mx-1" />
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={handlePrev} className="h-9 w-9 rounded-xl text-slate-600 hover:bg-white hover:text-[#10A074] transition-all">
+                  <Button variant="ghost" size="icon" onClick={handlePrev} className="h-9 w-9 rounded-xl text-slate-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800 hover:text-[#10A074] dark:hover:text-emerald-400 transition-all">
                     <ChevronLeft className="h-5 w-5" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={handleNext} className="h-9 w-9 rounded-xl text-slate-600 hover:bg-white hover:text-[#10A074] transition-all">
+                  <Button variant="ghost" size="icon" onClick={handleNext} className="h-9 w-9 rounded-xl text-slate-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800 hover:text-[#10A074] dark:hover:text-emerald-400 transition-all">
                     <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
