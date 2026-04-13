@@ -279,9 +279,12 @@ const Expenses = ({ expenses }: ExpensesProps) => {
                           <span className="sr-only">Open menu</span>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent align="end" className="w-[300px] sm:w-[26rem] p-4 rounded-2xl shadow-lg border-slate-100 bg-white">
+                      <PopoverContent
+                        align="end"
+                        className="w-[300px] rounded-2xl border border-border bg-popover p-4 text-popover-foreground shadow-lg sm:w-[26rem]"
+                      >
                         <div className="flex flex-col gap-2">
-                          <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-2 mb-2">
+                          <div className="mb-2 border-b border-border px-2 py-1.5 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                             Edit Expense
                           </div>
                           <div className="flex w-full px-2 pb-4">
@@ -297,7 +300,7 @@ const Expenses = ({ expenses }: ExpensesProps) => {
                           <Button
                             type="button"
                             variant="ghost"
-                            className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700 h-9 rounded-lg px-2"
+                            className="h-9 w-full justify-start rounded-lg px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
                             onClick={() => handleDelete(record.id)}
                           >
                             <Trash2Icon className="mr-2 h-4 w-4" />

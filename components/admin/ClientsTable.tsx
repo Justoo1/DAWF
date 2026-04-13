@@ -131,16 +131,16 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                     </PopoverTrigger>
                     <PopoverContent
                       align="end"
-                      className="w-[240px] p-2 rounded-2xl shadow-lg border-slate-100 bg-white dark:bg-zinc-950 dark:border-slate-800"
+                      className="w-[240px] rounded-2xl border border-border bg-popover p-2 text-popover-foreground shadow-lg"
                     >
                       <div className="flex flex-col gap-1">
-                        <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        <div className="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                           Actions
                         </div>
                         <Button
                           type="button"
                           variant="ghost"
-                          className="w-full justify-start h-9 rounded-lg px-2 text-slate-700 dark:text-slate-200"
+                          className="h-9 w-full justify-start rounded-lg px-2 text-popover-foreground hover:bg-accent hover:text-accent-foreground"
                           onClick={() => setEditing(c)}
                         >
                           <Pencil className="mr-2 h-4 w-4 shrink-0" />
@@ -149,7 +149,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                         <Button
                           type="button"
                           variant="ghost"
-                          className="w-full justify-start h-9 rounded-lg px-2 text-slate-700 dark:text-slate-200"
+                          className="h-9 w-full justify-start rounded-lg px-2 text-popover-foreground hover:bg-accent hover:text-accent-foreground"
                           onClick={() =>
                             void toggleActive(c, !c.isActive)
                           }

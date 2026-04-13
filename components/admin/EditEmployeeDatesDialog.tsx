@@ -97,9 +97,13 @@ export function EditEmployeeDatesDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 gap-1">
-          <CalendarIcon className="h-4 w-4" />
-          Edit Dates
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-9 w-full justify-start gap-2 rounded-lg px-2 text-sm font-medium text-popover-foreground hover:bg-accent hover:text-accent-foreground"
+        >
+          <CalendarIcon className="h-4 w-4 shrink-0" aria-hidden />
+          Edit dates
         </Button>
       </DialogTrigger>
       <DialogContent className="flex max-h-[min(90vh,920px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[500px]">

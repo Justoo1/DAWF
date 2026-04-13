@@ -17,6 +17,15 @@ import {
   updateUserDepartment,
 } from "@/lib/actions/users.action";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -83,6 +92,11 @@ const Employees = ({
   const [editingEmployee, setEditingEmployee] = useState<UserValues | null>(
     null
   );
+  const [employeeToDelete, setEmployeeToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Get unique departments for filter
   const departments = Array.from(
@@ -154,17 +168,28 @@ const Employees = ({
     router.push(`?${params.toString()}`);
   };
 
-  const handleDelete = async (id: string | undefined) => {
-    if (!id) return;
-    const deleted = await deleteUser(id);
-    if (deleted.success) {
-      revalidateUserPath("/admin/employees");
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: deleted.error,
-      });
+  const confirmDeleteEmployee = async () => {
+    if (!employeeToDelete) return;
+    setDeleteLoading(true);
+    try {
+      const deleted = await deleteUser(employeeToDelete.id);
+      if (deleted.success) {
+        toast({
+          title: "Employee deleted",
+          description: `${employeeToDelete.name} has been removed from the directory.`,
+        });
+        setEmployeeToDelete(null);
+        revalidateUserPath("/admin/employees");
+        router.refresh();
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Could not delete employee",
+          description: deleted.error ?? "Something went wrong.",
+        });
+      }
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -572,16 +597,19 @@ const Employees = ({
                           <span className="sr-only">Open menu</span>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent align="end" className="w-[240px] p-2 rounded-2xl shadow-lg border-slate-100 bg-white">
+                      <PopoverContent
+                        align="end"
+                        className="w-[240px] rounded-2xl border border-border bg-popover p-2 text-popover-foreground shadow-lg"
+                      >
                         <div className="flex flex-col gap-1">
-                          <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          <div className="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                             Actions
                           </div>
                           {isAdmin && (
                             <Button
                               type="button"
                               variant="ghost"
-                              className="w-full justify-start h-9 rounded-lg px-2 text-slate-700"
+                              className="h-9 w-full justify-start rounded-lg px-2 text-popover-foreground hover:bg-accent hover:text-accent-foreground"
                               onClick={() => setEditingEmployee(record)}
                             >
                               <Pencil className="mr-2 h-4 w-4 shrink-0" />
@@ -604,7 +632,7 @@ const Employees = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              className="w-full justify-start h-9 rounded-lg px-2 text-slate-700"
+                              className="h-9 w-full justify-start rounded-lg px-2 text-popover-foreground hover:bg-accent hover:text-accent-foreground"
                               onClick={() => handleResendVerification(record.id)}
                             >
                               <Mail className="mr-2 h-4 w-4 shrink-0" />
@@ -615,7 +643,7 @@ const Employees = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              className="w-full justify-start h-9 rounded-lg px-2 text-slate-700"
+                              className="h-9 w-full justify-start rounded-lg px-2 text-popover-foreground hover:bg-accent hover:text-accent-foreground"
                               onClick={() => handleSendPasswordReset(record.id)}
                             >
                               <KeyRound className="mr-2 h-4 w-4 shrink-0" />
@@ -626,15 +654,22 @@ const Employees = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700 h-9 rounded-lg px-2"
-                              onClick={() => handleDelete(record.id)}
+                              className="h-9 w-full justify-start rounded-lg px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                              onClick={() =>
+                                setEmployeeToDelete({
+                                  id: record.id!,
+                                  name: record.name,
+                                })
+                              }
                             >
                               <Trash2Icon className="mr-2 h-4 w-4" />
                               Delete Employee
                             </Button>
                           )}
                           {!isAdmin && !isManager && (
-                            <div className="px-2 py-2 text-sm text-slate-400">No actions available</div>
+                            <div className="px-2 py-2 text-sm text-muted-foreground">
+                              No actions available
+                            </div>
                           )}
                         </div>
                       </PopoverContent>
@@ -646,6 +681,43 @@ const Employees = ({
           </tbody>
         </table>
       </AdminTableCard>
+
+      <AlertDialog
+        open={!!employeeToDelete}
+        onOpenChange={(open) => {
+          if (!open) {
+            if (deleteLoading) return;
+            setEmployeeToDelete(null);
+          }
+        }}
+      >
+        <AlertDialogContent
+          onPointerDownOutside={(e) => deleteLoading && e.preventDefault()}
+          onEscapeKeyDown={(e) => deleteLoading && e.preventDefault()}
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this employee?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes{" "}
+              <span className="font-semibold text-foreground">
+                {employeeToDelete?.name}
+              </span>{" "}
+              and their sign-in access. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteLoading}>Cancel</AlertDialogCancel>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleteLoading}
+              onClick={() => void confirmDeleteEmployee()}
+            >
+              {deleteLoading ? "Deleting…" : "Delete employee"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
