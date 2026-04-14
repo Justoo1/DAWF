@@ -327,7 +327,7 @@
 }
 
 .dark .fc .fc-day-today {
-  background-color: #3f3f46 !important;
+  background-color: rgba(16, 185, 129, 0.08) !important;
 }
 
 .dark .fc .fc-scrollgrid {

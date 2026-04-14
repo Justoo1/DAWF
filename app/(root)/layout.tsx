@@ -13,7 +13,7 @@ export default function Layout({
   children: React.ReactNode;
 }>) {
   return (
-      <div className="flex min-h-screen flex-col bg-zinc-950">
+      <div className="flex min-h-screen flex-col bg-background">
         <Navbar />
         <div className="flex flex-1 flex-col">{children}</div>
         <Footer />

@@ -1,10 +1,11 @@
 "use client"
 
-import { EventInput } from '@fullcalendar/core'
-import BaseCalendar from './BaseCalendar'
-import { Card } from '@/components/ui/card'
-import { useState } from 'react'
-import { Calendar, Info } from 'lucide-react'
+import { EventInput } from "@fullcalendar/core"
+import BaseCalendar from "./BaseCalendar"
+import { Card } from "@/components/ui/card"
+import { useState } from "react"
+import { Calendar, Info, Sparkles } from "lucide-react"
+import { EventCategoryFilters, type EventFilter } from "@/components/shared/EventCategoryFilters"
 
 interface PublicCalendarProps {
   events: EventInput[]
@@ -12,30 +13,29 @@ interface PublicCalendarProps {
 
 const PublicCalendar: React.FC<PublicCalendarProps> = ({ events }) => {
   const [selectedEvent, setSelectedEvent] = useState<EventInput | undefined>(undefined)
-  const [filter, setFilter] = useState<'all' | 'welfare' | 'company' | 'bookings'>('all')
+  const [filter, setFilter] = useState<EventFilter>("all")
 
   function parseToDate(dateString: string): Date | null {
     const date = new Date(dateString)
     return isNaN(date.getTime()) ? null : date
   }
 
-  // Filter events based on selected filter
-  const filteredEvents = events.filter(event => {
-    if (filter === 'all') return true
-    if (filter === 'welfare') return event.extendedProps?.category === 'WELFARE'
-    if (filter === 'company') return event.extendedProps?.category === 'COMPANY'
-    if (filter === 'bookings') return event.extendedProps?.type === 'ROOM_BOOKING'
+  const filteredEvents = events.filter((event) => {
+    if (filter === "all") return true
+    if (filter === "welfare") return event.extendedProps?.category === "WELFARE"
+    if (filter === "company") return event.extendedProps?.category === "COMPANY"
+    if (filter === "bookings") return event.extendedProps?.type === "ROOM_BOOKING"
     return true
   })
 
   const now = new Date()
   const upcomingEvents = filteredEvents
-    .filter(event => {
+    .filter((event) => {
       if (!event.start) return false
       const start = event.start ? parseToDate(event.start.toString()) : null
       return start && start > now
     })
-    .map(event => ({ ...event, start: event.start ? parseToDate(event.start.toString()) : null }))
+    .map((event) => ({ ...event, start: event.start ? parseToDate(event.start.toString()) : null }))
     .sort((a, b) => {
       const dateA = a.start?.getTime() || 0
       const dateB = b.start?.getTime() || 0
@@ -44,111 +44,158 @@ const PublicCalendar: React.FC<PublicCalendarProps> = ({ events }) => {
     .slice(0, 5)
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-6 lg:grid-cols-[1fr,340px]">
-        {/* Calendar */}
-        <div className="bg-card border border-border p-3 rounded-2xl shadow-sm transition-all overflow-hidden h-[600px]">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+          Filter the schedule by type, then select an event to see details on the right.
+        </p>
+        <EventCategoryFilters value={filter} onChange={setFilter} className="sm:justify-end" />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr,minmax(280px,340px)]">
+        <div className="overflow-hidden rounded-2xl border border-border/80 bg-card/50 shadow-sm ring-1 ring-border/40 h-[min(640px,70vh)] min-h-[480px]">
           <BaseCalendar
             events={filteredEvents}
             editable={false}
             selectable={false}
             onEventClick={(event) => {
               const eventId = event.event.id
-              setSelectedEvent(events.find(e => e.id === eventId))
+              setSelectedEvent(events.find((e) => e.id === eventId))
             }}
             onMouseLeave={() => {
               setSelectedEvent(undefined)
             }}
             onMouseEnter={(event) => {
               const eventId = event.event.id
-              setSelectedEvent(events.find(e => e.id === eventId))
+              setSelectedEvent(events.find((e) => e.id === eventId))
             }}
           />
         </div>
 
-        {/* Sidebar */}
         <div className="flex flex-col gap-4">
-          {/* Upcoming Events */}
-          <Card className="bg-card border-border p-6 rounded-2xl shadow-sm transition-all border-none">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="p-1.5 rounded-lg bg-[#007AFF]/10">
-                <Calendar className="w-3.5 h-3.5 text-[#007AFF]" />
+          <Card className="border-border/80 bg-card/80 p-5 shadow-sm ring-1 ring-border/30">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/15">
+                <Calendar className="h-4 w-4 text-sky-500" aria-hidden />
               </div>
-              <h2 className="text-[10px] font-black text-foreground uppercase tracking-[0.2em]">
-                Upcoming Events
-              </h2>
+              <h2 className="text-sm font-semibold tracking-tight text-foreground">Upcoming</h2>
             </div>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               {upcomingEvents.length === 0 && (
-                <li className="text-xs text-muted-foreground italic">No upcoming events</li>
+                <li className="rounded-xl border border-dashed border-border/60 bg-muted/30 px-4 py-8 text-center">
+                  <Sparkles className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" aria-hidden />
+                  <p className="text-sm font-medium text-foreground">Nothing scheduled yet</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    New welfare events and room bookings will appear here.
+                  </p>
+                </li>
               )}
               {upcomingEvents.map((event) => (
-                <li key={event.id} className="group transition-all cursor-default border-l-2 border-emerald-500/20 pl-3">
+                <li
+                  key={event.id}
+                  className="group border-l-2 border-emerald-500/40 pl-3 transition-colors hover:border-emerald-500"
+                >
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[13px] font-bold text-foreground group-hover:text-[#007AFF] transition-colors leading-tight">{event.title}</span>
-                    <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{new Date(event.start!).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    <span className="text-[13px] font-semibold leading-snug text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
+                      {event.title}
+                    </span>
+                    <span className="text-[11px] font-medium text-muted-foreground">
+                      {new Date(event.start!).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
                   </div>
                 </li>
               ))}
             </ul>
           </Card>
 
-          {/* Event Details */}
-          <Card className="bg-card border-border p-6 rounded-2xl shadow-sm transition-all border-none overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-full -mr-12 -mt-12 pointer-events-none" />
-            
-            <div className="flex items-center gap-2 mb-4 relative z-10">
-              <div className="p-1.5 rounded-lg bg-[#10A074]/10">
-                <Info className="w-3.5 h-3.5 text-[#10A074]" />
+          <Card className="relative overflow-hidden border-border/80 bg-card/80 p-5 shadow-sm ring-1 ring-border/30">
+            <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-emerald-500/5" />
+            <div className="relative mb-4 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/15">
+                <Info className="h-4 w-4 text-emerald-600 dark:text-emerald-400" aria-hidden />
               </div>
-              <h2 className="text-[10px] font-black text-foreground uppercase tracking-[0.2em]">
-                {selectedEvent ? "Event Details" : "Selection"}
+              <h2 className="text-sm font-semibold tracking-tight text-foreground">
+                {selectedEvent ? "Details" : "Selection"}
               </h2>
             </div>
             {selectedEvent ? (
-              <div className="space-y-6 relative z-10">
-                <div className={`inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                  selectedEvent.extendedProps?.type === 'ROOM_BOOKING' 
-                    ? 'bg-[#10A074]/10 text-[#10A074]' 
-                    : selectedEvent.extendedProps?.category === 'WELFARE'
-                    ? 'bg-[#E84E1B]/10 text-[#E84E1B]'
-                    : 'bg-[#9333EA]/10 text-[#9333EA]'
-                }`}>
-                  {selectedEvent.extendedProps?.type === 'ROOM_BOOKING' ? 'Room Booking' : selectedEvent.extendedProps?.category === 'WELFARE' ? 'Welfare' : 'Company'}
+              <div className="relative space-y-5">
+                <div
+                  className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
+                    selectedEvent.extendedProps?.type === "ROOM_BOOKING"
+                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                      : selectedEvent.extendedProps?.category === "WELFARE"
+                        ? "bg-orange-500/15 text-orange-700 dark:text-orange-300"
+                        : "bg-violet-500/15 text-violet-700 dark:text-violet-300"
+                  }`}
+                >
+                  {selectedEvent.extendedProps?.type === "ROOM_BOOKING"
+                    ? "Room booking"
+                    : selectedEvent.extendedProps?.category === "WELFARE"
+                      ? "Welfare"
+                      : "Company"}
                 </div>
-                
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Title</p>
-                    <p className="text-base text-foreground font-bold leading-snug">{selectedEvent.title?.includes(': ') ? selectedEvent.title.split(': ')[1] : selectedEvent.title}</p>
+
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                      Title
+                    </p>
+                    <p className="text-base font-semibold leading-snug text-foreground">
+                      {selectedEvent.title?.includes(": ")
+                        ? selectedEvent.title.split(": ")[1]
+                        : selectedEvent.title}
+                    </p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-6 pt-2 border-t border-border">
-                    <div className="space-y-1.5">
-                      <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Start Time</p>
-                      <p className="text-xs text-foreground/80 font-bold">{new Date(selectedEvent.start!.toString()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                  <div className="grid grid-cols-2 gap-4 border-t border-border/60 pt-4">
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                        Time
+                      </p>
+                      <p className="text-sm font-medium text-foreground">
+                        {new Date(selectedEvent.start!.toString()).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
                     </div>
-                    <div className="space-y-1.5">
-                      <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Event Date</p>
-                      <p className="text-xs text-foreground/80 font-bold">{new Date(selectedEvent.start!.toString()).toLocaleDateString()}</p>
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                        Date
+                      </p>
+                      <p className="text-sm font-medium text-foreground">
+                        {new Date(selectedEvent.start!.toString()).toLocaleDateString(undefined, {
+                          dateStyle: "medium",
+                        })}
+                      </p>
                     </div>
                   </div>
 
                   {selectedEvent.extendedProps?.roomName && (
-                    <div className="space-y-1.5 pt-4">
-                      <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Location</p>
-                      <p className="text-xs text-foreground/80 font-bold flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#10A074]" />
-                          {selectedEvent.extendedProps.roomName}
+                    <div className="border-t border-border/60 pt-4">
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                        Location
+                      </p>
+                      <p className="mt-1 flex items-center gap-2 text-sm font-medium text-foreground">
+                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                        {selectedEvent.extendedProps.roomName}
                       </p>
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground italic leading-relaxed font-medium">
-                Hover or tap an event on the schedule to view comprehensive details right here.
-              </p>
+              <div className="rounded-xl border border-dashed border-border/60 bg-muted/25 px-4 py-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Click or hover an event on the calendar to preview details here.
+                </p>
+              </div>
             )}
           </Card>
         </div>
@@ -158,4 +205,3 @@ const PublicCalendar: React.FC<PublicCalendarProps> = ({ events }) => {
 }
 
 export default PublicCalendar
-

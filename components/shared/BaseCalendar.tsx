@@ -4,7 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import { EventClickArg, EventHoveringArg, EventInput } from '@fullcalendar/core'
-import { Card } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 interface BaseCalendarProps {
   events: EventInput[]
@@ -13,11 +13,20 @@ interface BaseCalendarProps {
   selectable: boolean
   onMouseEnter?: (arg: EventHoveringArg) => void
   onMouseLeave?: (arg: EventHoveringArg) => void
+  className?: string
 }
 
-const BaseCalendar: React.FC<BaseCalendarProps> = ({ events, onEventClick, editable, selectable, onMouseEnter, onMouseLeave }) => {
+const BaseCalendar: React.FC<BaseCalendarProps> = ({
+  events,
+  onEventClick,
+  editable,
+  selectable,
+  onMouseEnter,
+  onMouseLeave,
+  className,
+}) => {
   return (
-    <Card className="bg-background p-2 sm:p-3 md:p-4 text-foreground overflow-hidden border-none">
+    <div className={cn('fc-embed bg-transparent p-2 sm:p-3 md:p-4 text-foreground overflow-hidden', className)}>
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         headerToolbar={{
@@ -51,7 +60,7 @@ const BaseCalendar: React.FC<BaseCalendarProps> = ({ events, onEventClick, edita
         handleWindowResize={true}
         windowResizeDelay={100}
       />
-    </Card>
+    </div>
   )
 }
 
