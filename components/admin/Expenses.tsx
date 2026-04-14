@@ -39,12 +39,28 @@ interface ExpensesProps {
   expenses: ExpenseValue[];
 }
 
+type ExpenseSortKey = "recipient_name" | Exclude<keyof ExpenseValue, "user">;
+
+function expenseSortComparable(
+  record: ExpenseValue,
+  key: ExpenseSortKey
+): string | number | Date {
+  if (key === "recipient_name") {
+    return (record.user?.name || record.recipient || "").toLowerCase();
+  }
+  const v = record[key];
+  if (v instanceof Date) return v;
+  if (typeof v === "number") return v;
+  if (typeof v === "string") return v;
+  return "";
+}
+
 const Expenses = ({ expenses }: ExpensesProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortConfig, setSortConfig] = useState<{
-    key: keyof ExpenseValue | "recipient_name";
+    key: ExpenseSortKey;
     direction: "asc" | "desc";
   }>({ key: "date", direction: "desc" });
 
@@ -74,23 +90,15 @@ const Expenses = ({ expenses }: ExpensesProps) => {
       return matchesSearch && matchesType && matchesStatus;
     })
     .sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
-
-      if (sortConfig.key === "recipient_name") {
-        aValue = a.user?.name || a.recipient || "";
-        bValue = b.user?.name || b.recipient || "";
-      } else {
-        aValue = a[sortConfig.key as keyof ExpenseValue] ?? "";
-        bValue = b[sortConfig.key as keyof ExpenseValue] ?? "";
-      }
+      const aValue = expenseSortComparable(a, sortConfig.key);
+      const bValue = expenseSortComparable(b, sortConfig.key);
 
       if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
       if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
 
-  const handleSort = (key: keyof ExpenseValue | "recipient_name") => {
+  const handleSort = (key: ExpenseSortKey) => {
     setSortConfig((prev) => ({
       key,
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",

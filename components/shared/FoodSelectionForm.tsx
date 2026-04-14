@@ -121,7 +121,7 @@ const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = 
 
     // Filter out selections for days on leave just in case
     const filteredSelections = values.selections.map(s => {
-        if (checkIsOnLeave(s.dayOfWeek as any)) {
+        if (checkIsOnLeave(s.dayOfWeek)) {
             return { ...s, menuItemId: null, notes: 'ON LEAVE' }
         }
         return s

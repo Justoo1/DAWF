@@ -17,8 +17,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         "showPicker" in e.currentTarget
       ) {
         try {
-          (e.currentTarget as any).showPicker()
-        } catch (error) {
+          const input = e.currentTarget as HTMLInputElement & {
+            showPicker?: () => void
+          }
+          input.showPicker?.()
+        } catch {
           // Silent catch for unsupported browsers or states
         }
       }

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState, useRef, useEffect } from "react"
+import React, { useMemo, useState, useRef } from "react"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import interactionPlugin from "@fullcalendar/interaction"
@@ -89,7 +89,7 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
   }
 
   // Update title when FullCalendar renders or moves
-  const handleDatesSet = (arg: any) => {
+  const handleDatesSet = (arg: { view: { title: string; currentStart: Date } }) => {
     setViewTitle(arg.view.title.toUpperCase())
     setCurrentDate(arg.view.currentStart)
   }
@@ -103,7 +103,7 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
     leaves.forEach((leave) => {
       if (selectedDept !== "all" && leave.user.department !== selectedDept) return
 
-      let curr = new Date(leave.startDate)
+      const curr = new Date(leave.startDate)
       const end = new Date(leave.endDate)
 
       while (curr <= end) {
@@ -155,7 +155,7 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
     })
 
     return calendarEvents
-  }, [leaves, holidays, selectedDept, currentDate])
+  }, [leaves, holidays, selectedDept])
 
   return (
     <TooltipProvider>

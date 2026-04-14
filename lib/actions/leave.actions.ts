@@ -2,7 +2,7 @@
 
 import prisma from "../prisma";
 import { revalidatePath } from "next/cache";
-import { AccrualType, NotificationType } from "@prisma/client";
+import { AccrualType, NotificationType, Prisma } from "@prisma/client";
 import { createNotification } from "./notification.actions";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -46,12 +46,15 @@ export async function createLeavePolicy(data: {
 
     revalidatePath("/admin/leave-management/create");
     return { success: true, policy };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating leave policy:", error);
-    if (error?.code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return { success: false, error: `A leave policy with the name "${data.name}" already exists.` };
     }
-    return { success: false, error: error?.message || "Failed to create leave policy" };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to create leave policy",
+    };
   }
 }
 
@@ -74,12 +77,15 @@ export async function updateLeavePolicy(id: string, data: {
 
     revalidatePath("/admin/leave-management/create");
     return { success: true, policy };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating leave policy:", error);
-    if (error?.code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return { success: false, error: `A leave policy with the name "${data.name}" already exists.` };
     }
-    return { success: false, error: error?.message || "Failed to update leave policy" };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update leave policy",
+    };
   }
 }
 
@@ -501,9 +507,9 @@ export async function createPublicHoliday(data: {
 
     revalidatePath("/admin/leave-management/calendar");
     return { success: true, holiday };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating public holiday:", error);
-    if (error?.code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return { success: false, error: `A holiday named "${data.name}" already exists.` };
     }
     return { success: false, error: "Failed to create public holiday" };

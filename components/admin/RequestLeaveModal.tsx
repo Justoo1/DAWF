@@ -54,11 +54,15 @@ export default function RequestLeaveModal() {
           setUsers(usersRes.users.filter(u => u.isActive).map(u => ({ id: u.id, name: u.name || "Unnamed" })))
         }
         if (policiesRes.success && policiesRes.policies) {
-          setPolicies(policiesRes.policies.filter((p: any) => p.isActive).map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            defaultDays: p.defaultDays
-          })))
+          setPolicies(
+            policiesRes.policies
+              .filter((p) => p.isActive)
+              .map((p) => ({
+                id: p.id,
+                name: p.name,
+                defaultDays: p.defaultDays,
+              }))
+          )
         }
         setIsLoading(false)
       })

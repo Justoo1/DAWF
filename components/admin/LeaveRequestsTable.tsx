@@ -89,24 +89,34 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
     // 4. Sorting
     if (sortConfig) {
       result.sort((a, b) => {
-        let aValue: any = a
-        let bValue: any = b
+        let aValue: string | number = 0
+        let bValue: string | number = 0
 
-        switch(sortConfig.key) {
-          case 'name': 
-            aValue = a.user.name; bValue = b.user.name; break;
-          case 'type':
-            aValue = a.policy.name; bValue = b.policy.name; break;
-          case 'duration':
-            aValue = a.days; bValue = b.days; break;
-          case 'date':
-            aValue = new Date(a.startDate).getTime(); bValue = new Date(b.startDate).getTime(); break;
-          case 'createdAt':
-            aValue = new Date(a.createdAt).getTime(); bValue = new Date(b.createdAt).getTime(); break;
+        switch (sortConfig.key) {
+          case "name":
+            aValue = a.user.name
+            bValue = b.user.name
+            break
+          case "type":
+            aValue = a.policy.name
+            bValue = b.policy.name
+            break
+          case "duration":
+            aValue = a.days
+            bValue = b.days
+            break
+          case "date":
+            aValue = new Date(a.startDate).getTime()
+            bValue = new Date(b.startDate).getTime()
+            break
+          case "createdAt":
+            aValue = new Date(a.createdAt).getTime()
+            bValue = new Date(b.createdAt).getTime()
+            break
         }
 
-        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1
-        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1
+        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1
+        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1
         return 0
       })
     }

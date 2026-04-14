@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import prisma from "../prisma";
 import { revalidatePath } from "next/cache";
 
@@ -77,12 +78,15 @@ export async function createDepartment(data: { name: string; managerId?: string 
     revalidatePath("/admin/manage-employees");
     
     return { success: true, department: dept };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating department:", error);
-    if (error?.code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return { success: false, error: `A department with the name "${data.name}" already exists.` };
     }
-    return { success: false, error: error?.message || "Failed to create department" };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to create department",
+    };
   }
 }
 
@@ -133,9 +137,9 @@ export async function updateDepartment(id: string, data: { name: string; manager
     revalidatePath("/admin/leave-management/departments");
     revalidatePath("/admin/manage-employees");
     return { success: true, department: dept };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating department:", error);
-    if (error?.code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return { success: false, error: `A department with the name "${data.name}" already exists.` };
     }
     return { success: false, error: "Failed to update department" };
