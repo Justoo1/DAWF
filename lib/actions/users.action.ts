@@ -885,8 +885,6 @@ export async function updateEmployeeProfile(
     })
 
     if (emailChanged) {
-      const cred = existing.accounts[0]
-      const hasCredentialPassword = !!(cred?.password && cred.password.length > 0)
       const verificationCallback = postEmailVerificationCallbackUrl()
       try {
         await auth.api.sendVerificationEmail({
@@ -1027,8 +1025,6 @@ export async function adminResendEmployeeVerificationEmail(userId: string) {
         'This account is already verified. Use “Send password reset” if they need to set or change their password.'
     }
   }
-  const cred = user.accounts[0]
-  const hasCredentialPassword = !!(cred?.password && cred.password.length > 0)
   const verificationCallback = postEmailVerificationCallbackUrl()
   try {
     await auth.api.sendVerificationEmail({

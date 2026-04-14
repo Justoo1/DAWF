@@ -11,10 +11,7 @@ import {
   Edit,
   Trash2,
   Power,
-  User as UserIcon,
   Search,
-  Check,
-  ChevronDown
 } from "lucide-react";
 import {
   Select,

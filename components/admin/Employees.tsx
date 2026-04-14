@@ -19,10 +19,6 @@ import {
   deleteUser,
   revalidateUserPath,
   updateEmployeeStatus,
-  updateContributorStatus,
-  updateBookingApprovalPermission,
-  updateUserRole,
-  updateUserDepartment,
 } from "@/lib/actions/users.action";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,7 +41,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AdminToolbar } from "@/components/admin/layout/AdminToolbar";
 import { AdminSearchField } from "@/components/admin/layout/AdminSearchField";
@@ -85,11 +80,8 @@ const Employees = ({
   isManager,
   isFoodCommittee,
 }: EmployeesProps) => {
+  void isFoodCommittee;
   const [searchTerm, setSearchTerm] = useState("");
-  const [editingDepartment, setEditingDepartment] = useState<string | null>(
-    null
-  );
-  const [departmentValue, setDepartmentValue] = useState("");
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -262,96 +254,6 @@ const Employees = ({
         description: result.error,
       });
     }
-  };
-
-  const handleContributorToggle = async (
-    id: string | undefined,
-    currentStatus: boolean | undefined
-  ) => {
-    if (!id) return;
-    const newStatus = !currentStatus;
-    const result = await updateContributorStatus(id, newStatus);
-    if (result.success) {
-      toast({
-        title: "Success",
-        description: `Employee marked as ${newStatus ? "contributor" : "non-contributor"}`,
-      });
-      revalidateUserPath("/admin/employees");
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error,
-      });
-    }
-  };
-
-  const handleApprovalPermissionToggle = async (
-    id: string | undefined,
-    currentStatus: boolean | undefined
-  ) => {
-    if (!id) return;
-    const newStatus = !currentStatus;
-    const result = await updateBookingApprovalPermission(id, newStatus);
-    if (result.success) {
-      toast({
-        title: "Success",
-        description: `Booking approval permission ${newStatus ? "granted" : "revoked"}`,
-      });
-      revalidateUserPath("/admin/employees");
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error,
-      });
-    }
-  };
-
-  const handleRoleChange = async (id: string | undefined, newRole: string) => {
-    if (!id) return;
-    const result = await updateUserRole(id, newRole);
-    if (result.success) {
-      toast({
-        title: "Success",
-        description: `Employee role updated to ${newRole}`,
-      });
-      revalidateUserPath("/admin/employees");
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error,
-      });
-    }
-  };
-
-  const handleDepartmentEdit = (id: string, currentDepartment: string | null) => {
-    setEditingDepartment(id);
-    setDepartmentValue(currentDepartment || "");
-  };
-
-  const handleDepartmentSave = async (id: string) => {
-    const result = await updateUserDepartment(id, departmentValue);
-    if (result.success) {
-      toast({
-        title: "Success",
-        description: "Department updated successfully",
-      });
-      setEditingDepartment(null);
-      revalidateUserPath("/admin/employees");
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error,
-      });
-    }
-  };
-
-  const handleDepartmentCancel = () => {
-    setEditingDepartment(null);
-    setDepartmentValue("");
   };
 
   return (

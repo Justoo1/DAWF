@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { UserValues } from "@/lib/validation";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
