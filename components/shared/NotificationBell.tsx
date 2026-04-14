@@ -82,6 +82,15 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
         return '🔔'
       case 'ANNOUNCEMENT':
         return '📢'
+      case 'ROOM_BOOKING_PENDING':
+      case 'ROOM_BOOKING_APPROVED':
+      case 'ROOM_BOOKING_REJECTED':
+      case 'ROOM_BOOKING_CREATED':
+        return '🏢'
+      case 'LEAVE_REQUEST_PENDING':
+      case 'LEAVE_REQUEST_APPROVED':
+      case 'LEAVE_REQUEST_REJECTED':
+        return '🌴'
       default:
         return '📬'
     }

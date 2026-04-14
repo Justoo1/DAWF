@@ -46,7 +46,13 @@ const Dashboard = async () => {
     )
   }
 
-  const latestEvent = upcomingEvents.events && upcomingEvents.events[0]
+  const latestEvent =
+    upcomingEvents.success && upcomingEvents.events?.length
+      ? upcomingEvents.events[0]
+      : null
+  const eventStart = latestEvent?.start
+  const eventDateParts =
+    eventStart != null ? formatDateParts(new Date(eventStart)) : null
   
   return (
     <div className='flex flex-col w-full min-h-screen relative overflow-hidden bg-background'>
@@ -118,12 +124,32 @@ const Dashboard = async () => {
                {/* Upcoming Event Card (Black with White Border) */}
                <Link href="/events" className="block h-full">
                     <Card className="relative h-full overflow-hidden p-8 rounded-2xl shadow-2xl group border-[3px] border-white bg-zinc-950">
-                        <div className="relative z-10 flex flex-col h-full justify-center items-center text-center">
-                            <div className="space-y-3">
-                                <h3 className="text-[9px] font-black text-white/80 uppercase tracking-[0.3em] leading-tight">PURPLEWAVE HACKATHON</h3>
-                                <p className="text-5xl font-black text-orange-600 uppercase leading-tight italic">15</p>
-                                <p className="text-[11px] font-black text-white/80 uppercase tracking-[0.3em]">SEP, 2026</p>
+                        <div className="relative z-10 flex flex-col h-full justify-center items-center text-center min-h-[200px]">
+                            {latestEvent != null && eventDateParts != null ? (
+                            <div className="space-y-3 max-w-[200px]">
+                                <h3 className="text-[9px] font-black text-white/80 uppercase tracking-[0.3em] leading-tight line-clamp-3">
+                                    {latestEvent.title}
+                                </h3>
+                                <p className="text-5xl font-black text-orange-600 uppercase leading-tight italic tabular-nums">
+                                    {eventDateParts.day}
+                                </p>
+                                <p className="text-[11px] font-black text-white/80 uppercase tracking-[0.3em]">
+                                    {eventDateParts.month}, {eventDateParts.year}
+                                </p>
                             </div>
+                            ) : (
+                            <div className="space-y-2 px-2">
+                                <p className="text-[9px] font-black text-white/70 uppercase tracking-[0.28em] leading-relaxed">
+                                    Next event
+                                </p>
+                                <p className="text-sm font-bold text-white/90">
+                                    No upcoming events yet
+                                </p>
+                                <p className="text-[10px] text-white/50 font-medium">
+                                    Open the calendar to see what&apos;s scheduled
+                                </p>
+                            </div>
+                            )}
                         </div>
                     </Card>
                </Link>

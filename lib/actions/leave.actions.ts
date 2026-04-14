@@ -6,6 +6,14 @@ import { AccrualType, NotificationType } from "@prisma/client";
 import { createNotification } from "./notification.actions";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { countLeaveWorkingDays } from "@/lib/leave-working-days";
+
+async function workingDaysForLeaveRange(startDate: Date, endDate: Date) {
+  const holidays = await prisma.publicHoliday.findMany({
+    select: { date: true, isRecurring: true },
+  });
+  return countLeaveWorkingDays(startDate, endDate, holidays);
+}
 
 export async function fetchLeavePolicies() {
   try {
@@ -132,6 +140,14 @@ export async function submitLeaveRequest(data: {
   reason?: string;
 }) {
   try {
+    const days = await workingDaysForLeaveRange(data.startDate, data.endDate);
+    if (days <= 0) {
+      return {
+        success: false,
+        error: "The selected range has no working days (check weekends and public holidays).",
+      };
+    }
+
     // 1. Create the leave request
     const request = await prisma.leaveRequest.create({
       data: {
@@ -139,7 +155,7 @@ export async function submitLeaveRequest(data: {
         policyId: data.policyId,
         startDate: data.startDate,
         endDate: data.endDate,
-        days: data.days,
+        days,
         reason: data.reason
       },
       include: {
@@ -157,9 +173,9 @@ export async function submitLeaveRequest(data: {
       // Notify the specific manager
       await createNotification({
         userId: userDept.managerId,
-        type: NotificationType.ROOM_BOOKING_PENDING, // Using PENDING as a placeholder if leave-specific isn't in Enum yet
+        type: NotificationType.LEAVE_REQUEST_PENDING,
         title: "New Leave Request",
-        message: `${request.user.name} has requested ${data.days} days of ${request.policy.name}.`,
+        message: `${request.user.name} has requested ${days} days of ${request.policy.name}.`,
         linkUrl: "/admin/leave-management/requests"
       });
     } else {
@@ -172,7 +188,7 @@ export async function submitLeaveRequest(data: {
       for (const admin of admins) {
         await createNotification({
           userId: admin.id,
-          type: NotificationType.ROOM_BOOKING_PENDING,
+          type: NotificationType.LEAVE_REQUEST_PENDING,
           title: "New Leave Request (Unmanaged)",
           message: `${request.user.name} submitted a leave request. No manager assigned to their dept.`,
           linkUrl: "/admin/leave-management/requests"
@@ -224,13 +240,22 @@ export async function updatePendingLeaveRequest(
       };
     }
 
+    const days = await workingDaysForLeaveRange(data.startDate, data.endDate);
+    if (days <= 0) {
+      return {
+        success: false,
+        error:
+          "The selected range has no working days (check weekends and public holidays).",
+      };
+    }
+
     await prisma.leaveRequest.update({
       where: { id: requestId },
       data: {
         policyId: data.policyId,
         startDate: data.startDate,
         endDate: data.endDate,
-        days: data.days,
+        days,
         reason: data.reason ?? null,
       },
     });
@@ -377,7 +402,7 @@ export async function approveLeaveRequest(requestId: string, approverId: string)
     // Notify the user
     await createNotification({
       userId: request.userId,
-      type: NotificationType.ROOM_BOOKING_APPROVED,
+      type: NotificationType.LEAVE_REQUEST_APPROVED,
       title: "Leave Request Approved",
       message: `Your leave request for ${request.days} days has been approved by ${approver.name}.`,
       linkUrl: "/leave"
@@ -428,7 +453,7 @@ export async function rejectLeaveRequest(requestId: string, approverId: string, 
     // Notify the user
     await createNotification({
       userId: request.userId,
-      type: NotificationType.ROOM_BOOKING_REJECTED,
+      type: NotificationType.LEAVE_REQUEST_REJECTED,
       title: "Leave Request Declined",
       message: `Your leave request has been declined. Reason: ${reason || "No reason provided."}`,
       linkUrl: "/leave"

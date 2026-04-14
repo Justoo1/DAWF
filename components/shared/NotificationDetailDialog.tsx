@@ -61,6 +61,10 @@ export default function NotificationDetailDialog({
       case 'ROOM_BOOKING_REJECTED':
       case 'ROOM_BOOKING_CREATED':
         return '🏢'
+      case 'LEAVE_REQUEST_PENDING':
+      case 'LEAVE_REQUEST_APPROVED':
+      case 'LEAVE_REQUEST_REJECTED':
+        return '🌴'
       default:
         return '📬'
     }

@@ -1,10 +1,10 @@
-// Middleware is disabled for now - birthday check is handled client-side in the root layout
-// to avoid Prisma Edge Runtime incompatibility issues
+// Middleware is intentionally a no-op: `matcher: []` means this file never runs on requests.
+// Auth and profile checks run in layouts / route handlers. Re-introducing middleware would
+// require keeping it Edge-safe (no Prisma) or using the Node.js middleware runtime.
 
 import { NextResponse } from "next/server"
 
 export function middleware() {
-  // Simply pass through all requests
   return NextResponse.next()
 }
 

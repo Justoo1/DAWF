@@ -43,10 +43,12 @@ import {
   fetchLeavePolicies,
   fetchUserLeaveBalances,
   fetchLeaveRequests,
+  fetchPublicHolidays,
   submitLeaveRequest,
   updatePendingLeaveRequest,
   deletePendingLeaveRequest,
 } from '@/lib/actions/leave.actions'
+import { countLeaveWorkingDays, type HolidayRow } from '@/lib/leave-working-days'
 import { useToast } from '@/hooks/use-toast'
 import { authClient } from '@/lib/auth-client'
 import { format } from 'date-fns'
@@ -94,6 +96,7 @@ const LeaveRequestPage = () => {
     const [policies, setPolicies] = useState<LeavePolicy[]>([])
     const [balances, setBalances] = useState<LeaveBalance[]>([])
     const [requests, setRequests] = useState<LeaveRequest[]>([])
+    const [publicHolidays, setPublicHolidays] = useState<HolidayRow[]>([])
     
     // Form state
     const [selectedPolicy, setSelectedPolicy] = useState("")
@@ -117,24 +120,9 @@ const LeaveRequestPage = () => {
     // Check if form is valid
     const isFormValid = selectedPolicy && startDate && endDate
 
-    // Calculate working days between two dates (excluding weekends)
-    // TODO: Add public holiday exclusion when holiday database/table is available
-    const calculateWorkingDays = (start: Date, end: Date): number => {
-        let count = 0
-        let current = new Date(start)
-        const endDate = new Date(end)
-
-        while (current <= endDate) {
-            const dayOfWeek = current.getDay()
-            // 0 = Sunday, 6 = Saturday
-            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-                count++
-            }
-            current.setDate(current.getDate() + 1)
-        }
-
-        return count
-    }
+    // Working days Mon–Fri (UTC, aligned with date inputs), excluding configured public holidays
+    const calculateWorkingDays = (start: Date, end: Date): number =>
+        countLeaveWorkingDays(start, end, publicHolidays)
 
     // Calculate duration based on start and end dates
     const calculatedDays = startDate && endDate ? calculateWorkingDays(new Date(startDate), new Date(endDate)) : 0
@@ -146,15 +134,24 @@ const LeaveRequestPage = () => {
             if (!session?.user?.id) return
             
             setIsLoading(true)
-            const [policiesRes, balancesRes, requestsRes] = await Promise.all([
+            const [policiesRes, balancesRes, requestsRes, holidaysRes] = await Promise.all([
                 fetchLeavePolicies(),
                 fetchUserLeaveBalances(session.user.id, new Date().getFullYear()),
-                fetchLeaveRequests(session.user.id)
+                fetchLeaveRequests(session.user.id),
+                fetchPublicHolidays(),
             ])
 
             if (policiesRes.success) setPolicies(policiesRes.policies || [])
             if (balancesRes.success) setBalances(balancesRes.balances || [])
             if (requestsRes.success) setRequests(requestsRes.requests || [])
+            if (holidaysRes.success && holidaysRes.holidays) {
+                setPublicHolidays(
+                    holidaysRes.holidays.map((h) => ({
+                        date: new Date(h.date),
+                        isRecurring: h.isRecurring,
+                    }))
+                )
+            }
             
             setIsLoading(false)
         }
@@ -433,7 +430,7 @@ const LeaveRequestPage = () => {
                                     )}
                                 </div>
                                 <p className="text-[9px] text-zinc-500 mt-2 dark:text-zinc-600">
-                                    Weekends are excluded from the calculation. Public holidays will be factored in when configured.
+                                    Weekends and public holidays from the company calendar are excluded. The same rules apply when your request is saved.
                                 </p>
                             </div>
 

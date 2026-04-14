@@ -92,6 +92,9 @@ enum NotificationType {
   ROOM_BOOKING_PENDING // Conference room booking pending approval (for approvers)
   ROOM_BOOKING_APPROVED // Conference room booking approved (for requester)
   ROOM_BOOKING_REJECTED // Conference room booking rejected (for requester)
+  LEAVE_REQUEST_PENDING // Leave request awaiting approval (for approvers)
+  LEAVE_REQUEST_APPROVED // Leave request approved (for requester)
+  LEAVE_REQUEST_REJECTED // Leave request rejected (for requester)
   FOOD_MENU_PUBLISHED // New weekly menu available
   FOOD_SELECTION_REMINDER // Reminder to make selections
   FOOD_SELECTION_CONFIRMED // Confirmation of selections
