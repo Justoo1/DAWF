@@ -24,9 +24,12 @@ import { useRouter } from 'next/navigation'
 interface FoodVendorFormProps {
   vendor?: z.infer<typeof FoodVendorSchema> & { id: string }
   isEdit?: boolean
+  /** When provided, success closes the modal instead of navigating away */
+  onSuccess?: () => void
+  onCancel?: () => void
 }
 
-const FoodVendorForm = ({ vendor, isEdit }: FoodVendorFormProps) => {
+const FoodVendorForm = ({ vendor, isEdit, onSuccess, onCancel }: FoodVendorFormProps) => {
   const { toast } = useToast()
   const router = useRouter()
 
@@ -65,8 +68,12 @@ const FoodVendorForm = ({ vendor, isEdit }: FoodVendorFormProps) => {
           description: `Vendor ${isEdit ? 'updated' : 'created'} successfully`
         })
         form.reset()
-        router.push('/admin/food-management/vendors')
-        router.refresh()
+        if (onSuccess) {
+          onSuccess()
+        } else {
+          router.push('/admin/food-management/vendors')
+          router.refresh()
+        }
       }
     } catch (error) {
       toast({
@@ -196,7 +203,7 @@ const FoodVendorForm = ({ vendor, isEdit }: FoodVendorFormProps) => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.back()}
+            onClick={() => (onCancel ? onCancel() : router.back())}
           >
             Cancel
           </Button>

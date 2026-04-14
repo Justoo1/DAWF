@@ -151,3 +151,43 @@ export async function reactivateFoodVendor(vendorId: string) {
     return { error: 'Failed to reactivate food vendor' };
   }
 }
+
+/** Enable or disable a vendor without changing other fields. */
+export async function setFoodVendorActive(vendorId: string, isActive: boolean) {
+  try {
+    await prisma.foodVendor.update({
+      where: { id: vendorId },
+      data: { isActive },
+    });
+    revalidatePath('/admin/food-management/vendors');
+    revalidatePath('/admin/food-management/menus');
+    return { success: true as const };
+  } catch (error) {
+    console.error('Food vendor active toggle error:', error);
+    return { success: false as const, error: 'Failed to update vendor status' };
+  }
+}
+
+/**
+ * Permanently removes the vendor and its weekly menus and foods.
+ * Menu-linked records cascade; foods for this vendor are removed before the vendor row.
+ */
+export async function permanentlyDeleteFoodVendor(vendorId: string) {
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.weeklyFoodMenu.deleteMany({ where: { vendorId } });
+      await tx.food.deleteMany({ where: { vendorId } });
+      await tx.foodVendor.delete({ where: { id: vendorId } });
+    });
+    revalidatePath('/admin/food-management/vendors');
+    revalidatePath('/admin/food-management/menus');
+    revalidatePath('/admin/food-management/foods');
+    return { success: true as const };
+  } catch (error) {
+    console.error('Food vendor permanent delete error:', error);
+    return {
+      success: false as const,
+      error: 'Could not delete this vendor. It may still be referenced elsewhere.',
+    };
+  }
+}
