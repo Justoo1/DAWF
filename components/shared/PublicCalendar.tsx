@@ -1,8 +1,14 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { EventInput } from "@fullcalendar/core"
-import BaseCalendar from "./BaseCalendar"
 import { Card } from "@/components/ui/card"
+import { CalendarSkeleton } from "@/components/shared/CalendarSkeleton"
+
+const BaseCalendar = dynamic(() => import("./BaseCalendar"), {
+  ssr: false,
+  loading: () => <CalendarSkeleton />,
+})
 import { useState } from "react"
 import { Calendar, Info, Sparkles } from "lucide-react"
 import { EventCategoryFilters, type EventFilter } from "@/components/shared/EventCategoryFilters"

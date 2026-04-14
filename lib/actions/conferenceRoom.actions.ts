@@ -5,6 +5,7 @@ import prisma from "../prisma";
 import { ConferenceRoom, ConferenceRoomBooking } from "../validation";
 import { createNotificationForAllUsers, createNotification, createNotificationForApprovers } from './notification.actions';
 import { sendEmail, conferenceRoomBookingTemplate, roomBookingApprovedTemplate, roomBookingRejectedTemplate } from '../email';
+import { getPublicCalendarQueryRange } from '@/lib/calendar-range';
 
 // ============================================
 // CONFERENCE ROOM MANAGEMENT
@@ -177,11 +178,15 @@ export async function fetchUserBookings(userId: string) {
   }
 }
 
-export async function fetchBookingsForCalendar() {
+export async function fetchBookingsForCalendar(opts?: { rangeStart: Date; rangeEnd: Date }) {
   try {
+    const { rangeStart, rangeEnd } = opts ?? getPublicCalendarQueryRange()
+
     const bookings = await prisma.conferenceRoomBooking.findMany({
       where: {
-        status: { in: ['APPROVED', 'PENDING'] }
+        status: { in: ['APPROVED', 'PENDING'] },
+        start: { lte: rangeEnd },
+        end: { gte: rangeStart },
       },
       include: {
         room: true,

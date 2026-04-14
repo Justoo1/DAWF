@@ -1,25 +1,31 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { EventStatus } from "@prisma/client";
 import prisma from "../prisma"
 import { Event } from "../validation";
 import { createNotificationForAllUsers } from './notification.actions';
+import { getPublicCalendarQueryRange } from "@/lib/calendar-range";
 
 export async function fetchUpcomingEvents() {
   try {
     const now = new Date();
 
-    // Fetch regular events
+    // Scope to not-yet-finished rows so we don't load entire history into memory
     const events = await prisma.event.findMany({
+      where: {
+        status: EventStatus.ACTIVE,
+        end: { gte: now },
+      },
       orderBy: {
         start: 'asc'
       }
     })
 
-    // Fetch approved/pending conference room bookings
     const bookings = await prisma.conferenceRoomBooking.findMany({
       where: {
-        status: { in: ['APPROVED', 'PENDING'] }
+        status: { in: ['APPROVED', 'PENDING'] },
+        end: { gte: now },
       },
       include: {
         room: true,
@@ -104,60 +110,68 @@ import { EventInput } from '@fullcalendar/core';
 import { fetchBookingsForCalendar } from './conferenceRoom.actions';
 import { getfilteredUpcomingEvents } from "../utils";
 
-// Modify the fetchAllEvents function to return compatible events
+/** Loads events + room bookings that overlap the public calendar window (parallel queries, bounded date range). */
 export async function fetchAllEventsForCalendar() {
   try {
-    const result = await fetchAllEvents(); // Call your existing function
-    const bookingsResult = await fetchBookingsForCalendar(); // Get conference room bookings
+    const { rangeStart, rangeEnd } = getPublicCalendarQueryRange()
 
-    if (result.success) {
-      // Map regular events
-      const events: EventInput[] = result.events.map(event => {
-        // Determine color based on event category and type
-        let backgroundColor = '#3b82f6'; // Default blue
-        let borderColor = '#2563eb';
+    const [dbEvents, bookingsResult] = await Promise.all([
+      prisma.event.findMany({
+        where: {
+          status: EventStatus.ACTIVE,
+          AND: [
+            { start: { lte: rangeEnd } },
+            { end: { gte: rangeStart } },
+          ],
+        },
+        orderBy: { start: 'asc' },
+      }),
+      fetchBookingsForCalendar({ rangeStart, rangeEnd }),
+    ])
 
-        if (event.category === 'WELFARE') {
-          backgroundColor = '#ec4899'; // Pink for welfare events
-          borderColor = '#db2777';
-        } else if (event.category === 'COMPANY') {
-          backgroundColor = '#8b5cf6'; // Purple for company events
-          borderColor = '#7c3aed';
-        }
+    const events: EventInput[] = dbEvents.map((event) => {
+      let backgroundColor = '#3b82f6'
+      let borderColor = '#2563eb'
 
-        return {
-          id: event.id, // FullCalendar's ID
-          title: event.title, // Title for the event
-          start: event.start.toISOString(), // Start date in ISO format
-          end: event.end ? event.end.toISOString() : undefined, // End date in ISO format
-          allDay: false, // Adjust based on your logic
-          backgroundColor,
-          borderColor,
-          extendedProps: {
-            type: event.type,
-            category: event.category,
-            userId: event.userId, // Extra data can go here
-            description: event.description,
-            location: event.location,
-            status: event.status,
-            maxAttendees: event.maxAttendees,
-            isRecurring: event.isRecurring
-          }
-        };
-      });
-
-      // Add conference room bookings to the calendar
-      if (bookingsResult.success && bookingsResult.bookings) {
-        events.push(...bookingsResult.bookings);
+      if (event.category === 'WELFARE') {
+        backgroundColor = '#ec4899'
+        borderColor = '#db2777'
+      } else if (event.category === 'COMPANY') {
+        backgroundColor = '#8b5cf6'
+        borderColor = '#7c3aed'
       }
 
       return {
-        success: true,
-        events,
-        totalEvents: events.length
-      };
-    } else {
-      return { error: 'Failed to fetch events' };
+        id: event.id,
+        title: event.title,
+        start: event.start.toISOString(),
+        end: event.end ? event.end.toISOString() : undefined,
+        allDay: false,
+        backgroundColor,
+        borderColor,
+        extendedProps: {
+          type: event.type,
+          category: event.category,
+          userId: event.userId,
+          description: event.description,
+          location: event.location,
+          status: event.status,
+          maxAttendees: event.maxAttendees,
+          isRecurring: event.isRecurring,
+        },
+      }
+    })
+
+    if (bookingsResult.success && bookingsResult.bookings) {
+      events.push(...bookingsResult.bookings)
+    } else if ('error' in bookingsResult && bookingsResult.error) {
+      console.warn('Calendar bookings:', bookingsResult.error)
+    }
+
+    return {
+      success: true,
+      events,
+      totalEvents: events.length,
     }
   } catch (error) {
     console.error('Event fetch error:', error);
