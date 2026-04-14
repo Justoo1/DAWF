@@ -2,25 +2,25 @@
 
 import Link from 'next/link'
 import React, { useState, useEffect } from 'react'
-import { fetchUserWithContributions } from '@/lib/actions/users.action'
+import { fetchAdminShellUser } from '@/lib/actions/users.action'
 import { Home, Menu, X, Calendar, DoorOpen, Gift, BookOpen, LayoutDashboard, CheckSquare, UtensilsCrossed } from 'lucide-react'
 import ProfileMenu from './ProfileMenu'
 import NotificationBell from './NotificationBell'
 import { authClient } from "@/lib/auth-client"
 import { cn } from '@/lib/utils'
 import { usePathname } from 'next/navigation'
-import { UserValues } from '@/lib/validation'
+import { AdminShellUser } from '@/lib/validation'
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
-  const [userInfo, setUserInfo] = useState<UserValues | null>(null)
+  const [userInfo, setUserInfo] = useState<AdminShellUser | null>(null)
   const { data: session } = authClient.useSession()
   const pathname = usePathname()
 
   useEffect(() => {
     const loadUser = async () => {
       if (session?.user?.email) {
-        const data = await fetchUserWithContributions(session.user.email)
+        const data = await fetchAdminShellUser(session.user.email)
         if (data.success && data.user) {
           setUserInfo(data.user)
         }

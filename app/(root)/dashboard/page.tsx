@@ -1,9 +1,10 @@
-import UsercardDetail from '@/components/shared/UsercardDetail'
-import { fetchUserWithContributions } from '@/lib/actions/users.action'
-// import { auth } from '@clerk/nextjs/server'
+import { fetchAdminShellUser } from '@/lib/actions/users.action'
 import { auth } from "@/lib/auth"
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
+import { UsercardDetailSection } from '@/components/shared/UsercardDetailSection'
+import { UsercardDetailSkeleton } from '@/components/shared/UsercardDetailSkeleton'
 
 const Dashboard = async () => {
   const session = await auth.api.getSession({
@@ -14,18 +15,19 @@ const Dashboard = async () => {
     redirect('/sign-in')
   }
 
-
-  const userInfo = await fetchUserWithContributions(session.user.email)
-
-  // Check if user is inactive
-  if (userInfo.success && userInfo.user && !userInfo.user.isActive) {
+  const shell = await fetchAdminShellUser(session.user.email)
+  if (!shell.success || !shell.user) {
+    redirect('/sign-in')
+  }
+  if (!shell.user.isActive) {
     redirect('/account-deactivated')
   }
 
   return (
     <div className="min-h-screen  ">
-      {/* Main Content */}
-      {userInfo.success ? <UsercardDetail userData={userInfo.user!} /> :  userInfo.error && <div>{userInfo.error}</div>}
+      <Suspense fallback={<UsercardDetailSkeleton />}>
+        <UsercardDetailSection email={session.user.email} />
+      </Suspense>
     </div>
   )
 }

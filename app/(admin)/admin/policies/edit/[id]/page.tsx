@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card"
-import { fetchUserWithContributions } from '@/lib/actions/users.action'
+import { fetchAdminShellUser } from '@/lib/actions/users.action'
 import { fetchAllPolicies } from '@/lib/actions/policy.actions'
 import { auth } from "@/lib/auth"
 import { redirect } from 'next/navigation'
@@ -24,9 +24,9 @@ const EditPolicyPage = async ({ params }: EditPolicyPageProps) => {
     redirect('/')
   }
 
-  const userData = await fetchUserWithContributions(session.user.email)
+  const gate = await fetchAdminShellUser(session.user.email)
 
-  if (userData.user?.role !== "ADMIN"){
+  if (!gate.success || !gate.user || gate.user.role !== "ADMIN"){
     redirect('/')
   }
 

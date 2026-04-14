@@ -246,6 +246,20 @@ export type UserValues = Omit<z.infer<typeof UserSchema>, 'password' | "departme
   contributions?: { month: Date; amount: number; status?: string }[]
 }
 
+/** Profile dropdown only; full `UserValues` satisfies this. */
+export type ProfileMenuUser = Pick<UserValues, 'name' | 'email' | 'role'>
+
+/**
+ * Narrow user row for nav chrome (no contributions / aggregates).
+ * Use `fetchAdminShellUser` instead of `fetchUserWithContributions` for headers and sidebars.
+ */
+export type AdminShellUser = ProfileMenuUser & {
+  id: string
+  department: string | null
+  canApproveBookings: boolean
+  isActive: boolean
+}
+
 // Contribution Schema
 export const ContributionSchema = z.object({
   id: z.string().optional(),

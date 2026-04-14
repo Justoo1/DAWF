@@ -6,7 +6,7 @@ import { Building2, Mail, Phone, User } from 'lucide-react'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { fetchUserWithContributions } from '@/lib/actions/users.action'
+import { fetchAdminShellUser } from '@/lib/actions/users.action'
 import { hasPermission } from '@/lib/permissions'
 import { Badge } from '@/components/ui/badge'
 import { AdminPageContent } from '@/components/admin/layout/AdminPageContent'
@@ -25,8 +25,8 @@ const FoodVendorsPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) redirect('/sign-in')
 
-  const userData = await fetchUserWithContributions(session.user.email)
-  if (!userData.user || !hasPermission(userData.user.role as 'ADMIN' | 'FOOD_COMMITTEE' | 'EMPLOYEE', 'view_food_management')) {
+  const gate = await fetchAdminShellUser(session.user.email)
+  if (!gate.success || !gate.user || !hasPermission(gate.user.role as 'ADMIN' | 'FOOD_COMMITTEE' | 'EMPLOYEE', 'view_food_management')) {
     redirect('/admin')
   }
 

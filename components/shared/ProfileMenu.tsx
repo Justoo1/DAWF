@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { LayoutDashboard, LogOut, Mail, Settings } from "lucide-react"
-import { UserValues } from "@/lib/validation"
+import { ProfileMenuUser } from "@/lib/validation"
 import { authClient } from "@/lib/auth-client"
 import { usePathname, useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -12,7 +12,7 @@ import Link from "next/link"
 import { canAccessAdmin, type UserRole } from "@/lib/permissions"
 
 interface ProfileMenuProps {
-    user: UserValues
+    user: ProfileMenuUser
 }
 
 const ProfileMenu = ({ user }: ProfileMenuProps) => {

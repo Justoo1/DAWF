@@ -3,10 +3,8 @@
 import Link from "next/link";
 import ProfileMenu from "../shared/ProfileMenu";
 import { ChevronLeft, ChevronRight, HelpCircle, LayoutGrid, Menu } from "lucide-react";
-import { useEffect, useState } from "react";
-import { authClient } from "@/lib/auth-client";
-import { fetchUserWithContributions } from "@/lib/actions/users.action";
-import { UserValues } from "@/lib/validation";
+import { useState } from "react";
+import { AdminShellUser } from "@/lib/validation";
 import { AdminSearchField } from "@/components/admin/layout/AdminSearchField";
 import NotificationBell from "@/components/shared/NotificationBell";
 import { Button } from "@/components/ui/button";
@@ -17,28 +15,20 @@ interface HeaderProps {
   sidebarCollapsed?: boolean;
   /** Toggle expand/collapse on desktop (md+); no-op if omitted */
   onToggleSidebarCollapse?: () => void;
+  /** Loaded once in admin layout (shared with sidebar role) */
+  userInfo: AdminShellUser | null;
+  /** Session is ready but shell user row is still loading */
+  profilePending?: boolean;
 }
 
 const Header = ({
   onMenuClick,
   sidebarCollapsed = false,
   onToggleSidebarCollapse,
+  userInfo,
+  profilePending = false,
 }: HeaderProps) => {
-  const { data: session } = authClient.useSession();
-  const [userInfo, setUserInfo] = useState<UserValues | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    const loadUser = async () => {
-      if (session?.user?.email) {
-        const data = await fetchUserWithContributions(session.user.email);
-        if (data.success && data.user) {
-          setUserInfo(data.user);
-        }
-      }
-    };
-    loadUser();
-  }, [session]);
 
   return (
     <header
@@ -123,14 +113,29 @@ const Header = ({
               <HelpCircle className="h-5 w-5" />
             </Button>
           </div>
-          {userInfo?.id && (
-            <div className="hidden sm:flex">
-              <NotificationBell userId={userInfo.id} />
+          {profilePending ? (
+            <div className="hidden sm:flex items-center gap-2">
+              <div
+                className="h-9 w-9 rounded-full bg-muted animate-pulse"
+                aria-hidden
+              />
+              <div
+                className="h-10 w-10 rounded-full bg-muted animate-pulse"
+                aria-hidden
+              />
             </div>
+          ) : (
+            <>
+              {userInfo?.id && (
+                <div className="hidden sm:flex">
+                  <NotificationBell userId={userInfo.id} />
+                </div>
+              )}
+              <div className="pl-2 border-l border-border/40 ml-1">
+                {userInfo && <ProfileMenu user={userInfo} />}
+              </div>
+            </>
           )}
-          <div className="pl-2 border-l border-border/40 ml-1">
-            {userInfo && <ProfileMenu user={userInfo} />}
-          </div>
         </div>
       </div>
     </header>

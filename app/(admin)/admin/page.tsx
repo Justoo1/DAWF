@@ -3,18 +3,19 @@ import { Users, Calendar } from 'lucide-react'
 import { fetchContributions } from '@/lib/actions/contribution'
 import { fetchUpcomingEvents } from '@/lib/actions/events.actions'
 import { fetchExpenses } from '@/lib/actions/expenses'
-import { fetchMembers, fetchUserWithContributions } from '@/lib/actions/users.action'
+import { fetchAdminShellUser, fetchMembers } from '@/lib/actions/users.action'
 import { auth } from "@/lib/auth"
 import { redirect } from 'next/navigation'
-import UserAnalysis from '@/components/admin/User-analysis'
 import QuickActions from "@/components/admin/QuickActions"
 import { headers } from "next/headers"
 import { canAccessAdmin } from '@/lib/permissions'
 import { AdminPageContent } from "@/components/admin/layout/AdminPageContent"
 import { AdminPageHeader } from "@/components/admin/layout/AdminPageHeader"
+import { Suspense } from 'react'
+import { UserAnalysisSection } from '@/components/admin/UserAnalysisSection'
+import { UserAnalysisSkeleton } from '@/components/admin/UserAnalysisSkeleton'
 
 const Dashboard = async () => {
-  // const { userId } = await auth()
   const session = await auth.api.getSession({
     headers: await headers()
   })
@@ -23,23 +24,25 @@ const Dashboard = async () => {
     redirect('/')
   }
 
-  const [contributionsData, eventsData, expensesData, membersData, userData] = await Promise.all([
+  const shell = await fetchAdminShellUser(session.user.email)
+  if (!shell.success || !shell.user) {
+    redirect('/')
+  }
+
+  if (!canAccessAdmin(shell.user.role as 'EMPLOYEE' | 'MANAGER' | 'ADMIN' | 'FOOD_COMMITTEE')){
+    redirect('/')
+  }
+
+  if (shell.user.role === 'FOOD_COMMITTEE') {
+    redirect('/admin/food-management/vendors')
+  }
+
+  const [contributionsData, eventsData, expensesData, membersData] = await Promise.all([
     fetchContributions(1,10,false),
     fetchUpcomingEvents(),
     fetchExpenses(),
     fetchMembers(),
-    fetchUserWithContributions(session.user.email),
   ])
-
-  // Check if user has admin or manager role
-  if (!userData.user || !canAccessAdmin(userData.user.role as 'EMPLOYEE' | 'MANAGER' | 'ADMIN' | 'FOOD_COMMITTEE')){
-    redirect('/')
-  }
-
-  // Redirect FOOD_COMMITTEE users to food management
-  if (userData.user.role === 'FOOD_COMMITTEE') {
-    redirect('/admin/food-management/vendors')
-  }
 
   return (
     <main className="admin-main">
@@ -121,7 +124,9 @@ const Dashboard = async () => {
           </Card>
         </div>
 
-        {userData.success && <UserAnalysis userData={userData.user} showRecentContributions />}
+        <Suspense fallback={<UserAnalysisSkeleton />}>
+          <UserAnalysisSection email={session.user.email} />
+        </Suspense>
         <QuickActions />
       </AdminPageContent>
     </main>

@@ -21,6 +21,34 @@ function headersForSendVerificationToOtherUser(): Headers {
   return new Headers()
 }
 
+/** Fast path for layout chrome: one indexed lookup, no contribution rows or aggregates. */
+export async function fetchAdminShellUser(email: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        department: true,
+        canApproveBookings: true,
+        isActive: true,
+      },
+    })
+    if (!user) {
+      throw new Error('User not found')
+    }
+    return { success: true as const, user }
+  } catch (error) {
+    console.error('Error fetching admin shell user:', error)
+    return {
+      success: false as const,
+      error: error instanceof Error ? error.message : 'An unknown error occurred',
+    }
+  }
+}
+
 export async function fetchUserWithContributions(email: string) {
   try {
     // Fetch user with their contributions

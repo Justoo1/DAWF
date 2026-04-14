@@ -4,8 +4,9 @@ import Header from '@/components/admin/Header'
 import { Sidebar } from '@/components/admin/Sidebar'
 import { useState, useEffect } from 'react'
 import { authClient } from '@/lib/auth-client'
-import { fetchUserWithContributions } from '@/lib/actions/users.action'
+import { fetchAdminShellUser } from '@/lib/actions/users.action'
 import { UserRole } from '@/lib/permissions'
+import { AdminShellUser } from '@/lib/validation'
 
 const SIDEBAR_COLLAPSED_KEY = 'dawf-admin-sidebar-collapsed'
 
@@ -16,8 +17,15 @@ export default function RootLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean | null>(null)
-  const [userRole, setUserRole] = useState<UserRole>('EMPLOYEE')
-  const { data: session } = authClient.useSession()
+  const [adminUser, setAdminUser] = useState<AdminShellUser | null>(null)
+  const [shellUserFetchFailed, setShellUserFetchFailed] = useState(false)
+  const { data: session, isPending: sessionPending } = authClient.useSession()
+  const userRole = (adminUser?.role as UserRole | undefined) ?? 'EMPLOYEE'
+  const profilePending =
+    Boolean(session?.user?.email) &&
+    !sessionPending &&
+    adminUser === null &&
+    !shellUserFetchFailed
 
   useEffect(() => {
     try {
@@ -37,16 +45,28 @@ export default function RootLayout({
   }, [sidebarCollapsed])
 
   useEffect(() => {
-    const loadUserRole = async () => {
-      if (session?.user?.email) {
-        const data = await fetchUserWithContributions(session.user.email)
-        if (data.success && data.user) {
-          setUserRole(data.user.role as UserRole)
-        }
-      }
+    if (!session?.user?.email) {
+      setAdminUser(null)
+      setShellUserFetchFailed(false)
+      return
     }
-    loadUserRole()
-  }, [session])
+    let cancelled = false
+    setShellUserFetchFailed(false)
+    void (async () => {
+      const data = await fetchAdminShellUser(session.user.email)
+      if (cancelled) return
+      if (data.success && data.user) {
+        setAdminUser(data.user)
+        setShellUserFetchFailed(false)
+      } else {
+        setAdminUser(null)
+        setShellUserFetchFailed(true)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [session?.user?.email])
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
@@ -63,6 +83,8 @@ export default function RootLayout({
           onToggleSidebarCollapse={() =>
             setSidebarCollapsed((c) => !(c ?? false))
           }
+          userInfo={adminUser}
+          profilePending={profilePending}
         />
         <main className="flex-1 overflow-y-auto">
           {children}

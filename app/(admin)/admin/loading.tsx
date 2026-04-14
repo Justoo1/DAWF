@@ -1,19 +1,20 @@
-"use client"
-
-import { Loader2 } from "lucide-react"
-
+/** Shown during `/admin/*` navigations while the server page resolves (layout chrome stays interactive). */
 export default function AdminLoading() {
   return (
-    <div className="flex h-[calc(100vh-64px)] w-full items-center justify-center bg-background/50">
-      <div className="flex flex-col items-center gap-4 text-muted-foreground animate-in fade-in duration-500 delay-150 fill-mode-both">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        </div>
-        <div className="flex flex-col items-center gap-1">
-          <p className="font-semibold text-foreground">Loading Module</p>
-          <p className="text-sm">Retrieving real-time data...</p>
-        </div>
+    <div className="w-full max-w-[1550px] mx-auto px-4 py-6 sm:px-6 animate-in fade-in duration-200">
+      <div className="mb-8 space-y-2">
+        <div className="h-8 w-48 rounded-md bg-muted animate-pulse" />
+        <div className="h-4 w-72 max-w-full rounded-md bg-muted/70 animate-pulse" />
       </div>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-28 rounded-xl border border-border/40 bg-card/50 ring-1 ring-border/20 animate-pulse"
+          />
+        ))}
+      </div>
+      <div className="mt-8 h-64 rounded-xl border border-border/40 bg-muted/30 animate-pulse" />
     </div>
   )
 }
