@@ -21,14 +21,32 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   Calendar as CalendarIcon,
   FileText,
   ArrowLeft,
   Loader2,
-  Info
+  Info,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
 import Link from 'next/link'
-import { fetchLeavePolicies, fetchUserLeaveBalances, fetchLeaveRequests, submitLeaveRequest } from '@/lib/actions/leave.actions'
+import {
+  fetchLeavePolicies,
+  fetchUserLeaveBalances,
+  fetchLeaveRequests,
+  submitLeaveRequest,
+  updatePendingLeaveRequest,
+  deletePendingLeaveRequest,
+} from '@/lib/actions/leave.actions'
 import { useToast } from '@/hooks/use-toast'
 import { authClient } from '@/lib/auth-client'
 import { format } from 'date-fns'
@@ -62,6 +80,10 @@ interface LeaveRequest {
     managerName?: string;
 }
 
+function isLeaveRequestMutable(status: LeaveRequest['status']) {
+    return status === 'PENDING'
+}
+
 const LeaveRequestPage = () => {
     const [isLoading, setIsLoading] = useState(true)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -79,6 +101,18 @@ const LeaveRequestPage = () => {
     const [endDate, setEndDate] = useState("")
     const [reason, setReason] = useState("")
     const [maxDays, setMaxDays] = useState<number | null>(null)
+
+    const [editOpen, setEditOpen] = useState(false)
+    const [editId, setEditId] = useState<string | null>(null)
+    const [editPolicy, setEditPolicy] = useState("")
+    const [editStart, setEditStart] = useState("")
+    const [editEnd, setEditEnd] = useState("")
+    const [editReason, setEditReason] = useState("")
+    const [editMaxDays, setEditMaxDays] = useState<number | null>(null)
+    const [isEditSubmitting, setIsEditSubmitting] = useState(false)
+
+    const [deleteTarget, setDeleteTarget] = useState<LeaveRequest | null>(null)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     // Check if form is valid
     const isFormValid = selectedPolicy && startDate && endDate
@@ -104,6 +138,8 @@ const LeaveRequestPage = () => {
 
     // Calculate duration based on start and end dates
     const calculatedDays = startDate && endDate ? calculateWorkingDays(new Date(startDate), new Date(endDate)) : 0
+    const editCalculatedDays =
+        editStart && editEnd ? calculateWorkingDays(new Date(editStart), new Date(editEnd)) : 0
 
     useEffect(() => {
         const loadData = async () => {
@@ -147,6 +183,25 @@ const LeaveRequestPage = () => {
             setMaxDays(null)
         }
     }, [selectedPolicy, policies, balances, requests])
+
+    useEffect(() => {
+        if (!editPolicy) {
+            setEditMaxDays(null)
+            return
+        }
+        const policy = policies.find((p: LeavePolicy) => p.id === editPolicy)
+        const balance = balances.find((b: LeaveBalance) => b.policyId === editPolicy)
+        const approvedRequests = requests.filter(
+            (r: LeaveRequest) => r.policyId === editPolicy && r.status === 'APPROVED'
+        )
+        const approvedDaysUsed = approvedRequests.reduce(
+            (sum: number, r: LeaveRequest) => sum + r.days,
+            0
+        )
+        const totalDays = balance ? balance.daysAllocated : policy?.defaultDays || 0
+        const remainingDays = totalDays - approvedDaysUsed
+        setEditMaxDays(remainingDays > 0 ? remainingDays : 0)
+    }, [editPolicy, policies, balances, requests])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -194,6 +249,78 @@ const LeaveRequestPage = () => {
             toast({ title: "Error", description: res.error || "Failed to submit request", variant: "destructive" })
         }
         setIsSubmitting(false)
+    }
+
+    const openEdit = (req: LeaveRequest) => {
+        if (!isLeaveRequestMutable(req.status)) return
+        setEditId(req.id)
+        setEditPolicy(req.policyId)
+        setEditStart(format(new Date(req.startDate), 'yyyy-MM-dd'))
+        setEditEnd(format(new Date(req.endDate), 'yyyy-MM-dd'))
+        setEditReason(req.reason || '')
+        setEditOpen(true)
+    }
+
+    const handleEditSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        const daysNum = editCalculatedDays
+        if (!editId || !editPolicy || !editStart || !editEnd || !session?.user?.id || daysNum <= 0) {
+            toast({
+                title: 'Validation Error',
+                description: 'Please fill all required fields.',
+                variant: 'destructive',
+            })
+            return
+        }
+        if (editMaxDays !== null && daysNum > editMaxDays) {
+            toast({
+                title: 'Validation Error',
+                description: `You can only request up to ${editMaxDays} days for this leave type.`,
+                variant: 'destructive',
+            })
+            return
+        }
+        setIsEditSubmitting(true)
+        const res = await updatePendingLeaveRequest(editId, {
+            policyId: editPolicy,
+            startDate: new Date(editStart),
+            endDate: new Date(editEnd),
+            days: daysNum,
+            reason: editReason,
+        })
+        if (res.success) {
+            toast({ title: 'Request updated', description: 'Your pending leave request has been updated.' })
+            setEditOpen(false)
+            setEditId(null)
+            const requestsRes = await fetchLeaveRequests(session.user.id)
+            if (requestsRes.success) setRequests(requestsRes.requests || [])
+        } else {
+            toast({
+                title: 'Could not update',
+                description: res.error || 'Failed to update request',
+                variant: 'destructive',
+            })
+        }
+        setIsEditSubmitting(false)
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!deleteTarget || !session?.user?.id) return
+        setIsDeleting(true)
+        const res = await deletePendingLeaveRequest(deleteTarget.id)
+        if (res.success) {
+            toast({ title: 'Request withdrawn', description: 'Your pending leave request has been removed.' })
+            setDeleteTarget(null)
+            const requestsRes = await fetchLeaveRequests(session.user.id)
+            if (requestsRes.success) setRequests(requestsRes.requests || [])
+        } else {
+            toast({
+                title: 'Could not remove',
+                description: res.error || 'Failed to delete request',
+                variant: 'destructive',
+            })
+        }
+        setIsDeleting(false)
     }
 
     if (isLoading) {
@@ -341,6 +468,135 @@ const LeaveRequestPage = () => {
                         </form>
                     </DialogContent>
                 </Dialog>
+
+                <Dialog
+                    open={editOpen}
+                    onOpenChange={(open) => {
+                        setEditOpen(open)
+                        if (!open) setEditId(null)
+                    }}
+                >
+                    <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+                        <DialogHeader>
+                            <DialogTitle className="text-2xl font-black uppercase italic">Edit leave request</DialogTitle>
+                            <DialogDescription>
+                                You can only update a request while it is still pending. After approval or decline, it
+                                cannot be changed here.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleEditSubmit} className="space-y-5 mt-6">
+                            <div className="space-y-2">
+                                <Label
+                                    htmlFor="edit-leave-type"
+                                    className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1 dark:text-zinc-500"
+                                >
+                                    Leave Type <span className="text-red-500">*</span>
+                                </Label>
+                                <Select value={editPolicy || undefined} onValueChange={setEditPolicy}>
+                                    <SelectTrigger
+                                        id="edit-leave-type"
+                                        className="h-11 rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold hover:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:hover:bg-zinc-950 transition-colors"
+                                    >
+                                        <SelectValue placeholder="Select leave type" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white border-zinc-200 text-zinc-900 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-300">
+                                        {policies.filter((p) => p.isActive).map((p) => (
+                                            <SelectItem key={p.id} value={p.id}>
+                                                {p.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1 dark:text-zinc-500">
+                                        Start Date <span className="text-red-500">*</span>
+                                    </Label>
+                                    <div className="relative">
+                                        <Input
+                                            type="date"
+                                            value={editStart}
+                                            onChange={(e) => setEditStart(e.target.value)}
+                                            className="h-11 pl-10 rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold focus:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:focus:bg-zinc-950"
+                                        />
+                                        <CalendarIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 dark:text-zinc-600" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1 dark:text-zinc-500">
+                                        End Date <span className="text-red-500">*</span>
+                                    </Label>
+                                    <div className="relative">
+                                        <Input
+                                            type="date"
+                                            value={editEnd}
+                                            onChange={(e) => setEditEnd(e.target.value)}
+                                            className="h-11 pl-10 rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold focus:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:focus:bg-zinc-950"
+                                        />
+                                        <CalendarIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 dark:text-zinc-600" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 dark:bg-zinc-950/50 dark:border-zinc-800">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] dark:text-zinc-600">
+                                            Calculated Duration
+                                        </p>
+                                        <p className="text-2xl font-black text-zinc-900 mt-1 dark:text-white">
+                                            {editCalculatedDays}{' '}
+                                            <span className="text-sm font-bold text-zinc-500">working days</span>
+                                        </p>
+                                    </div>
+                                    {editMaxDays !== null && (
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] dark:text-zinc-600">
+                                                Available
+                                            </p>
+                                            <p
+                                                className={`text-2xl font-black mt-1 ${editCalculatedDays > editMaxDays ? 'text-red-500' : 'text-emerald-600'}`}
+                                            >
+                                                {editMaxDays}{' '}
+                                                <span className="text-sm font-bold text-zinc-500">days</span>
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 ml-1 dark:text-zinc-500">
+                                    Reason (Optional)
+                                </Label>
+                                <Textarea
+                                    value={editReason}
+                                    onChange={(e) => setEditReason(e.target.value)}
+                                    placeholder="Briefly state reason for leave request..."
+                                    className="min-h-[80px] rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold focus:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:focus:bg-zinc-950 resize-none"
+                                />
+                            </div>
+
+                            <Button
+                                type="submit"
+                                disabled={
+                                    isEditSubmitting || !editPolicy || !editStart || !editEnd
+                                }
+                                className="w-full h-11 bg-[#10A074] hover:bg-[#0d8a62] text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-lg shadow-lg hover:translate-y-[-1px] transition-all active:scale-[0.98] dark:shadow-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isEditSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin mr-2" /> Saving...
+                                    </>
+                                ) : (
+                                    'Save changes'
+                                )}
+                            </Button>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             </header>
 
             <main className="mx-auto w-full max-w-[1600px] px-6 py-8 md:px-12 lg:px-20">
@@ -472,7 +728,9 @@ const LeaveRequestPage = () => {
                                                         ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400"
                                                         : req.status === "REJECTED"
                                                           ? "border-red-200 bg-red-50 text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400"
-                                                          : "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200"
+                                                          : req.status === "CANCELLED"
+                                                            ? "border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-zinc-600/40 dark:bg-zinc-800/50 dark:text-zinc-300"
+                                                            : "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200"
                                                 }`}
                                             >
                                                 {req.status}
@@ -497,6 +755,31 @@ const LeaveRequestPage = () => {
                                                 {req.managerName ? `Via ${req.managerName.split(" ")[0]}` : "Via system"}
                                             </span>
                                         </div>
+
+                                        {isLeaveRequestMutable(req.status) && (
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 flex-1 text-[10px] font-bold uppercase tracking-wider"
+                                                    onClick={() => openEdit(req)}
+                                                >
+                                                    <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                                                    Edit
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 flex-1 text-[10px] font-bold uppercase tracking-wider border-red-200 text-red-700 hover:bg-red-50 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10"
+                                                    onClick={() => setDeleteTarget(req)}
+                                                >
+                                                    <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                                                    Delete
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )) : (
@@ -511,6 +794,37 @@ const LeaveRequestPage = () => {
                     </div>
                 </div>
             </main>
+
+            <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+                <AlertDialogContent className="border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Withdraw this request?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This removes your pending leave request. You cannot undo this for requests that have already
+                            been approved or declined.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            disabled={isDeleting}
+                            className="bg-red-600 hover:bg-red-700"
+                            onClick={() => void handleConfirmDelete()}
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
+                                    Removing...
+                                </>
+                            ) : (
+                                'Withdraw request'
+                            )}
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

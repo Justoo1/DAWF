@@ -4,6 +4,8 @@ import prisma from "../prisma";
 import { revalidatePath } from "next/cache";
 import { AccrualType, NotificationType } from "@prisma/client";
 import { createNotification } from "./notification.actions";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export async function fetchLeavePolicies() {
   try {
@@ -186,6 +188,96 @@ export async function submitLeaveRequest(data: {
   } catch (error) {
     console.error("Error submitting leave request:", error);
     return { success: false, error: "Failed to submit leave request" };
+  }
+}
+
+/** Only the owner may update, and only while the request is still pending approval. */
+export async function updatePendingLeaveRequest(
+  requestId: string,
+  data: {
+    policyId: string;
+    startDate: Date;
+    endDate: Date;
+    days: number;
+    reason?: string;
+  }
+) {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user?.id) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const existing = await prisma.leaveRequest.findFirst({
+      where: {
+        id: requestId,
+        userId: session.user.id,
+        status: "PENDING",
+      },
+    });
+
+    if (!existing) {
+      return {
+        success: false,
+        error:
+          "This request cannot be edited. Only pending requests can be changed before a decision is made.",
+      };
+    }
+
+    await prisma.leaveRequest.update({
+      where: { id: requestId },
+      data: {
+        policyId: data.policyId,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        days: data.days,
+        reason: data.reason ?? null,
+      },
+    });
+
+    revalidatePath("/admin/leave-management");
+    revalidatePath("/admin/leave-management/leaves");
+    revalidatePath("/leave");
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating leave request:", error);
+    return { success: false, error: "Failed to update leave request" };
+  }
+}
+
+/** Only the owner may delete, and only while the request is still pending approval. */
+export async function deletePendingLeaveRequest(requestId: string) {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user?.id) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const existing = await prisma.leaveRequest.findFirst({
+      where: {
+        id: requestId,
+        userId: session.user.id,
+        status: "PENDING",
+      },
+    });
+
+    if (!existing) {
+      return {
+        success: false,
+        error:
+          "This request cannot be removed. Only pending requests can be withdrawn before a decision is made.",
+      };
+    }
+
+    await prisma.leaveRequest.delete({ where: { id: requestId } });
+
+    revalidatePath("/admin/leave-management");
+    revalidatePath("/admin/leave-management/leaves");
+    revalidatePath("/leave");
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting leave request:", error);
+    return { success: false, error: "Failed to delete leave request" };
   }
 }
 
