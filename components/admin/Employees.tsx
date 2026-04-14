@@ -730,10 +730,7 @@ const Employees = ({
           }
         }}
       >
-        <AlertDialogContent
-          onPointerDownOutside={(e) => deleteLoading && e.preventDefault()}
-          onEscapeKeyDown={(e) => deleteLoading && e.preventDefault()}
-        >
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this employee?</AlertDialogTitle>
             <AlertDialogDescription>

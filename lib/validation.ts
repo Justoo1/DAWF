@@ -412,11 +412,23 @@ export const ConferenceRoomBookingCreateSchema = z.object({
   path: ["end"]
 })
 
-export type ConferenceRoomBookingValues = Omit<ConferenceRoomBooking, 'description' | 'purpose' | 'attendeeCount'> & {
-  description: string | null,
-  purpose: string | null,
-  attendeeCount: number | null,
-  room: ConferenceRoom
+/** Admin list row: Prisma booking with `room` + `user` includes (see fetchAllBookings). */
+export type ConferenceRoomBookingValues = Omit<
+  ConferenceRoomBooking,
+  'description' | 'purpose' | 'attendeeCount' | 'approvedBy' | 'rejectionReason'
+> & {
+  description: string | null
+  purpose: string | null
+  attendeeCount: number | null
+  approvedBy: string | null
+  rejectionReason: string | null
+  room: ConferenceRoomValues
+  user: {
+    id: string
+    name: string
+    email: string
+    department: string | null
+  }
 }
 
 // Event Attendee Schema

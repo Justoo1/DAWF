@@ -556,7 +556,9 @@ function buildGeneratedInitialPassword(): string {
   const lower = generateRandomString(4, "a-z");
   const upper = generateRandomString(2, "A-Z");
   const digit = generateRandomString(2, "0-9");
-  const symbol = generateRandomString(1, "!@#$%&*");
+  // better-auth/crypto only allows a-z, A-Z, 0-9, -_ for generateRandomString
+  const symbolPool = "!@#$%&*";
+  const symbol = symbolPool[Math.floor(Math.random() * symbolPool.length)] ?? "-";
   const extra = generateRandomString(3, "a-z", "A-Z", "0-9");
   const chars = (lower + upper + digit + symbol + extra).split("");
   for (let i = chars.length - 1; i > 0; i--) {

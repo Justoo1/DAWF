@@ -46,12 +46,25 @@ interface ContributionsProps {
     }
 }
 
+type ContributionSortKey = "user_name" | Exclude<keyof ContributionValues, "user">
+
+const contributionSortComparable = (
+  record: ContributionValues,
+  key: ContributionSortKey
+): string | number | Date => {
+  if (key === "user_name") return record.user.name.toLowerCase()
+  const v = record[key]
+  if (v instanceof Date) return v
+  if (typeof v === "number") return v
+  if (typeof v === "string") return v
+  return ""
+}
 
 const Contributions = ({contributions, pagination}: ContributionsProps) => {
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState("all");
     const [sortConfig, setSortConfig] = useState<{
-      key: keyof ContributionValues | "user_name";
+      key: ContributionSortKey;
       direction: "asc" | "desc";
     }>({ key: "month", direction: "desc" });
 
@@ -74,23 +87,15 @@ const Contributions = ({contributions, pagination}: ContributionsProps) => {
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
-      let aValue: string | number | Date;
-      let bValue: string | number | Date;
-
-      if (sortConfig.key === "user_name") {
-        aValue = a.user.name.toLowerCase();
-        bValue = b.user.name.toLowerCase();
-      } else {
-        aValue = a[sortConfig.key as keyof ContributionValues] ?? "";
-        bValue = b[sortConfig.key as keyof ContributionValues] ?? "";
-      }
+      const aValue = contributionSortComparable(a, sortConfig.key)
+      const bValue = contributionSortComparable(b, sortConfig.key)
 
       if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
       if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
 
-  const handleSort = (key: keyof ContributionValues | "user_name") => {
+  const handleSort = (key: ContributionSortKey) => {
     setSortConfig((prev) => ({
       key,
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",

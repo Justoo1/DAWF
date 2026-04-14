@@ -238,7 +238,7 @@ const Expenses = ({ expenses }: ExpensesProps) => {
                   <td className={adminTdClass}>
                     <div className="flex items-center gap-4 relative">
                       {hasUser ? (
-                        <UserAvatarHover user={record.user as any} initials={initials} />
+                        <UserAvatarHover initials={initials} />
                       ) : (
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-xs font-bold text-slate-600">
                           {initials}
