@@ -7,6 +7,7 @@ import { authClient } from '@/lib/auth-client'
 import { fetchAdminShellUser } from '@/lib/actions/users.action'
 import { UserRole } from '@/lib/permissions'
 import { AdminShellUser } from '@/lib/validation'
+import { cn } from '@/lib/utils'
 
 const SIDEBAR_COLLAPSED_KEY = 'dawf-admin-sidebar-collapsed'
 
@@ -68,15 +69,23 @@ export default function RootLayout({
     }
   }, [session?.user?.email])
 
+  const collapsed = sidebarCollapsed ?? false
+
   return (
-    <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-background">
+    <div className="relative flex h-dvh min-h-0 w-full overflow-hidden bg-background">
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         userRole={userRole}
-        collapsed={sidebarCollapsed ?? false}
+        collapsed={collapsed}
       />
-      <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <div
+        className={cn(
+          'flex h-dvh min-h-0 min-w-0 flex-1 flex-col overflow-hidden',
+          'md:transition-[margin-left] md:duration-300 md:motion-safe:ease-in-out',
+          collapsed ? 'md:ml-16' : 'md:ml-72'
+        )}
+      >
         <Header
           onMenuClick={() => setSidebarOpen(true)}
           sidebarCollapsed={sidebarCollapsed ?? false}

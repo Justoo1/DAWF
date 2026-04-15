@@ -290,10 +290,10 @@ export function Sidebar({
       <TooltipProvider delayDuration={showTooltips ? 0 : 300}>
         <div
           className={cn(
-            "flex h-dvh shrink-0 flex-col overflow-hidden border-r border-primary/10 bg-white dark:bg-zinc-950/60",
+            "fixed left-0 top-0 z-50 flex h-dvh flex-col overflow-hidden border-r border-primary/10 bg-white dark:bg-zinc-950/60",
             "w-72 transition-[width] motion-safe:duration-300 motion-safe:ease-in-out",
-            "fixed left-0 top-0 z-50 h-dvh md:relative md:top-auto md:left-auto md:h-full md:max-h-none md:translate-x-0",
             isOpen ? "translate-x-0" : "-translate-x-full",
+            "md:translate-x-0",
             collapsed ? "md:w-16" : "md:w-72"
           )}
         >
