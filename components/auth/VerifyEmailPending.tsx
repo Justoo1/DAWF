@@ -19,8 +19,8 @@ export function VerifyEmailPending() {
         router.replace("/sign-in")
         return
       }
-      const u = session.data.user as { email?: string; pendingInvite?: boolean }
-      if (!u.pendingInvite) {
+      const u = session.data.user as { email?: string; emailVerified?: boolean }
+      if (u.emailVerified !== false) {
         router.replace("/dawf")
         return
       }
@@ -48,8 +48,8 @@ export function VerifyEmailPending() {
             <>
               {" "}
               If you still see this screen for <span className="font-semibold">{email}</span>, ask
-              an administrator to clear the pending invite flag or confirm your account is active,
-              then sign in again with Google.
+              an administrator to confirm your work email is correct and your user record is
+              active, then sign in again with Google.
             </>
           ) : null}
         </p>

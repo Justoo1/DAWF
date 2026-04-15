@@ -5,7 +5,7 @@ export default function VerifyEmailPendingPage() {
   return (
     <AuthLayout
       description="Verify your work email to finish activating your DEVOPS AFRICA account."
-      secondaryDescription="Your administrator has created your profile. Check your inbox for the verification link, then set your password and sign in with your work email or Google."
+      secondaryDescription="Your administrator has added your work email. Sign in with Google using that email. If this screen persists, ask an admin to confirm your account is active and your email matches exactly."
       teamImage="/assets/images/team.png"
     >
       <VerifyEmailPending />

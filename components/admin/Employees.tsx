@@ -134,8 +134,7 @@ const Employees = ({
         deptFilter === "all" ? true : record.department === deptFilter;
       const matchesClient =
         clientFilter === "all" ? true : record.clientId === clientFilter;
-      const needsEmailVerification =
-        !record.emailVerified || !!record.pendingInvite;
+      const needsEmailVerification = !record.emailVerified;
       const matchesVerification =
         verificationFilter === "all" || needsEmailVerification;
       return (
@@ -373,8 +372,7 @@ const Employees = ({
                 .slice(0, 2)
                 .map((s) => s[0]?.toUpperCase())
                 .join("");
-              const needsEmailVerification =
-                !record.emailVerified || !!record.pendingInvite;
+              const needsEmailVerification = !record.emailVerified;
 
               return (
                 <tr
@@ -414,9 +412,7 @@ const Employees = ({
                         <span className="text-[12px] text-slate-500">{record.email}</span>
                         {needsEmailVerification ? (
                           <Badge variant="outline" className="w-fit text-[10px] border-amber-300 text-amber-800 bg-amber-50">
-                            {record.pendingInvite
-                              ? "Awaiting email verification"
-                              : "Email not verified"}
+                            Email not verified
                           </Badge>
                         ) : null}
                       </div>

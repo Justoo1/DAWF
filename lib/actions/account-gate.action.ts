@@ -3,13 +3,12 @@
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { headers } from "next/headers";
+
 export type AccountGateState =
   | { authenticated: false }
   | {
       authenticated: true;
       isActive: boolean;
-      pendingInvite: boolean;
-      mustChangePassword: boolean;
     };
 
 export async function getAccountGateState(): Promise<AccountGateState> {
@@ -23,13 +22,11 @@ export async function getAccountGateState(): Promise<AccountGateState> {
 
   const u = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { isActive: true, pendingInvite: true, mustChangePassword: true },
+    select: { isActive: true },
   });
 
   return {
     authenticated: true,
     isActive: u?.isActive ?? true,
-    pendingInvite: u?.pendingInvite ?? false,
-    mustChangePassword: u?.mustChangePassword ?? false,
   };
 }

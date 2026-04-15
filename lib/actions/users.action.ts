@@ -195,7 +195,6 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
         role: true,
         isActive: true,
         isContributor: true,
-        pendingInvite: true,
         emailVerified: true,
         createdAt: true,
         dateOfBirth: true,
@@ -205,11 +204,6 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
         clientId: true,
         client: {
           select: { id: true, name: true },
-        },
-        accounts: {
-          where: { providerId: 'credential' },
-          select: { password: true },
-          take: 1,
         },
         _count: {
           select: {
@@ -231,12 +225,9 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
 
     // Map the users to keep the API contract consistent but drastically smaller payload
     const userValues = users.map((user) => {
-      const { client, accounts, ...rest } = user
-      const cred = accounts[0]
-      const hasCredentialPassword = !!(cred?.password && cred.password.length > 0)
+      const { client, ...rest } = user
       return {
       ...rest,
-      hasCredentialPassword,
       clientName: client?.name ?? null,
       contributionsCount: user._count.contributions,
       eventsCount: user._count.events,
@@ -607,7 +598,6 @@ export async function createEmployee(data: {
         name: displayName,
         email,
         clientId: data.clientId,
-        pendingInvite: false,
         department: data.department,
         dateOfBirth: data.dateOfBirth,
         startDate: data.startDate,
@@ -617,7 +607,6 @@ export async function createEmployee(data: {
         exitDate: data.exitDate,
         welfareContributionsBeforeExit: data.welfareContributionsBeforeExit,
         emailVerified: true,
-        password: '',
       },
     })
 
@@ -676,14 +665,7 @@ export async function updateEmployeeProfile(
 
     const existing = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        email: true,
-        accounts: {
-          where: { providerId: 'credential' },
-          select: { password: true },
-          take: 1,
-        },
-      },
+      select: { email: true },
     })
     if (!existing) {
       return { success: false, error: 'Employee not found' }
@@ -760,7 +742,6 @@ export async function updateEmployeeProfile(
       ...(emailChanged
         ? {
             emailVerified: true,
-            pendingInvite: false,
           }
         : {}),
     }

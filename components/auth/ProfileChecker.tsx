@@ -33,6 +33,16 @@ export function ProfileChecker() {
           return
         }
 
+        const sessionUser = session.data.user as {
+          dateOfBirth?: Date | null
+          emailVerified?: boolean
+        }
+
+        if (sessionUser.emailVerified === false) {
+          router.push("/verify-email-pending")
+          return
+        }
+
         const gate = await fetchAccountGateState()
         if (!gate.authenticated) {
           return
@@ -44,12 +54,7 @@ export function ProfileChecker() {
           return
         }
 
-        if (gate.pendingInvite) {
-          router.push("/verify-email-pending")
-          return
-        }
-
-        const user = session.data.user as { dateOfBirth?: Date | null }
+        const user = sessionUser
 
         if (!user.dateOfBirth) {
           router.push("/complete-profile")

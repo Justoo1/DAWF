@@ -198,7 +198,8 @@ export const UserSchema = z.object({
 export type User = Omit<z.infer<typeof UserSchema>,  "password" | "department"> & {
   clerkId?: string | null
   department?: string | null
-  password: string | null
+  /** Legacy; no DB column. Optional for Prisma user includes. */
+  password?: string | null
 }
 
 export type UserValues = Omit<z.infer<typeof UserSchema>, 'password' | "department"> & {
@@ -218,10 +219,7 @@ export type UserValues = Omit<z.infer<typeof UserSchema>, 'password' | "departme
   firstName?: string
   lastName?: string
   phoneNumber?: string
-  pendingInvite?: boolean
   emailVerified?: boolean
-  /** True when Better Auth credential account has a password hash (employee can sign in with email/password). */
-  hasCredentialPassword?: boolean
   clientName?: string | null
   /** Present when loaded from admin `fetchUsers` for edit dialog. */
   clientId?: string | null
