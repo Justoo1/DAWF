@@ -31,6 +31,11 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
     canAccessAdmin(user.role as UserRole) &&
     !(pathname?.startsWith("/admin") ?? false)
 
+  const adminHref =
+    user.role === "FOOD_COMMITTEE"
+      ? "/admin/food-management/vendors"
+      : "/admin"
+
   const initials = user.name?.split(" ").map((name) => name.charAt(0)).join("").toUpperCase()
 
   const clearCloseTimeout = () => {
@@ -87,6 +92,11 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
     }
   }, [])
 
+  useEffect(() => {
+    if (!isOpen || !showAdminDashboardLink) return
+    router.prefetch(adminHref)
+  }, [adminHref, isOpen, router, showAdminDashboardLink])
+
   return (
     <div className="relative z-50" onMouseLeave={handleClose}>
       <Button
@@ -140,7 +150,8 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
           >
             {showAdminDashboardLink ? (
               <Link
-                href="/admin"
+                href={adminHref}
+                prefetch
                 className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted dark:hover:bg-zinc-800/80"
                 onClick={() => setIsOpen(false)}
               >

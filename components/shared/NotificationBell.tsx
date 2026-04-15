@@ -19,6 +19,7 @@ import {
 } from '@/lib/actions/notification.actions'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
 
 interface NotificationBellProps {
@@ -26,6 +27,7 @@ interface NotificationBellProps {
 }
 
 export default function NotificationBell({ userId }: NotificationBellProps) {
+  const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [open, setOpen] = useState(false)
@@ -53,6 +55,10 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
     if (!notification.isRead) {
       await markNotificationAsRead(notification.id)
       await loadNotifications()
+    }
+
+    if (notification.linkUrl) {
+      router.push(notification.linkUrl)
     }
     setOpen(false)
   }
@@ -144,7 +150,15 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
                   className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors relative group ${
                     !notification.isRead ? 'bg-blue-50' : ''
                   }`}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleNotificationClick(notification)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      void handleNotificationClick(notification)
+                    }
+                  }}
                 >
                   {!notification.isRead && (
                     <div className="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-600 rounded-full" />
@@ -179,7 +193,11 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
                     <Link
                       href={notification.linkUrl}
                       className="text-xs text-blue-600 hover:underline ml-14 mt-1 block"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        void handleNotificationClick(notification)
+                      }}
                     >
                       View details →
                     </Link>

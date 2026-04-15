@@ -3,10 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { Prisma } from "@prisma/client";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import prisma from "./prisma";
-import {
-  sendEmployeeVerificationEmail,
-  sendPasswordResetEmail,
-} from "./auth-email";
+import { sendEmployeeVerificationEmail } from "./auth-email";
 
 /** Case-insensitive match so JWT / Better Auth email lines up with how the row was stored. */
 async function clearPendingInviteForEmail(email: string) {
@@ -22,22 +19,7 @@ export const auth = betterAuth({
     provider: "postgresql",
   }),
   emailAndPassword: {
-    enabled: true,
-    autoSignIn: false,
-    requireEmailVerification: true,
-    sendResetPassword: async ({ user, url }) => {
-      void sendPasswordResetEmail(
-        user.email,
-        user.name || user.email,
-        url
-      );
-    },
-    onPasswordReset: async ({ user }) => {
-      await prisma.user.updateMany({
-        where: { id: user.id },
-        data: { mustChangePassword: false },
-      });
-    },
+    enabled: false,
   },
   socialProviders: {
     google: {
@@ -81,17 +63,11 @@ export const auth = betterAuth({
   emailVerification: {
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
-      const row = await prisma.user.findUnique({
-        where: { id: user.id },
-        select: { verificationEmailPasswordPlain: true },
-      });
-      const initialPassword = row?.verificationEmailPasswordPlain ?? undefined;
       try {
         const result = await sendEmployeeVerificationEmail(
           user.email,
           user.name || user.email,
-          url,
-          initialPassword ? { initialPassword } : undefined
+          url
         );
         if (
           result &&
@@ -107,38 +83,15 @@ export const auth = betterAuth({
       } catch (e) {
         console.error("sendEmployeeVerificationEmail failed:", e);
       }
-      if (initialPassword) {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { verificationEmailPasswordPlain: null },
-        });
-      }
     },
-    // Runs before `emailVerified` is written (see better-auth verify-email route).
     async onEmailVerification(user: { email: string }) {
       await clearPendingInviteForEmail(user.email);
     },
-    // Backup: ensures flag clears even if the flow differs between Better Auth versions.
     async afterEmailVerification(user: { email: string }) {
       await clearPendingInviteForEmail(user.email);
     },
   },
   hooks: {
-    before: createAuthMiddleware(async (ctx) => {
-      if (ctx.path !== "/sign-in/email") return;
-      const body = ctx.body as { email?: string } | undefined;
-      const email = body?.email?.trim();
-      if (!email) return;
-      const user = await prisma.user.findFirst({
-        where: { email: { equals: email, mode: "insensitive" } },
-        select: { isActive: true },
-      });
-      if (user && !user.isActive) {
-        throw new APIError("FORBIDDEN", {
-          message: "This account has been disabled. Contact your administrator.",
-        });
-      }
-    }),
     after: createAuthMiddleware(async (ctx) => {
       const newSession = ctx.context.newSession as
         | { user?: { id?: string } }

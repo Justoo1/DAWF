@@ -4,8 +4,6 @@ import { useState } from "react";
 import { UserValues } from "@/lib/validation";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  KeyRound,
-  Mail,
   Pencil,
   Trash2Icon,
   MoreHorizontal,
@@ -14,8 +12,6 @@ import {
 } from "lucide-react";
 import { UserAvatarHover } from "./UserAvatarHover";
 import {
-  adminResendEmployeeVerificationEmail,
-  adminSendEmployeePasswordReset,
   deleteUser,
   revalidateUserPath,
   updateEmployeeStatus,
@@ -194,42 +190,6 @@ const Employees = ({
       }
     } finally {
       setDeleteLoading(false);
-    }
-  };
-
-  const handleResendVerification = async (userId: string | undefined) => {
-    if (!userId) return;
-    const result = await adminResendEmployeeVerificationEmail(userId);
-    if (result.success) {
-      toast({
-        title: "Verification email sent",
-        description: "They can use the link to verify and set a password.",
-      });
-      revalidateUserPath("/admin/employees");
-      router.refresh();
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Could not send",
-        description: result.error,
-      });
-    }
-  };
-
-  const handleSendPasswordReset = async (userId: string | undefined) => {
-    if (!userId) return;
-    const result = await adminSendEmployeePasswordReset(userId);
-    if (result.success) {
-      toast({
-        title: "Password reset sent",
-        description: "If the email exists, they will receive a reset link.",
-      });
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Could not send",
-        description: result.error,
-      });
     }
   };
 
@@ -568,28 +528,6 @@ const Employees = ({
                                   isAdmin={isAdmin}
                                 />
                              </div>
-                          )}
-                          {isAdmin && needsEmailVerification && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              className="h-9 w-full justify-start rounded-lg px-2 text-popover-foreground hover:bg-accent hover:text-accent-foreground"
-                              onClick={() => handleResendVerification(record.id)}
-                            >
-                              <Mail className="mr-2 h-4 w-4 shrink-0" />
-                              Resend verification email
-                            </Button>
-                          )}
-                          {isAdmin && !needsEmailVerification && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              className="h-9 w-full justify-start rounded-lg px-2 text-popover-foreground hover:bg-accent hover:text-accent-foreground"
-                              onClick={() => handleSendPasswordReset(record.id)}
-                            >
-                              <KeyRound className="mr-2 h-4 w-4 shrink-0" />
-                              Send password reset
-                            </Button>
                           )}
                           {isAdmin && (
                             <Button

@@ -2,7 +2,7 @@
 
 import prisma from "../prisma";
 import { revalidatePath } from "next/cache";
-import { AccrualType, NotificationType, Prisma } from "@prisma/client";
+import { NotificationType, Prisma } from "@prisma/client";
 import { createNotification } from "./notification.actions";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -13,6 +13,50 @@ async function workingDaysForLeaveRange(startDate: Date, endDate: Date) {
     select: { date: true, isRecurring: true },
   });
   return countLeaveWorkingDays(startDate, endDate, holidays);
+}
+
+function startOfLocalDay(value: Date): Date {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+}
+
+function containsWeekendInRange(startDate: Date, endDate: Date): boolean {
+  const cursor = startOfLocalDay(startDate);
+  const end = startOfLocalDay(endDate);
+  while (cursor <= end) {
+    const day = cursor.getDay();
+    if (day === 0 || day === 6) return true;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return false;
+}
+
+function validateLeaveDateRange(startDate: Date, endDate: Date) {
+  const start = startOfLocalDay(startDate);
+  const end = startOfLocalDay(endDate);
+  const today = startOfLocalDay(new Date());
+
+  if (start < today) {
+    return {
+      ok: false as const,
+      error: "Start date cannot be in the past.",
+    };
+  }
+
+  if (end < start) {
+    return {
+      ok: false as const,
+      error: "End date cannot be earlier than start date.",
+    };
+  }
+
+  if (containsWeekendInRange(start, end)) {
+    return {
+      ok: false as const,
+      error: "Leave request range cannot include weekends. Please select weekdays only.",
+    };
+  }
+
+  return { ok: true as const };
 }
 
 export async function fetchLeavePolicies() {
@@ -30,15 +74,19 @@ export async function fetchLeavePolicies() {
 export async function createLeavePolicy(data: {
   name: string;
   defaultDays: number;
-  accrualType: AccrualType;
+  isUnlimited: boolean;
   isFlexible: boolean;
 }) {
   try {
+    if (!data.isUnlimited && data.defaultDays <= 0) {
+      return { success: false, error: "Default days must be greater than 0 unless policy is unlimited." };
+    }
+
     const policy = await prisma.leavePolicy.create({
       data: {
         name: data.name,
-        defaultDays: data.defaultDays,
-        accrualType: data.accrualType,
+        defaultDays: data.isUnlimited ? 0 : data.defaultDays,
+        isUnlimited: data.isUnlimited,
         isFlexible: data.isFlexible,
         isActive: true,
       }
@@ -61,16 +109,20 @@ export async function createLeavePolicy(data: {
 export async function updateLeavePolicy(id: string, data: {
   name: string;
   defaultDays: number;
-  accrualType: AccrualType;
+  isUnlimited: boolean;
   isFlexible: boolean;
 }) {
   try {
+    if (!data.isUnlimited && data.defaultDays <= 0) {
+      return { success: false, error: "Default days must be greater than 0 unless policy is unlimited." };
+    }
+
     const policy = await prisma.leavePolicy.update({
       where: { id },
       data: {
         name: data.name,
-        defaultDays: data.defaultDays,
-        accrualType: data.accrualType,
+        defaultDays: data.isUnlimited ? 0 : data.defaultDays,
+        isUnlimited: data.isUnlimited,
         isFlexible: data.isFlexible,
       }
     });
@@ -146,6 +198,11 @@ export async function submitLeaveRequest(data: {
   reason?: string;
 }) {
   try {
+    const dateValidation = validateLeaveDateRange(data.startDate, data.endDate);
+    if (!dateValidation.ok) {
+      return { success: false, error: dateValidation.error };
+    }
+
     const days = await workingDaysForLeaveRange(data.startDate, data.endDate);
     if (days <= 0) {
       return {
@@ -244,6 +301,11 @@ export async function updatePendingLeaveRequest(
         error:
           "This request cannot be edited. Only pending requests can be changed before a decision is made.",
       };
+    }
+
+    const dateValidation = validateLeaveDateRange(data.startDate, data.endDate);
+    if (!dateValidation.ok) {
+      return { success: false, error: dateValidation.error };
     }
 
     const days = await workingDaysForLeaveRange(data.startDate, data.endDate);
@@ -470,8 +532,65 @@ export async function rejectLeaveRequest(requestId: string, approverId: string, 
     revalidatePath("/leave");
     return { success: true };
   } catch (error) {
-    console.error("Error rejecting leave request:", error);
-    return { success: false, error: "Failed to reject leave request" };
+    console.error("Error declining leave request:", error);
+    return { success: false, error: "Failed to decline leave request" };
+  }
+}
+
+export async function reinstateLeaveRequest(requestId: string, approverId: string, reason: string) {
+  try {
+    const note = reason.trim()
+    if (!note) {
+      return { success: false, error: "A reason is required to reinstate this leave request." }
+    }
+
+    const [request, approver] = await Promise.all([
+      prisma.leaveRequest.findUnique({
+        where: { id: requestId },
+        include: { user: true }
+      }),
+      prisma.user.findUnique({ where: { id: approverId } })
+    ])
+
+    if (!request || !approver) return { success: false, error: "Not found" }
+    if (request.status !== 'REJECTED') {
+      return { success: false, error: "Only declined requests can be reinstated." }
+    }
+
+    const department = await prisma.department.findUnique({
+      where: { name: request.user.department || "" }
+    })
+
+    const isSystemAdmin = approver.role === 'ADMIN'
+    const isDeptManager = department?.managerId === approverId
+    if (!isSystemAdmin && !isDeptManager) {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    await prisma.leaveRequest.update({
+      where: { id: requestId },
+      data: {
+        status: 'PENDING',
+        approvedById: null,
+        reinstatementReason: note,
+      }
+    })
+
+    await createNotification({
+      userId: request.userId,
+      type: NotificationType.LEAVE_REQUEST_PENDING,
+      title: "Leave Request Reinstated",
+      message: `Your leave request has been reinstated and moved back to pending review. Reason: ${note}`,
+      linkUrl: "/leave"
+    })
+
+    revalidatePath("/admin/leave-management/requests")
+    revalidatePath("/admin/leave-management/leaves")
+    revalidatePath("/leave")
+    return { success: true }
+  } catch (error) {
+    console.error("Error reinstating leave request:", error)
+    return { success: false, error: "Failed to reinstate leave request" }
   }
 }
 

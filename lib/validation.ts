@@ -59,8 +59,6 @@ const addEmployeeFormObjectSchema = z.object({
   isContributor: z.boolean(),
   exitDate: z.string().optional(),
   welfareContributionsBeforeExit: z.string().optional(),
-  generateInitialPassword: z.boolean(),
-  initialPassword: z.string().optional(),
 })
 
 function refineEmployeeDatesAndExit(
@@ -135,16 +133,6 @@ function refineEmployeeDatesAndExit(
 /** Admin “Add employee” modal — client-side validation before server action. */
 export const addEmployeeFormSchema = addEmployeeFormObjectSchema.superRefine(
   (data, ctx) => {
-    if (!data.generateInitialPassword && data.initialPassword?.trim()) {
-      const p = data.initialPassword.trim()
-      if (!passwordMeetsPolicy(p)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: getPasswordPolicyFailureMessage(p),
-          path: ['initialPassword'],
-        })
-      }
-    }
     refineEmployeeDatesAndExit(data, ctx, { requireExitDateWhenInactive: true })
   }
 )
@@ -153,10 +141,6 @@ export type AddEmployeeFormValues = z.infer<typeof addEmployeeFormSchema>
 
 /** Admin edit employee — exit date optional when marking inactive (can be filled later). */
 export const editEmployeeFormSchema = addEmployeeFormObjectSchema
-  .omit({
-    generateInitialPassword: true,
-    initialPassword: true,
-  })
   .superRefine((data, ctx) =>
     refineEmployeeDatesAndExit(data, ctx, { requireExitDateWhenInactive: false })
   )
@@ -193,8 +177,6 @@ export const addEmployeeDefaultValues: AddEmployeeFormValues = {
   isContributor: true,
   exitDate: '',
   welfareContributionsBeforeExit: '',
-  generateInitialPassword: false,
-  initialPassword: '',
 }
 
 // User Schema

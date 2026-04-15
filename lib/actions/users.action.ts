@@ -5,21 +5,6 @@ import prisma from '../prisma'
 import { ContributionStatus, Prisma, UserRole } from '@prisma/client';
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
-import { generateRandomString, hashPassword } from 'better-auth/crypto'
-import { postEmailVerificationCallbackUrl } from '@/lib/auth-app-url'
-import {
-  getPasswordPolicyFailureMessage,
-  passwordMeetsPolicy,
-} from '@/lib/password-policy'
-
-/**
- * Better Auth's sendVerificationEmail uses the session cookie when present: it only allows
- * verified users to request mail for *their own* address. Admin flows must email *another*
- * user's address, so we call the API without forwarding the admin's cookies.
- */
-function headersForSendVerificationToOtherUser(): Headers {
-  return new Headers()
-}
 
 /** Fast path for layout chrome: one indexed lookup, no contribution rows or aggregates. */
 export async function fetchAdminShellUser(email: string) {
@@ -551,23 +536,6 @@ export async function updateUserDepartment(userId: string, department: string) {
   }
 }
 
-/** Meets the same policy as user-chosen passwords (for verification email + sign-in). */
-function buildGeneratedInitialPassword(): string {
-  const lower = generateRandomString(4, "a-z");
-  const upper = generateRandomString(2, "A-Z");
-  const digit = generateRandomString(2, "0-9");
-  // better-auth/crypto only allows a-z, A-Z, 0-9, -_ for generateRandomString
-  const symbolPool = "!@#$%&*";
-  const symbol = symbolPool[Math.floor(Math.random() * symbolPool.length)] ?? "-";
-  const extra = generateRandomString(3, "a-z", "A-Z", "0-9");
-  const chars = (lower + upper + digit + symbol + extra).split("");
-  for (let i = chars.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [chars[i], chars[j]] = [chars[j], chars[i]];
-  }
-  return chars.join("");
-}
-
 export async function createEmployee(data: {
   firstName: string
   lastName: string
@@ -582,10 +550,6 @@ export async function createEmployee(data: {
   isContributor?: boolean
   exitDate?: Date
   welfareContributionsBeforeExit?: number
-  /** Plain-text initial password (min 8 chars). Ignored if generateInitialPassword is true. */
-  initialPassword?: string
-  /** When true, a short random password is created; returned once in `generatedPassword`. */
-  generateInitialPassword?: boolean
 }) {
   try {
     // Check if user is authenticated and has ADMIN role
@@ -635,24 +599,6 @@ export async function createEmployee(data: {
     const lastName = data.lastName.trim()
     const displayName = `${firstName} ${lastName}`.trim() || email
 
-    let plainInitialPassword: string | null = null
-    let mustChangePassword = false
-
-    if (data.generateInitialPassword) {
-      plainInitialPassword = buildGeneratedInitialPassword()
-      mustChangePassword = true
-    } else if (data.initialPassword?.trim()) {
-      const p = data.initialPassword.trim()
-      if (!passwordMeetsPolicy(p)) {
-        return {
-          success: false,
-          error: getPasswordPolicyFailureMessage(p),
-        }
-      }
-      plainInitialPassword = p
-      mustChangePassword = true
-    }
-
     const user = await prisma.user.create({
       data: {
         firstName,
@@ -661,7 +607,7 @@ export async function createEmployee(data: {
         name: displayName,
         email,
         clientId: data.clientId,
-        pendingInvite: true,
+        pendingInvite: false,
         department: data.department,
         dateOfBirth: data.dateOfBirth,
         startDate: data.startDate,
@@ -670,61 +616,16 @@ export async function createEmployee(data: {
         isContributor: data.isContributor ?? true,
         exitDate: data.exitDate,
         welfareContributionsBeforeExit: data.welfareContributionsBeforeExit,
-        emailVerified: false,
+        emailVerified: true,
         password: '',
       },
     })
-
-    // Set via raw SQL so employee creation still works if the generated Prisma Client
-    // is stale (missing `mustChangePassword` in types) after a schema change.
-    if (mustChangePassword) {
-      await prisma.$executeRaw(
-        Prisma.sql`UPDATE "users" SET "mustChangePassword" = ${true} WHERE "id" = ${user.id}`
-      )
-    }
-
-    if (plainInitialPassword) {
-      const hashed = await hashPassword(plainInitialPassword)
-      const now = new Date()
-      await prisma.account.create({
-        data: {
-          id: generateRandomString(24, 'a-z', 'A-Z', '0-9'),
-          accountId: user.id,
-          providerId: 'credential',
-          userId: user.id,
-          password: hashed,
-          createdAt: now,
-          updatedAt: now,
-        },
-      })
-      await prisma.$executeRaw(
-        Prisma.sql`UPDATE "users" SET "verification_email_password_plain" = ${plainInitialPassword} WHERE "id" = ${user.id}`
-      )
-    }
-
-    const verificationCallback = postEmailVerificationCallbackUrl()
-
-    try {
-      await auth.api.sendVerificationEmail({
-        body: {
-          email: user.email,
-          callbackURL: verificationCallback,
-        },
-        headers: headersForSendVerificationToOtherUser(),
-      })
-    } catch (err) {
-      console.error("Failed to send verification email:", err)
-    }
 
     revalidatePath('/admin/employees')
     revalidatePath('/admin/manage-employees')
     return {
       success: true,
       user,
-      generatedPassword:
-        data.generateInitialPassword && plainInitialPassword
-          ? plainInitialPassword
-          : undefined,
     }
   } catch (error) {
     console.error('Error creating employee:', error)
@@ -858,8 +759,8 @@ export async function updateEmployeeProfile(
           }),
       ...(emailChanged
         ? {
-            emailVerified: false,
-            pendingInvite: true,
+            emailVerified: true,
+            pendingInvite: false,
           }
         : {}),
     }
@@ -883,21 +784,6 @@ export async function updateEmployeeProfile(
         data: userUpdate,
       })
     })
-
-    if (emailChanged) {
-      const verificationCallback = postEmailVerificationCallbackUrl()
-      try {
-        await auth.api.sendVerificationEmail({
-          body: {
-            email: newEmail,
-            callbackURL: verificationCallback,
-          },
-          headers: headersForSendVerificationToOtherUser(),
-        })
-      } catch (e) {
-        console.error('updateEmployeeProfile: sendVerificationEmail', e)
-      }
-    }
 
     revalidatePath('/admin/employees')
     revalidatePath('/admin/manage-employees')
@@ -974,14 +860,6 @@ export async function updateEmployeeDates(userId: string, data: {
   }
 }
 
-function authAppOrigin() {
-  return (
-    process.env.BETTER_AUTH_URL ||
-    process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
-    'http://localhost:3000'
-  ).replace(/\/$/, '')
-}
-
 async function requireAdminSessionForAuthActions(): Promise<
   { ok: true } | { ok: false; error: string }
 > {
@@ -1001,66 +879,23 @@ async function requireAdminSessionForAuthActions(): Promise<
   return { ok: true }
 }
 
-export async function adminResendEmployeeVerificationEmail(userId: string) {
+/** @deprecated Google-only auth; kept so old callers get a clear error. */
+export async function adminResendEmployeeVerificationEmail(_userId: string) {
   const gate = await requireAdminSessionForAuthActions()
   if (!gate.ok) return { success: false, error: gate.error }
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      email: true,
-      emailVerified: true,
-      pendingInvite: true,
-      accounts: {
-        where: { providerId: 'credential' },
-        select: { password: true },
-        take: 1,
-      },
-    },
-  })
-  if (!user) return { success: false, error: 'User not found' }
-  if (user.emailVerified && !user.pendingInvite) {
-    return {
-      success: false,
-      error:
-        'This account is already verified. Use “Send password reset” if they need to set or change their password.'
-    }
+  return {
+    success: false,
+    error:
+      'Verification email is not used. Employees sign in with Google using their work email once an admin has added them.',
   }
-  const verificationCallback = postEmailVerificationCallbackUrl()
-  try {
-    await auth.api.sendVerificationEmail({
-      body: {
-        email: user.email,
-        callbackURL: verificationCallback,
-      },
-      headers: headersForSendVerificationToOtherUser(),
-    })
-  } catch (err) {
-    console.error('adminResendEmployeeVerificationEmail', err)
-    return { success: false, error: 'Failed to send verification email' }
-  }
-  return { success: true }
 }
 
-export async function adminSendEmployeePasswordReset(userId: string) {
+/** @deprecated Password sign-in is disabled. */
+export async function adminSendEmployeePasswordReset(_userId: string) {
   const gate = await requireAdminSessionForAuthActions()
   if (!gate.ok) return { success: false, error: gate.error }
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { email: true }
-  })
-  if (!user) return { success: false, error: 'User not found' }
-  const redirectTo = `${authAppOrigin()}/reset-password`
-  try {
-    await auth.api.requestPasswordReset({
-      body: {
-        email: user.email,
-        redirectTo
-      },
-      headers: await headers()
-    })
-  } catch (err) {
-    console.error('adminSendEmployeePasswordReset', err)
-    return { success: false, error: 'Failed to send password reset email' }
+  return {
+    success: false,
+    error: 'Password sign-in is disabled. Employees use Google sign-in.',
   }
-  return { success: true }
 }

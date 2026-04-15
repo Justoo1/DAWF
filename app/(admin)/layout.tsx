@@ -69,14 +69,14 @@ export default function RootLayout({
   }, [session?.user?.email])
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden">
+    <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-background">
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         userRole={userRole}
         collapsed={sidebarCollapsed ?? false}
       />
-      <div className="flex min-w-0 flex-1 flex-col h-full overflow-hidden">
+      <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <Header
           onMenuClick={() => setSidebarOpen(true)}
           sidebarCollapsed={sidebarCollapsed ?? false}
@@ -86,7 +86,8 @@ export default function RootLayout({
           userInfo={adminUser}
           profilePending={profilePending}
         />
-        <main className="flex-1 overflow-y-auto">
+        {/* Flex column + min-h-0 so nested .admin-main can shrink and scroll instead of growing the whole shell */}
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {children}
         </main>
       </div>

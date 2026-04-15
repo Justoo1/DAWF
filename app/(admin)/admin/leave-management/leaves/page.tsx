@@ -42,15 +42,8 @@ export default async function AdminLeavesOverviewPage() {
               <span className="font-bold text-[#10A074] dark:text-emerald-400">Leave Management</span>
             </nav>
             <h1 className="text-3xl font-black tracking-tight text-slate-800 dark:text-zinc-100">
-              All leaves
+              All leave
             </h1>
-            <p className="mt-1 text-sm font-medium text-slate-500 dark:text-zinc-400">
-              Approved, declined, pending, and cancelled leave with employee and policy details.
-            </p>
-            <p className="mt-2 max-w-3xl text-xs leading-relaxed text-slate-600 dark:text-zinc-500">
-              {scopeDescription} Use filters to focus on a status or leave type. Pending requests can be
-              approved or declined from the actions menu.
-            </p>
           </div>
         </header>
 

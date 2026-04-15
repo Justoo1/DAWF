@@ -37,21 +37,29 @@ const AuthLayout = ({ children, description, secondaryDescription, teamImage, cl
       </nav>
 
       <main className="relative z-10 w-full max-w-[1400px] px-6 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-3 lg:items-stretch">
           {/* Left Column: Auth form */}
-          <div className="flex items-center justify-center w-full">
-            {children}
+          <div className="flex w-full justify-center lg:h-full lg:min-h-0">
+            <div className="flex w-full max-w-[400px] flex-col lg:h-full lg:min-h-0">
+              {children}
+            </div>
           </div>
 
-          {/* Middle Column: Team Card */}
-          <div className="hidden lg:flex items-center justify-center">
-            <div className={cn("relative w-full aspect-square max-w-[400px] overflow-hidden rounded-2xl bg-white shadow-2xl", className)}>
+          {/* Middle Column: Team Card — same max width/height as auth card (row stretch on lg) */}
+          <div className="hidden w-full justify-center lg:flex lg:h-full lg:min-h-0">
+            <div
+              className={cn(
+                "relative h-full w-full max-w-[400px] overflow-hidden rounded-3xl bg-white shadow-2xl lg:min-h-0",
+                className
+              )}
+            >
               <Image
                 src={teamImage}
                 alt="Team"
-                layout="fill"
-                objectFit="contain"
-                className="p-8"
+                fill
+                className="object-contain p-8"
+                sizes="400px"
+                priority
               />
             </div>
           </div>

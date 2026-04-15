@@ -302,7 +302,11 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
                       className={cn(adminTdClass, "px-8 py-4 text-right")}
                       onClick={(e) => e.stopPropagation()}
                     >
-                        <LeaveRequestActions requestId={request.id} employeeName={request.user.name} />
+                        <LeaveRequestActions
+                          requestId={request.id}
+                          employeeName={request.user.name}
+                          requestStatus={request.status as "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED"}
+                        />
                     </td>
                   </tr>
                 ))

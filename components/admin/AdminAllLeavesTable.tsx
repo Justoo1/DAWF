@@ -4,9 +4,15 @@ import React, { useMemo, useState } from "react"
 import {
   Search,
   Filter,
+  ListFilter,
   ChevronDown,
   ChevronUp,
   Clock,
+  Users,
+  Inbox,
+  PlaneTakeoff,
+  PlaneLanding,
+  type LucideIcon,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -17,7 +23,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { format } from "date-fns"
+import {
+  format,
+  startOfDay,
+  startOfWeek,
+  endOfWeek,
+  isWithinInterval,
+} from "date-fns"
 import LeaveRequestActions from "./LeaveRequestActions"
 import {
   LeaveRequestDetailDialog,
@@ -36,6 +48,84 @@ import {
 
 type StatusFilter = "all" | "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED"
 
+type LeaveInsightFilter = "on-leave" | "pending" | "going-week" | "returning-week"
+
+function computeInsightStats(requests: AdminLeaveRequestRow[]) {
+  const today = startOfDay(new Date())
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 })
+  const weekEnd = endOfWeek(today, { weekStartsOn: 1 })
+
+  const onLeaveEmails = new Set<string>()
+  let pending = 0
+  let goingWeek = 0
+  let returningWeek = 0
+
+  for (const r of requests) {
+    if (r.status === "PENDING") pending++
+
+    if (r.status === "APPROVED") {
+      const s = startOfDay(new Date(r.startDate))
+      const e = startOfDay(new Date(r.endDate))
+      if (s.getTime() <= today.getTime() && today.getTime() <= e.getTime()) {
+        onLeaveEmails.add(r.user.email)
+      }
+    }
+
+    if (
+      isWithinInterval(new Date(r.startDate), { start: weekStart, end: weekEnd })
+    ) {
+      goingWeek++
+    }
+
+    if (
+      r.status === "APPROVED" &&
+      isWithinInterval(new Date(r.endDate), { start: weekStart, end: weekEnd })
+    ) {
+      returningWeek++
+    }
+  }
+
+  return {
+    onLeave: onLeaveEmails.size,
+    pending,
+    goingWeek,
+    returningWeek,
+  }
+}
+
+function rowMatchesInsight(
+  r: AdminLeaveRequestRow,
+  insight: LeaveInsightFilter,
+  now: Date
+): boolean {
+  const today = startOfDay(now)
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 })
+  const weekEnd = endOfWeek(now, { weekStartsOn: 1 })
+
+  switch (insight) {
+    case "on-leave": {
+      if (r.status !== "APPROVED") return false
+      const s = startOfDay(new Date(r.startDate))
+      const e = startOfDay(new Date(r.endDate))
+      return s.getTime() <= today.getTime() && today.getTime() <= e.getTime()
+    }
+    case "pending":
+      return r.status === "PENDING"
+    case "going-week":
+      return isWithinInterval(new Date(r.startDate), {
+        start: weekStart,
+        end: weekEnd,
+      })
+    case "returning-week":
+      return (
+        r.status === "APPROVED" &&
+        isWithinInterval(new Date(r.endDate), { start: weekStart, end: weekEnd })
+      )
+    default:
+      return true
+  }
+}
+
 function statusBadge(status: string) {
   switch (status) {
     case "PENDING":
@@ -51,6 +141,10 @@ function statusBadge(status: string) {
   }
 }
 
+function statusLabel(status: string) {
+  return status === "REJECTED" ? "DECLINED" : status
+}
+
 export default function AdminAllLeavesTable({
   initialRequests,
 }: {
@@ -58,6 +152,7 @@ export default function AdminAllLeavesTable({
 }) {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
+  const [insightFilter, setInsightFilter] = useState<LeaveInsightFilter | null>(null)
   const [typeFilter, setTypeFilter] = useState("all")
   const [sortConfig, setSortConfig] = useState<{
     key: string
@@ -82,6 +177,16 @@ export default function AdminAllLeavesTable({
     return c
   }, [initialRequests])
 
+  const insightStats = useMemo(
+    () => computeInsightStats(initialRequests),
+    [initialRequests]
+  )
+
+  const toggleInsight = (key: LeaveInsightFilter) => {
+    setInsightFilter((prev) => (prev === key ? null : key))
+    setStatusFilter("all")
+  }
+
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
     if (sortConfig?.key !== columnKey)
       return <ChevronDown className="ml-1 h-3 w-3 opacity-30" />
@@ -101,7 +206,12 @@ export default function AdminAllLeavesTable({
   }
 
   const filteredAndSorted = useMemo(() => {
+    const now = new Date()
     let result = [...initialRequests]
+
+    if (insightFilter) {
+      result = result.filter((r) => rowMatchesInsight(r, insightFilter, now))
+    }
 
     if (statusFilter !== "all") {
       result = result.filter((r) => r.status === statusFilter)
@@ -165,7 +275,51 @@ export default function AdminAllLeavesTable({
     }
 
     return result
-  }, [initialRequests, statusFilter, searchQuery, typeFilter, sortConfig])
+  }, [
+    initialRequests,
+    insightFilter,
+    statusFilter,
+    searchQuery,
+    typeFilter,
+    sortConfig,
+  ])
+
+  const insightCards: {
+    key: LeaveInsightFilter
+    title: string
+    value: number
+    icon: LucideIcon
+    hint: string
+  }[] = [
+    {
+      key: "on-leave",
+      title: "Employee on leave",
+      value: insightStats.onLeave,
+      icon: Users,
+      hint: "Approved leave active today (distinct employees). Click or use the filter icon to show matching rows.",
+    },
+    {
+      key: "pending",
+      title: "Pending actions",
+      value: insightStats.pending,
+      icon: Inbox,
+      hint: "Requests awaiting a decision. Click or use the filter icon to show pending rows.",
+    },
+    {
+      key: "going-week",
+      title: "Going this week",
+      value: insightStats.goingWeek,
+      icon: PlaneTakeoff,
+      hint: "Leave that starts during the current week (Mon–Sun). Click or use the filter icon to filter the table.",
+    },
+    {
+      key: "returning-week",
+      title: "Returning this week",
+      value: insightStats.returningWeek,
+      icon: PlaneLanding,
+      hint: "Approved leave ending during the current week. Click or use the filter icon to filter the table.",
+    },
+  ]
 
   return (
     <div className="space-y-6">
@@ -175,6 +329,64 @@ export default function AdminAllLeavesTable({
           if (!open) setSelectedRequest(null)
         }}
       />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 w-full">
+        {insightCards.map(({ key, title, value, icon: Icon, hint }) => {
+          const active = insightFilter === key
+          return (
+            <div
+              key={key}
+              className={cn(
+                "flex flex-col gap-3 rounded-xl border bg-white p-5 shadow-sm transition-colors dark:bg-zinc-950",
+                active
+                  ? "border-[#10A074] ring-2 ring-[#10A074]/25 dark:border-emerald-500/50"
+                  : "border-slate-100 dark:border-slate-800"
+              )}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-[13px] font-[800] uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  {title}
+                </p>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <button
+                    type="button"
+                    title={hint}
+                    aria-label={`Filter table: ${title}`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleInsight(key)
+                    }}
+                    className={cn(
+                      "flex h-9 w-9 items-center justify-center rounded-lg border text-slate-500 transition-colors dark:text-slate-400",
+                      active
+                        ? "border-[#10A074] bg-emerald-50 text-[#10A074] dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-400"
+                        : "border-slate-200 bg-slate-50 hover:border-[#10A074]/50 hover:text-[#10A074] dark:border-slate-700 dark:bg-slate-800/90 dark:hover:border-emerald-500/40"
+                    )}
+                  >
+                    <ListFilter className="h-4 w-4" strokeWidth={2.5} aria-hidden />
+                  </button>
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400 dark:bg-slate-800/90 dark:text-slate-300">
+                    <Icon size={20} strokeWidth={2.5} />
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => toggleInsight(key)}
+                aria-pressed={active}
+                className="flex flex-col gap-1 rounded-lg text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#10A074] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950"
+              >
+                <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 sm:text-3xl tabular-nums">
+                  {value}
+                </h3>
+                <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+                  {active ? "Table filtered · click to clear" : "Click to filter table"}
+                </span>
+              </button>
+            </div>
+          )
+        })}
+      </div>
 
       {/* Summary */}
       <div className="flex flex-wrap gap-2">
@@ -190,7 +402,10 @@ export default function AdminAllLeavesTable({
           <button
             key={key}
             type="button"
-            onClick={() => setStatusFilter(key)}
+            onClick={() => {
+              setInsightFilter(null)
+              setStatusFilter(key)
+            }}
             className={cn(
               "rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide transition-colors",
               statusFilter === key
@@ -240,13 +455,17 @@ export default function AdminAllLeavesTable({
               ))}
             </SelectContent>
           </Select>
-          {(searchQuery || typeFilter !== "all" || statusFilter !== "all") && (
+          {(searchQuery ||
+            typeFilter !== "all" ||
+            statusFilter !== "all" ||
+            insightFilter !== null) && (
             <button
               type="button"
               onClick={() => {
                 setSearchQuery("")
                 setTypeFilter("all")
                 setStatusFilter("all")
+                setInsightFilter(null)
               }}
               className="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-[#10A074] dark:text-zinc-500 dark:hover:text-emerald-400"
             >
@@ -404,7 +623,7 @@ export default function AdminAllLeavesTable({
                           statusBadge(request.status)
                         )}
                       >
-                        {request.status}
+                        {statusLabel(request.status)}
                       </span>
                     </td>
                     <td className={cn(adminTdClass, "max-w-[140px] truncate px-4 py-4 text-sm text-slate-700 dark:text-zinc-300")}>
@@ -416,14 +635,11 @@ export default function AdminAllLeavesTable({
                       className={cn(adminTdClass, "px-6 py-4 text-right")}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {request.status === "PENDING" ? (
-                        <LeaveRequestActions
-                          requestId={request.id}
-                          employeeName={request.user.name}
-                        />
-                      ) : (
-                        <span className="text-xs text-slate-400 dark:text-zinc-600">—</span>
-                      )}
+                      <LeaveRequestActions
+                        requestId={request.id}
+                        employeeName={request.user.name}
+                        requestStatus={request.status as "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED"}
+                      />
                     </td>
                   </tr>
                 ))

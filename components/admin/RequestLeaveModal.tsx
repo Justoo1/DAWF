@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { Info, Plus, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { format } from "date-fns"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -28,7 +29,19 @@ import { fetchUsersIdAndName } from "@/lib/actions/users.action"
 import { fetchLeavePolicies, submitLeaveRequest } from "@/lib/actions/leave.actions"
 
 type UserOption = { id: string; name: string }
-type PolicyOption = { id: string; name: string; defaultDays: number }
+type PolicyOption = { id: string; name: string; defaultDays: number; isUnlimited: boolean }
+
+function hasWeekendInRange(startIso: string, endIso: string): boolean {
+  if (!startIso || !endIso) return false
+  const cursor = new Date(startIso)
+  const end = new Date(endIso)
+  while (cursor <= end) {
+    const day = cursor.getDay()
+    if (day === 0 || day === 6) return true
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  return false
+}
 
 export default function RequestLeaveModal() {
   const { toast } = useToast()
@@ -45,6 +58,7 @@ export default function RequestLeaveModal() {
   const [endDate, setEndDate] = useState("")
   const [days, setDays] = useState<number>(1)
   const [reason, setReason] = useState("")
+  const todayIso = format(new Date(), "yyyy-MM-dd")
 
   useEffect(() => {
     if (open && users.length === 0) {
@@ -57,11 +71,18 @@ export default function RequestLeaveModal() {
           setPolicies(
             policiesRes.policies
               .filter((p) => p.isActive)
-              .map((p) => ({
-                id: p.id,
-                name: p.name,
-                defaultDays: p.defaultDays,
-              }))
+              .map((p) => {
+                const isUnlimited =
+                  "isUnlimited" in p && typeof p.isUnlimited === "boolean"
+                    ? p.isUnlimited
+                    : false
+                return {
+                  id: p.id,
+                  name: p.name,
+                  defaultDays: p.defaultDays,
+                  isUnlimited,
+                }
+              })
           )
         }
         setIsLoading(false)
@@ -72,6 +93,14 @@ export default function RequestLeaveModal() {
   const handleSubmit = async () => {
     if (!employeeId || !policyId || !startDate || !endDate || days <= 0) {
       toast({ title: "Validation Error", description: "Please fill all required fields correctly.", variant: "destructive" })
+      return
+    }
+    if (hasWeekendInRange(startDate, endDate)) {
+      toast({
+        title: "Validation Error",
+        description: "Leave request range cannot include weekends. Please select weekdays only.",
+        variant: "destructive",
+      })
       return
     }
 
@@ -151,7 +180,7 @@ export default function RequestLeaveModal() {
                   <div className="flex flex-wrap gap-4 text-sm font-bold text-slate-700 dark:text-slate-200">
                     {policies.slice(0, 3).map((p, idx, arr) => (
                       <div key={p.id} className={`flex flex-col flex-1 items-center ${idx < arr.length - 1 ? "border-r border-primary/10" : ""}`}>
-                        <span className="text-primary text-lg">{p.defaultDays}</span>
+                        <span className="text-primary text-lg">{p.isUnlimited ? "∞" : p.defaultDays}</span>
                         <span className="text-[10px] text-slate-400 uppercase tracking-tighter truncate max-w-[80px]">
                           {p.name}
                         </span>
@@ -196,7 +225,14 @@ export default function RequestLeaveModal() {
                   <Input
                     type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    min={todayIso}
+                    onChange={(e) => {
+                      const nextStart = e.target.value
+                      setStartDate(nextStart)
+                      if (endDate && nextStart && endDate < nextStart) {
+                        setEndDate(nextStart)
+                      }
+                    }}
                     className="h-11 rounded-lg"
                     disabled={isSubmitting}
                   />
@@ -206,9 +242,10 @@ export default function RequestLeaveModal() {
                   <Input
                     type="date"
                     value={endDate}
+                    min={startDate || todayIso}
+                    disabled={isSubmitting || !startDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className="h-11 rounded-lg auto"
-                    disabled={isSubmitting}
                   />
                 </div>
               </div>

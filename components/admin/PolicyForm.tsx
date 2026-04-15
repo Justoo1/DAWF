@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RequiredMark } from '@/components/ui/required-mark'
 import { createPolicy, updatePolicy, Policy } from '@/lib/actions/policy.actions'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, Upload } from 'lucide-react'
 import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
 import RichTextEditor from '@/components/ui/rich-text-editor'
@@ -24,9 +24,9 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [uploadedFileName, setUploadedFileName] = useState('')
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
-    slug: initialData?.slug || '',
     content: initialData?.content || '',
   })
 
@@ -40,7 +40,6 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
       if (mode === 'create') {
         result = await createPolicy({
           title: formData.title,
-          slug: formData.slug,
           content: formData.content,
           updatedBy: userEmail,
         })
@@ -84,20 +83,67 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
     }
   }
 
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
+  const escapeHtml = (value: string) => {
+    return value
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;')
   }
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTitle = e.target.value
-    setFormData({
-      ...formData,
-      title: newTitle,
-      slug: mode === 'create' ? generateSlug(newTitle) : formData.slug,
-    })
+  const textToHtmlParagraphs = (text: string) => {
+    const normalized = text.replaceAll('\r\n', '\n')
+    const paragraphs = normalized
+      .split('\n\n')
+      .map((chunk) => chunk.trim())
+      .filter(Boolean)
+
+    if (paragraphs.length === 0) return '<p></p>'
+
+    return paragraphs
+      .map((paragraph) => `<p>${escapeHtml(paragraph).replaceAll('\n', '<br />')}</p>`)
+      .join('')
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const fileName = file.name.toLowerCase()
+    const isHtml = fileName.endsWith('.html') || fileName.endsWith('.htm')
+    const isText = fileName.endsWith('.txt') || fileName.endsWith('.md') || fileName.endsWith('.markdown')
+
+    if (!isHtml && !isText) {
+      toast({
+        title: 'Unsupported file type',
+        description: 'Upload a .txt, .md, .markdown, .html, or .htm file.',
+        variant: 'destructive',
+      })
+      e.target.value = ''
+      return
+    }
+
+    try {
+      const text = await file.text()
+      setFormData((prev) => ({
+        ...prev,
+        content: isHtml ? text : textToHtmlParagraphs(text),
+      }))
+      setUploadedFileName(file.name)
+      toast({
+        title: 'File imported',
+        description: `${file.name} was loaded into Policy Content.`,
+      })
+    } catch {
+      toast({
+        title: 'Import failed',
+        description: 'Unable to read the selected file.',
+        variant: 'destructive',
+      })
+    } finally {
+      e.target.value = ''
+    }
   }
 
   return (
@@ -122,7 +168,7 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
           <Input
             id="title"
             value={formData.title}
-            onChange={handleTitleChange}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             placeholder="e.g., Welfare Fund Constitution"
             required
             disabled={loading}
@@ -131,23 +177,31 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="slug" className="inline-flex flex-wrap items-center gap-x-1 gap-y-0 text-sm font-semibold text-slate-700 dark:text-slate-300">
-            URL Slug
-            {mode === 'create' ? <RequiredMark /> : null}
-            {mode === 'edit' && <span className="text-xs font-normal text-gray-400">(cannot be changed)</span>}
+          <Label htmlFor="policy-file" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
+            Policy File Upload
           </Label>
-          <Input
-            id="slug"
-            value={formData.slug}
-            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-            placeholder="e.g., welfare-fund-constitution"
-            required
-            disabled={loading || mode === 'edit'}
-            className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50"
-          />
-          <p className="text-[11px] text-slate-400 font-medium px-1">
-            Note: Currently only one active policy is supported at /policy
-          </p>
+          <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 p-4">
+            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+              <Upload className="h-4 w-4" />
+              <span>Import content from a document</span>
+            </div>
+            <Input
+              id="policy-file"
+              type="file"
+              accept=".txt,.md,.markdown,.html,.htm"
+              onChange={handleFileUpload}
+              disabled={loading}
+              className="mt-3 h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-zinc-900 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 dark:file:bg-zinc-800 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-700 dark:file:text-zinc-200"
+            />
+            <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              Supported: .txt, .md, .markdown, .html, .htm
+            </p>
+            {uploadedFileName ? (
+              <p className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                Imported: {uploadedFileName}
+              </p>
+            ) : null}
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -160,6 +214,7 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
               content={formData.content}
               onChange={(content) => setFormData({ ...formData, content })}
               disabled={loading}
+              minHeightClassName="min-h-[280px]"
             />
           </div>
           <p className="text-[11px] text-slate-400 font-medium px-1 mt-2">

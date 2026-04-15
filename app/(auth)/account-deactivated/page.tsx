@@ -9,7 +9,7 @@ export default function AccountDeactivatedPage() {
       secondaryDescription="If you believe this is a mistake, please contact your administrator."
       teamImage="/assets/images/team.png"
     >
-      <div className="w-full max-w-md rounded-3xl bg-[#146C43] text-white p-8 shadow-2xl space-y-6">
+      <div className="flex h-full min-h-0 w-full flex-col justify-center space-y-6 rounded-3xl bg-[#146C43] p-8 text-white shadow-2xl">
         <h1 className="text-2xl font-bold">Account deactivated</h1>
         <p className="text-white/80 text-sm">
           Your account has been deactivated. You have been signed out.

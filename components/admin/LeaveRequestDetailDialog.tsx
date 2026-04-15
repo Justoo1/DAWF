@@ -18,6 +18,7 @@ export type AdminLeaveRequestRow = {
   days: number
   status: string
   reason: string | null
+  reinstatementReason?: string | null
   createdAt: Date | string
   isUnmanaged: boolean
   managerName: string
@@ -50,6 +51,10 @@ function statusBadgeClass(status: string) {
     default:
       return "bg-slate-100 text-slate-700 border-slate-200 dark:bg-zinc-800 dark:text-zinc-300"
   }
+}
+
+function statusLabel(status: string) {
+  return status === "REJECTED" ? "DECLINED" : status
 }
 
 export function LeaveRequestDetailDialog({
@@ -92,7 +97,7 @@ function LeaveRequestDetailBody({ request }: { request: AdminLeaveRequestRow }) 
               variant="outline"
               className={`rounded-lg font-bold uppercase text-[10px] tracking-wider ${statusBadgeClass(request.status)}`}
             >
-              {request.status}
+              {statusLabel(request.status)}
             </Badge>
             <Badge
               variant="outline"
@@ -156,6 +161,17 @@ function LeaveRequestDetailBody({ request }: { request: AdminLeaveRequestRow }) 
               {request.reason?.trim() ? request.reason : "No reason provided."}
             </p>
           </div>
+
+          {request.reinstatementReason?.trim() ? (
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+              <p className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-2">
+                Reinstatement reason
+              </p>
+              <p className="text-sm text-emerald-800 dark:text-emerald-200 whitespace-pre-wrap">
+                {request.reinstatementReason}
+              </p>
+            </div>
+          ) : null}
 
           <div className="rounded-xl border border-slate-100 p-4 dark:border-zinc-800">
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500 mb-2">

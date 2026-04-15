@@ -514,6 +514,7 @@ model LeavePolicy {
   id               String   @id @default(cuid())
   name             String   // e.g. "Annual Leave"
   defaultDays      Int
+  isUnlimited      Boolean  @default(false)
   accrualType      AccrualType @default(WORKING_DAYS)
   isFlexible       Boolean  @default(true)
   isActive         Boolean  @default(true)
@@ -552,6 +553,7 @@ model LeaveRequest {
   days             Float
   status           LeaveStatus @default(PENDING)
   reason           String?
+  reinstatementReason String?
   approvedById     String?
   manager          User?    @relation("LeaveApprover", fields: [approvedById], references: [id])
   

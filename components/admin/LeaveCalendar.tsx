@@ -107,6 +107,11 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
       const end = new Date(leave.endDate)
 
       while (curr <= end) {
+        const day = curr.getDay()
+        if (day === 0 || day === 6) {
+          curr.setDate(curr.getDate() + 1)
+          continue
+        }
         const dateStr = format(curr, "yyyy-MM-dd")
         if (!leavesByDate[dateStr]) leavesByDate[dateStr] = []
         leavesByDate[dateStr].push(leave)
@@ -228,7 +233,7 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
                       </div>
                       <div className="flex items-center gap-2 bg-rose-50 dark:bg-rose-950/40 px-4 py-1.5 rounded-xl border border-rose-100 dark:border-rose-900/50">
                           <div className="w-2 h-2 rounded-full bg-rose-500" />
-                          <span className="text-[12px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Leaves This Month: {leaves.length}</span>
+                          <span className="text-[12px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Leave this month: {leaves.length}</span>
                       </div>
                   </div>
               </div>
@@ -262,6 +267,7 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
                   initialView="dayGridMonth"
                   headerToolbar={false}
                   events={filteredEvents}
+                  weekends={false}
                   height="auto"
                   dayMaxEvents={6}
                   datesSet={handleDatesSet}

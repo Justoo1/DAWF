@@ -71,6 +71,7 @@ export default function NotificationDetailDialog({
   }
 
   const getNotificationTypeLabel = (type: string) => {
+    if (type === "LEAVE_REQUEST_REJECTED") return "Leave Request Declined"
     return type.split('_').map(word =>
       word.charAt(0) + word.slice(1).toLowerCase()
     ).join(' ')

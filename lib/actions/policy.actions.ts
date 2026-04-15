@@ -17,7 +17,6 @@ export interface Policy {
 
 export interface CreatePolicyParams {
   title: string
-  slug: string
   content: string
   updatedBy: string
 }
@@ -69,19 +68,25 @@ export async function fetchAllPolicies() {
 // Create new policy
 export async function createPolicy(params: CreatePolicyParams) {
   try {
-    // Check if slug already exists
-    const existingPolicy = await prisma.policy.findUnique({
-      where: { slug: params.slug },
-    })
+    const baseSlug = params.title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "policy"
 
-    if (existingPolicy) {
-      return { success: false, error: "A policy with this slug already exists" }
+    let slug = baseSlug
+    let suffix = 2
+    while (true) {
+      const existing = await prisma.policy.findUnique({ where: { slug } })
+      if (!existing) break
+      slug = `${baseSlug}-${suffix}`
+      suffix += 1
     }
 
     const policy = await prisma.policy.create({
       data: {
         title: params.title,
-        slug: params.slug,
+        slug,
         content: params.content,
         updatedBy: params.updatedBy,
       },

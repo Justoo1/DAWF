@@ -1,14 +1,5 @@
-import AuthLayout from "@/components/auth/AuthLayout";
-import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
+import { redirect } from "next/navigation";
 
 export default function ResetPasswordPage() {
-  return (
-    <AuthLayout
-      description="Set a new password for your DEVOPS AFRICA account."
-      secondaryDescription="After updating your password, sign in with your work email."
-      teamImage="/assets/images/team.png"
-    >
-      <ResetPasswordForm />
-    </AuthLayout>
-  );
+  redirect("/sign-in");
 }

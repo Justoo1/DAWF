@@ -8,8 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { useToast } from "@/hooks/use-toast"
-import { CheckCircle2, Copy } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
 
 export type EmployeeSaveSummary = {
   fullName: string
@@ -49,8 +48,6 @@ type EmployeeSaveSuccessDialogProps = {
   onOpenChange: (open: boolean) => void
   variant: "add" | "edit"
   summary: EmployeeSaveSummary | null
-  /** Shown only when admin used “generate temporary password”. */
-  temporaryPassword?: string | null
 }
 
 export function EmployeeSaveSuccessDialog({
@@ -58,22 +55,13 @@ export function EmployeeSaveSuccessDialog({
   onOpenChange,
   variant,
   summary,
-  temporaryPassword,
 }: EmployeeSaveSuccessDialogProps) {
-  const { toast } = useToast()
-
-  const copyPassword = () => {
-    if (!temporaryPassword) return
-    void navigator.clipboard.writeText(temporaryPassword)
-    toast({ title: "Password copied" })
-  }
-
   if (!summary) return null
 
   const title = variant === "add" ? "Employee added" : "Employee updated"
   const subtitle =
     variant === "add"
-      ? "A verification email was sent so they can activate their account."
+      ? "They can sign in with Google using the work email you entered (after an admin has added them, they use the same email in Google)."
       : "Here is a quick recap of what we saved."
 
   return (
@@ -117,31 +105,6 @@ export function EmployeeSaveSuccessDialog({
           />
           <SummaryRow label="Date of birth" value={summary.dateOfBirth} />
           <SummaryRow label="Employment start" value={summary.startDate} />
-
-          {temporaryPassword ? (
-            <div className="mt-4 space-y-3 rounded-xl border-2 border-amber-300/80 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-950/40">
-              <div>
-                <p className="text-sm font-semibold text-amber-950 dark:text-amber-100">
-                  Temporary password
-                </p>
-                <p className="mt-1 text-xs text-amber-900/85 dark:text-amber-200/90">
-                  Copy and share securely. This is the only time it appears here.
-                </p>
-              </div>
-              <div className="rounded-lg bg-white px-3 py-2.5 font-mono text-sm text-foreground shadow-sm dark:bg-zinc-900">
-                {temporaryPassword}
-              </div>
-              <Button
-                type="button"
-                variant="secondary"
-                className="w-full gap-2"
-                onClick={copyPassword}
-              >
-                <Copy className="h-4 w-4" />
-                Copy password
-              </Button>
-            </div>
-          ) : null}
         </div>
 
         <DialogFooter className="border-t border-border/60 bg-muted/20 px-6 py-4">

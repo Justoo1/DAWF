@@ -49,14 +49,6 @@ export function ProfileChecker() {
           return
         }
 
-        if (gate.mustChangePassword) {
-          if (pathname === "/dawf" || pathname.startsWith("/dawf/")) {
-            return
-          }
-          router.push("/change-initial-password")
-          return
-        }
-
         const user = session.data.user as { dateOfBirth?: Date | null }
 
         if (!user.dateOfBirth) {

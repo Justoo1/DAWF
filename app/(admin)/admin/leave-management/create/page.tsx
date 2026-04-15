@@ -4,13 +4,6 @@ import { useState, useEffect } from "react"
 import type { FormEvent } from "react"
 import { useToast } from "@/hooks/use-toast"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   Shapes,
   MoreVertical,
   CalendarDays,
@@ -59,7 +52,7 @@ type LeavePolicy = {
   id: string
   name: string
   defaultDays: number
-  accrualType: "WORKING_DAYS" | "CALENDAR_DAYS"
+  isUnlimited: boolean
   isFlexible: boolean
   isActive: boolean
 }
@@ -74,14 +67,14 @@ export default function CreateLeavePage() {
   // Create form state
   const [name, setName] = useState("")
   const [defaultDays, setDefaultDays] = useState(20)
-  const [accrualType, setAccrualType] = useState<"WORKING_DAYS" | "CALENDAR_DAYS">("WORKING_DAYS")
+  const [isUnlimited, setIsUnlimited] = useState(true)
   const [isFlexible, setIsFlexible] = useState(true)
 
   // Edit/Delete state
   const [editingPolicy, setEditingPolicy] = useState<LeavePolicy | null>(null)
   const [editName, setEditName] = useState("")
   const [editDefaultDays, setEditDefaultDays] = useState(0)
-  const [editAccrualType, setEditAccrualType] = useState<"WORKING_DAYS" | "CALENDAR_DAYS">("WORKING_DAYS")
+  const [editIsUnlimited, setEditIsUnlimited] = useState(false)
   const [editIsFlexible, setEditIsFlexible] = useState(true)
   const [deletingPolicyId, setDeletingPolicyId] = useState<string | null>(null)
 
@@ -106,7 +99,7 @@ export default function CreateLeavePage() {
       return
     }
 
-    if (defaultDays <= 0) {
+    if (!isUnlimited && defaultDays <= 0) {
       toast({ title: "Error", description: "Default days must be greater than 0", variant: "destructive" })
       return
     }
@@ -115,7 +108,7 @@ export default function CreateLeavePage() {
     const res = await createLeavePolicy({
       name: name.trim(),
       defaultDays,
-      accrualType,
+      isUnlimited,
       isFlexible
     })
 
@@ -123,7 +116,7 @@ export default function CreateLeavePage() {
       toast({ title: "Success", description: "Leave policy created successfully" })
       setName("")
       setDefaultDays(20)
-      setAccrualType("WORKING_DAYS")
+      setIsUnlimited(true)
       setIsFlexible(true)
       loadPolicies()
     } else {
@@ -138,12 +131,16 @@ export default function CreateLeavePage() {
       toast({ title: "Error", description: "Name is required", variant: "destructive" })
       return
     }
+    if (!editIsUnlimited && editDefaultDays <= 0) {
+      toast({ title: "Error", description: "Default days must be greater than 0", variant: "destructive" })
+      return
+    }
 
     setIsActionLoading(true)
     const res = await updateLeavePolicy(editingPolicy.id, {
       name: editName.trim(),
       defaultDays: editDefaultDays,
-      accrualType: editAccrualType,
+      isUnlimited: editIsUnlimited,
       isFlexible: editIsFlexible
     })
 
@@ -214,7 +211,24 @@ export default function CreateLeavePage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="bg-[#F6FBFA] dark:bg-emerald-950/20 p-5 rounded-[12px] border border-[#E8F5F2] dark:border-emerald-900/40 flex items-center justify-between">
+                <div className="flex flex-col gap-1 pr-4">
+                  <span className="text-[14px] font-semibold text-[#111827] dark:text-gray-100">Unlimited Leave</span>
+                  <span className="text-[13px] text-[#6B7280] dark:text-gray-400 leading-tight">No yearly day cap. Employees can request as needed.</span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    checked={isUnlimited}
+                    onChange={(e) => setIsUnlimited(e.target.checked)}
+                    disabled={isSubmitting}
+                    className="sr-only peer"
+                    type="checkbox"
+                  />
+                  <div className="w-12 h-[26px] bg-gray-200 dark:bg-zinc-700 rounded-full peer peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-[22px] after:w-[22px] after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+                </label>
+              </div>
+
+              {!isUnlimited && (
                 <div className="space-y-2">
                   <label className="text-[14px] font-medium text-[#111827] dark:text-gray-200" htmlFor="default-days">Default Days/Year</label>
                   <input
@@ -227,19 +241,7 @@ export default function CreateLeavePage() {
                     disabled={isSubmitting}
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[14px] font-medium text-[#111827] dark:text-gray-200">Accrual Basis</label>
-                  <Select value={accrualType} onValueChange={(val: "WORKING_DAYS" | "CALENDAR_DAYS") => setAccrualType(val)} disabled={isSubmitting}>
-                    <SelectTrigger className="w-full h-12 bg-[#F9FAFB] dark:bg-zinc-800 border border-[#E5E7EB] dark:border-zinc-700 rounded-[12px] px-4 text-[#111827] dark:text-gray-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
-                      <SelectValue placeholder="Basis" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-[12px]">
-                      <SelectItem value="WORKING_DAYS">Working Days</SelectItem>
-                      <SelectItem value="CALENDAR_DAYS">Calendar Days</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              )}
 
               <div className="bg-[#F6FBFA] dark:bg-emerald-950/20 p-5 rounded-[12px] border border-[#E8F5F2] dark:border-emerald-900/40 flex items-center justify-between">
                 <div className="flex flex-col gap-1 pr-4">
@@ -324,7 +326,9 @@ export default function CreateLeavePage() {
                           )}
                         </div>
                         <p className="text-[13px] text-[#6B7280] dark:text-gray-400 font-medium mt-0.5">
-                          {policy.defaultDays} {policy.accrualType === "WORKING_DAYS" ? "Working Days" : "Calendar Days"}
+                          {policy.isUnlimited
+                            ? "Unlimited"
+                            : `${policy.defaultDays} Days / Year`}
                         </p>
                       </div>
                     </div>
@@ -344,7 +348,7 @@ export default function CreateLeavePage() {
                               setEditingPolicy(policy)
                               setEditName(policy.name)
                               setEditDefaultDays(policy.defaultDays)
-                              setEditAccrualType(policy.accrualType)
+                              setEditIsUnlimited(policy.isUnlimited)
                               setEditIsFlexible(policy.isFlexible)
                             }}
                           >
@@ -380,12 +384,6 @@ export default function CreateLeavePage() {
               )}
             </div>
 
-            <div className="mt-8 flex items-start gap-3 p-4 rounded-[16px] border border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10 shrink-0">
-              <span className="mt-0.5 text-blue-500"><Info className="h-4 w-4" /></span>
-              <p className="text-[12px] text-[#4B5563] dark:text-gray-400 leading-relaxed font-medium">
-                Changes to policies will reflect in new leave balance calculations. Existing requests remain unaffected.
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -399,7 +397,7 @@ export default function CreateLeavePage() {
           </DialogHeader>
           <div className="px-8 py-4 space-y-6">
             <div className="space-y-2">
-              <Label>Policy Name</Label>
+              <Label>Leave Type</Label>
               <input
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
@@ -407,7 +405,22 @@ export default function CreateLeavePage() {
                   type="text"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-bold">Unlimited Leave</span>
+                <p className="text-[12px] text-muted-foreground leading-tight">No yearly day cap</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  checked={editIsUnlimited}
+                  onChange={(e) => setEditIsUnlimited(e.target.checked)}
+                  className="sr-only peer"
+                  type="checkbox"
+                />
+                <div className="w-11 h-[24px] bg-gray-200 dark:bg-zinc-700 rounded-full peer peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-[20px] after:w-[20px] after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+              </label>
+            </div>
+            {!editIsUnlimited && (
               <div className="space-y-2">
                 <Label>Default Days</Label>
                 <input
@@ -417,19 +430,7 @@ export default function CreateLeavePage() {
                     type="number"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Accrual Type</Label>
-                <Select value={editAccrualType} onValueChange={(val: "WORKING_DAYS" | "CALENDAR_DAYS") => setEditAccrualType(val)}>
-                  <SelectTrigger className="w-full h-11 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="WORKING_DAYS">Working Days</SelectItem>
-                    <SelectItem value="CALENDAR_DAYS">Calendar Days</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            )}
             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700">
                <div className="flex flex-col gap-0.5">
                   <span className="text-sm font-bold">Policy Flexibility</span>

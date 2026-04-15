@@ -16,12 +16,13 @@ import {
   DoorOpen,
   UtensilsCrossed,
   Store,
-  MenuSquare,
+   MenuSquare,
   Settings,
   Building2,
   Layers,
   CalendarDays,
   Inbox,
+  ChevronDown,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -95,27 +96,124 @@ function NavItem({
   );
 }
 
-function SectionLabel({
-  children,
-  collapsed,
+const SIDEBAR_SECTION_STORAGE_KEY = "admin-sidebar-sections";
+/** Sections that can be collapsed; Overview and People stay expanded. */
+const COLLAPSIBLE_SECTION_IDS = ["leave", "welfare", "events", "food"] as const;
+type CollapsibleSectionId = (typeof COLLAPSIBLE_SECTION_IDS)[number];
+
+function defaultCollapsibleOpenState(): Record<CollapsibleSectionId, boolean> {
+  return {
+    leave: true,
+    welfare: true,
+    events: true,
+    food: true,
+  };
+}
+
+function StaticNavSection({
+  title,
   accent,
+  collapsed,
+  isMd,
+  children,
 }: {
-  children: ReactNode;
-  collapsed: boolean;
+  title: string;
   accent?: boolean;
+  collapsed: boolean;
+  isMd: boolean;
+  children: ReactNode;
 }) {
+  const railMode = collapsed && isMd;
+
+  if (railMode) {
+    return <div className="space-y-1">{children}</div>;
+  }
+
   return (
-    <p
-      className={cn(
-        "px-4 text-[10px] font-bold uppercase tracking-[0.15em] mb-2 transition-opacity motion-safe:duration-200",
-        accent
-          ? "text-primary"
-          : "text-slate-400 dark:text-slate-500",
-        collapsed && "md:sr-only md:h-0 md:mb-0 md:overflow-hidden md:opacity-0"
-      )}
-    >
-      {children}
-    </p>
+    <div className="space-y-1">
+      <p
+        className={cn(
+          "mb-2 px-4 text-[10px] font-bold uppercase tracking-[0.15em]",
+          accent
+            ? "text-primary"
+            : "text-slate-400 dark:text-slate-500"
+        )}
+      >
+        {title}
+      </p>
+      <div className="space-y-1">{children}</div>
+    </div>
+  );
+}
+
+function CollapsibleNavSection({
+  sectionId,
+  title,
+  accent,
+  collapsed,
+  isMd,
+  open,
+  onToggle,
+  children,
+}: {
+  sectionId: CollapsibleSectionId;
+  title: string;
+  accent?: boolean;
+  collapsed: boolean;
+  isMd: boolean;
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  const railMode = collapsed && isMd;
+
+  if (railMode) {
+    return <div className="space-y-1">{children}</div>;
+  }
+
+  return (
+    <div className="space-y-1">
+      <button
+        type="button"
+        id={`sidebar-section-trigger-${sectionId}`}
+        aria-expanded={open}
+        aria-controls={`sidebar-section-panel-${sectionId}`}
+        onClick={onToggle}
+        className={cn(
+          "mb-1 flex w-full items-center justify-between gap-2 rounded-lg px-4 py-1.5 text-left transition-colors",
+          "hover:bg-primary/5 dark:hover:bg-primary/10",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950"
+        )}
+      >
+        <span
+          className={cn(
+            "text-[10px] font-bold uppercase tracking-[0.15em]",
+            accent
+              ? "text-primary"
+              : "text-slate-400 dark:text-slate-500"
+          )}
+        >
+          {title}
+        </span>
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 dark:text-slate-500",
+            open ? "rotate-180" : "rotate-0"
+          )}
+          aria-hidden
+        />
+      </button>
+      {open ? (
+        <div
+          id={`sidebar-section-panel-${sectionId}`}
+          role="region"
+          aria-labelledby={`sidebar-section-trigger-${sectionId}`}
+          className="space-y-1"
+        >
+          {children}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -127,6 +225,7 @@ export function Sidebar({
 }: SidebarProps) {
   const pathName = usePathname();
   const [isMd, setIsMd] = useState(false);
+  const [sectionOpen, setSectionOpen] = useState(defaultCollapsibleOpenState);
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
@@ -135,6 +234,35 @@ export function Sidebar({
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
   }, []);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SIDEBAR_SECTION_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Record<string, boolean>;
+      setSectionOpen((prev) => {
+        const next = { ...prev };
+        for (const id of COLLAPSIBLE_SECTION_IDS) {
+          if (typeof parsed[id] === "boolean") next[id] = parsed[id];
+        }
+        return next;
+      });
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const toggleSection = (id: CollapsibleSectionId) => {
+    setSectionOpen((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      try {
+        localStorage.setItem(SIDEBAR_SECTION_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
 
   const showTooltips = collapsed && isMd;
 
@@ -162,9 +290,9 @@ export function Sidebar({
       <TooltipProvider delayDuration={showTooltips ? 0 : 300}>
         <div
           className={cn(
-            "w-72 shrink-0 border-r border-primary/10 bg-white dark:bg-zinc-950/60 flex flex-col h-full overflow-hidden",
-            "transition-[width] motion-safe:duration-300 motion-safe:ease-in-out",
-            "fixed inset-y-0 left-0 z-50 md:relative md:translate-x-0",
+            "flex h-dvh shrink-0 flex-col overflow-hidden border-r border-primary/10 bg-white dark:bg-zinc-950/60",
+            "w-72 transition-[width] motion-safe:duration-300 motion-safe:ease-in-out",
+            "fixed left-0 top-0 z-50 h-dvh md:relative md:top-auto md:left-auto md:h-full md:max-h-none md:translate-x-0",
             isOpen ? "translate-x-0" : "-translate-x-full",
             collapsed ? "md:w-16" : "md:w-72"
           )}
@@ -202,226 +330,235 @@ export function Sidebar({
               hasPermission(userRole, "view_reports") ||
               hasPermission(userRole, "view_analytics") ||
               hasPermission(userRole, "view_conference_rooms")) && (
-              <div>
-                <div className="space-y-1">
-                  {hasPermission(userRole, "view_dashboard") && (
-                    <NavItem
-                      href="/admin"
-                      label="Dashboard"
-                      icon={Home}
-                      active={isActive("/admin")}
-                      collapsed={collapsed}
-                      showTooltips={showTooltips}
-                    />
-                  )}
-                  {hasPermission(userRole, "view_policies") && (
-                    <NavItem
-                      href="/admin/policies"
-                      label="Policies"
-                      icon={BookOpen}
-                      active={isActive("/admin/policies")}
-                      collapsed={collapsed}
-                      showTooltips={showTooltips}
-                    />
-                  )}
-                  {hasPermission(userRole, "view_reports") && (
-                    <NavItem
-                      href="/admin/reports"
-                      label="Reports"
-                      icon={ChartBar}
-                      active={isActive("/admin/reports")}
-                      collapsed={collapsed}
-                      showTooltips={showTooltips}
-                    />
-                  )}
-                  {hasPermission(userRole, "view_analytics") && (
-                    <NavItem
-                      href="/admin/analytics"
-                      label="Analytics"
-                      icon={BarChart}
-                      active={isActive("/admin/analytics")}
-                      collapsed={collapsed}
-                      showTooltips={showTooltips}
-                    />
-                  )}
-                  {hasPermission(userRole, "view_conference_rooms") && (
-                    <NavItem
-                      href="/admin/conference-rooms"
-                      label="Bookings"
-                      icon={DoorOpen}
-                      active={isActive("/admin/conference-rooms")}
-                      collapsed={collapsed}
-                      showTooltips={showTooltips}
-                    />
-                  )}
-                </div>
-              </div>
+              <StaticNavSection title="Overview" collapsed={collapsed} isMd={isMd}>
+                {hasPermission(userRole, "view_dashboard") && (
+                  <NavItem
+                    href="/admin"
+                    label="Dashboard"
+                    icon={Home}
+                    active={isActive("/admin")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                )}
+                {hasPermission(userRole, "view_policies") && (
+                  <NavItem
+                    href="/admin/policies"
+                    label="Policies"
+                    icon={BookOpen}
+                    active={isActive("/admin/policies")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                )}
+                {hasPermission(userRole, "view_reports") && (
+                  <NavItem
+                    href="/admin/reports"
+                    label="Reports"
+                    icon={ChartBar}
+                    active={isActive("/admin/reports")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                )}
+                {hasPermission(userRole, "view_analytics") && (
+                  <NavItem
+                    href="/admin/analytics"
+                    label="Analytics"
+                    icon={BarChart}
+                    active={isActive("/admin/analytics")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                )}
+                {hasPermission(userRole, "view_conference_rooms") && (
+                  <NavItem
+                    href="/admin/conference-rooms"
+                    label="Bookings"
+                    icon={DoorOpen}
+                    active={isActive("/admin/conference-rooms")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                )}
+              </StaticNavSection>
             )}
 
             {hasPermission(userRole, "view_employees") && (
-              <div>
-                <SectionLabel collapsed={collapsed} accent={peopleSectionActive}>
-                  People
-                </SectionLabel>
-                <div className="space-y-1">
-                  <NavItem
-                    href="/admin/employees"
-                    label="Employees"
-                    icon={Users}
-                    active={isActive("/admin/employees")}
-                    collapsed={collapsed}
-                    showTooltips={showTooltips}
-                  />
-                  <NavItem
-                    href="/admin/clients"
-                    label="Clients"
-                    icon={Store}
-                    active={isActive("/admin/clients")}
-                    collapsed={collapsed}
-                    showTooltips={showTooltips}
-                  />
-                  <NavItem
-                    href="/admin/leave-management/departments"
-                    label="Departments"
-                    icon={Building2}
-                    active={isActive("/admin/leave-management/departments")}
-                    collapsed={collapsed}
-                    showTooltips={showTooltips}
-                  />
-                </div>
-              </div>
+              <StaticNavSection
+                title="People"
+                accent={peopleSectionActive}
+                collapsed={collapsed}
+                isMd={isMd}
+              >
+                <NavItem
+                  href="/admin/employees"
+                  label="Employees"
+                  icon={Users}
+                  active={isActive("/admin/employees")}
+                  collapsed={collapsed}
+                  showTooltips={showTooltips}
+                />
+                <NavItem
+                  href="/admin/clients"
+                  label="Clients"
+                  icon={Store}
+                  active={isActive("/admin/clients")}
+                  collapsed={collapsed}
+                  showTooltips={showTooltips}
+                />
+                <NavItem
+                  href="/admin/leave-management/departments"
+                  label="Departments"
+                  icon={Building2}
+                  active={isActive("/admin/leave-management/departments")}
+                  collapsed={collapsed}
+                  showTooltips={showTooltips}
+                />
+              </StaticNavSection>
             )}
 
             {hasPermission(userRole, "view_employees") && (
-              <div>
-                <SectionLabel collapsed={collapsed} accent={leaveManagementActive}>
-                  Leave Management
-                </SectionLabel>
-                <div className="space-y-1">
-                  <NavItem
-                    href="/admin/leave-management/create"
-                    label="Leave Types"
-                    icon={Layers}
-                    active={isActive("/admin/leave-management/create")}
-                    collapsed={collapsed}
-                    showTooltips={showTooltips}
-                  />
-                  <NavItem
-                    href="/admin/leave-management/calendar"
-                    label="Leave Calendar"
-                    icon={Calendar}
-                    active={isActive("/admin/leave-management/calendar")}
-                    collapsed={collapsed}
-                    showTooltips={showTooltips}
-                  />
-                  <NavItem
-                    href="/admin/leave-management/leaves"
-                    label="Leaves"
-                    icon={CalendarDays}
-                    active={isActive("/admin/leave-management/leaves")}
-                    collapsed={collapsed}
-                    showTooltips={showTooltips}
-                  />
-                  <NavItem
-                    href="/admin/leave-management/requests"
-                    label="Leave Requests"
-                    icon={Inbox}
-                    active={isActive("/admin/leave-management/requests")}
-                    collapsed={collapsed}
-                    showTooltips={showTooltips}
-                  />
-                </div>
-              </div>
+              <CollapsibleNavSection
+                sectionId="leave"
+                title="Leave Management"
+                accent={leaveManagementActive}
+                collapsed={collapsed}
+                isMd={isMd}
+                open={sectionOpen.leave}
+                onToggle={() => toggleSection("leave")}
+              >
+                <NavItem
+                  href="/admin/leave-management/create"
+                  label="Leave Types"
+                  icon={Layers}
+                  active={isActive("/admin/leave-management/create")}
+                  collapsed={collapsed}
+                  showTooltips={showTooltips}
+                />
+                <NavItem
+                  href="/admin/leave-management/calendar"
+                  label="Leave Calendar"
+                  icon={Calendar}
+                  active={isActive("/admin/leave-management/calendar")}
+                  collapsed={collapsed}
+                  showTooltips={showTooltips}
+                />
+                <NavItem
+                  href="/admin/leave-management/leaves"
+                  label="Leave"
+                  icon={CalendarDays}
+                  active={isActive("/admin/leave-management/leaves")}
+                  collapsed={collapsed}
+                  showTooltips={showTooltips}
+                />
+                <NavItem
+                  href="/admin/leave-management/requests"
+                  label="Leave Requests"
+                  icon={Inbox}
+                  active={isActive("/admin/leave-management/requests")}
+                  collapsed={collapsed}
+                  showTooltips={showTooltips}
+                />
+              </CollapsibleNavSection>
             )}
 
             {(hasPermission(userRole, "view_contributions") ||
               hasPermission(userRole, "manage_contributions") ||
               hasPermission(userRole, "view_expenses") ||
               hasPermission(userRole, "manage_expenses")) && (
-              <div>
-                <SectionLabel collapsed={collapsed}>Welfare</SectionLabel>
-                <div className="space-y-1">
-                  {hasPermission(userRole, "view_contributions") && (
-                    <NavItem
-                      href="/admin/contribution"
-                      label="Contributors"
-                      icon={ListCheckIcon}
-                      active={isActive("/admin/contribution")}
-                      collapsed={collapsed}
-                      showTooltips={showTooltips}
-                    />
-                  )}
-                  {hasPermission(userRole, "view_expenses") && (
-                    <NavItem
-                      href="/admin/expenses"
-                      label="Expenses"
-                      icon={FileText}
-                      active={isActive("/admin/expenses")}
-                      collapsed={collapsed}
-                      showTooltips={showTooltips}
-                    />
-                  )}
-                </div>
-              </div>
-            )}
-
-            {hasPermission(userRole, "view_events") && (
-              <div>
-                <SectionLabel collapsed={collapsed}>Events</SectionLabel>
-                <div className="space-y-1">
+              <CollapsibleNavSection
+                sectionId="welfare"
+                title="Welfare"
+                collapsed={collapsed}
+                isMd={isMd}
+                open={sectionOpen.welfare}
+                onToggle={() => toggleSection("welfare")}
+              >
+                {hasPermission(userRole, "view_contributions") && (
                   <NavItem
-                    href="/admin/events"
-                    label="Events"
-                    icon={Calendar}
-                    active={isActive("/admin/events")}
+                    href="/admin/contribution"
+                    label="Contributors"
+                    icon={ListCheckIcon}
+                    active={isActive("/admin/contribution")}
                     collapsed={collapsed}
                     showTooltips={showTooltips}
                   />
-                </div>
-              </div>
+                )}
+                {hasPermission(userRole, "view_expenses") && (
+                  <NavItem
+                    href="/admin/expenses"
+                    label="Expenses"
+                    icon={FileText}
+                    active={isActive("/admin/expenses")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                )}
+              </CollapsibleNavSection>
+            )}
+
+            {hasPermission(userRole, "view_events") && (
+              <CollapsibleNavSection
+                sectionId="events"
+                title="Events"
+                collapsed={collapsed}
+                isMd={isMd}
+                open={sectionOpen.events}
+                onToggle={() => toggleSection("events")}
+              >
+                <NavItem
+                  href="/admin/events"
+                  label="Events"
+                  icon={Calendar}
+                  active={isActive("/admin/events")}
+                  collapsed={collapsed}
+                  showTooltips={showTooltips}
+                />
+              </CollapsibleNavSection>
             )}
 
             {hasPermission(userRole, "view_food_management") && (
-              <div>
-                <SectionLabel
-                  collapsed={collapsed}
-                  accent={isActive("/admin/food-management")}
-                >
-                  Food Management
-                </SectionLabel>
-                <div className="space-y-1">
-                  {hasPermission(userRole, "manage_food_vendors") && (
-                    <NavItem
-                      href="/admin/food-management/vendors"
-                      label="Food Vendors"
-                      icon={Store}
-                      active={isActive("/admin/food-management/vendors")}
-                      collapsed={collapsed}
-                      showTooltips={showTooltips}
-                    />
-                  )}
-                  {hasPermission(userRole, "manage_food_vendors") && (
-                    <NavItem
-                      href="/admin/food-management/foods"
-                      label="Food Items"
-                      icon={UtensilsCrossed}
-                      active={isActive("/admin/food-management/foods")}
-                      collapsed={collapsed}
-                      showTooltips={showTooltips}
-                    />
-                  )}
-                  {hasPermission(userRole, "manage_food_menus") && (
-                    <NavItem
-                      href="/admin/food-management/menus"
-                      label="Weekly Menus"
-                      icon={MenuSquare}
-                      active={isActive("/admin/food-management/menus")}
-                      collapsed={collapsed}
-                      showTooltips={showTooltips}
-                    />
-                  )}
-                </div>
-              </div>
+              <CollapsibleNavSection
+                sectionId="food"
+                title="Food Management"
+                accent={isActive("/admin/food-management")}
+                collapsed={collapsed}
+                isMd={isMd}
+                open={sectionOpen.food}
+                onToggle={() => toggleSection("food")}
+              >
+                {hasPermission(userRole, "manage_food_vendors") && (
+                  <NavItem
+                    href="/admin/food-management/vendors"
+                    label="Food Vendors"
+                    icon={Store}
+                    active={isActive("/admin/food-management/vendors")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                )}
+                {hasPermission(userRole, "manage_food_vendors") && (
+                  <NavItem
+                    href="/admin/food-management/foods"
+                    label="Food Items"
+                    icon={UtensilsCrossed}
+                    active={isActive("/admin/food-management/foods")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                )}
+                {hasPermission(userRole, "manage_food_menus") && (
+                  <NavItem
+                    href="/admin/food-management/menus"
+                    label="Weekly Menus"
+                    icon={MenuSquare}
+                    active={isActive("/admin/food-management/menus")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                )}
+              </CollapsibleNavSection>
             )}
           </nav>
 

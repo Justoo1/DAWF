@@ -5,7 +5,7 @@ import { MoreHorizontal, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { authClient } from "@/lib/auth-client"
-import { approveLeaveRequest, rejectLeaveRequest } from "@/lib/actions/leave.actions"
+import { approveLeaveRequest, rejectLeaveRequest, reinstateLeaveRequest } from "@/lib/actions/leave.actions"
 import {
   Popover,
   PopoverContent,
@@ -35,9 +35,11 @@ import { Label } from "@/components/ui/label"
 export default function LeaveRequestActions({
   requestId,
   employeeName,
+  requestStatus,
 }: {
   requestId: string
   employeeName: string
+  requestStatus: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED"
 }) {
   const { toast } = useToast()
   const router = useRouter()
@@ -46,8 +48,10 @@ export default function LeaveRequestActions({
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [approveOpen, setApproveOpen] = useState(false)
   const [declineOpen, setDeclineOpen] = useState(false)
+  const [reinstateOpen, setReinstateOpen] = useState(false)
   const [declineReason, setDeclineReason] = useState("")
-  const [busy, setBusy] = useState<"approve" | "decline" | null>(null)
+  const [reinstateReason, setReinstateReason] = useState("")
+  const [busy, setBusy] = useState<"approve" | "decline" | "reinstate" | null>(null)
 
   const runApprove = async () => {
     const approverId = session?.user?.id
@@ -112,6 +116,50 @@ export default function LeaveRequestActions({
     }
   }
 
+  const runReinstate = async () => {
+    const approverId = session?.user?.id
+    if (!approverId) {
+      toast({
+        title: "Not signed in",
+        description: "Sign in again to reinstate requests.",
+        variant: "destructive",
+      })
+      return
+    }
+    const note = reinstateReason.trim()
+    if (!note) {
+      toast({
+        title: "Reason required",
+        description: "Add a reason before reinstating this leave request.",
+        variant: "destructive",
+      })
+      return
+    }
+    setBusy("reinstate")
+    const res = await reinstateLeaveRequest(requestId, approverId, note)
+    setBusy(null)
+    if (res.success) {
+      setReinstateOpen(false)
+      setReinstateReason("")
+      setPopoverOpen(false)
+      toast({
+        title: "Reinstated",
+        description: `Leave request for ${employeeName} has been moved back to pending.`,
+      })
+      router.refresh()
+    } else {
+      toast({
+        title: "Could not reinstate",
+        description: res.error || "Something went wrong.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  if (requestStatus !== "PENDING" && requestStatus !== "REJECTED") {
+    return <span className="text-xs text-slate-400 dark:text-zinc-600">—</span>
+  }
+
   return (
     <div
       className="inline-block text-left"
@@ -137,29 +185,46 @@ export default function LeaveRequestActions({
           className="w-44 p-0 border border-primary/10 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-lg z-[200]"
           onClick={(e) => e.stopPropagation()}
         >
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              setPopoverOpen(false)
-              setApproveOpen(true)
-            }}
-            className="w-full text-left px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-primary/5 dark:hover:bg-zinc-800"
-          >
-            Approve
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              setPopoverOpen(false)
-              setDeclineReason("")
-              setDeclineOpen(true)
-            }}
-            className="w-full text-left px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
-          >
-            Decline
-          </button>
+          {requestStatus === "PENDING" ? (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setPopoverOpen(false)
+                  setApproveOpen(true)
+                }}
+                className="w-full text-left px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-primary/5 dark:hover:bg-zinc-800"
+              >
+                Approve
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setPopoverOpen(false)
+                  setDeclineReason("")
+                  setDeclineOpen(true)
+                }}
+                className="w-full text-left px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+              >
+                Decline
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                setPopoverOpen(false)
+                setReinstateReason("")
+                setReinstateOpen(true)
+              }}
+              className="w-full text-left px-4 py-2.5 text-sm font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+            >
+              Reinstate
+            </button>
+          )}
         </PopoverContent>
       </Popover>
 
@@ -253,6 +318,66 @@ export default function LeaveRequestActions({
                 </>
               ) : (
                 "Decline request"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={reinstateOpen}
+        onOpenChange={(open) => {
+          setReinstateOpen(open)
+          if (!open) setReinstateReason("")
+        }}
+      >
+        <DialogContent
+          className="border-slate-200 dark:border-zinc-800 sm:max-w-md"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDownOutside={(e) => e.stopPropagation()}
+        >
+          <DialogHeader>
+            <DialogTitle>Reinstate leave request</DialogTitle>
+            <DialogDescription>
+              Move this declined request back to <span className="font-semibold text-foreground">pending</span> for
+              <span className="font-semibold text-foreground"> {employeeName}</span>. A reason is required.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-1">
+            <Label htmlFor={`reinstate-reason-${requestId}`} className="text-sm font-medium">
+              Reason for reinstating <span className="text-muted-foreground font-normal">(required)</span>
+            </Label>
+            <Textarea
+              id={`reinstate-reason-${requestId}`}
+              placeholder="e.g. New staffing update, additional clarification received…"
+              value={reinstateReason}
+              onChange={(e) => setReinstateReason(e.target.value)}
+              rows={4}
+              className="resize-none dark:bg-zinc-900 dark:border-zinc-700"
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={busy === "reinstate"}
+              onClick={() => setReinstateOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              disabled={busy === "reinstate"}
+              onClick={() => void runReinstate()}
+            >
+              {busy === "reinstate" ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Reinstating…
+                </>
+              ) : (
+                "Reinstate request"
               )}
             </Button>
           </DialogFooter>

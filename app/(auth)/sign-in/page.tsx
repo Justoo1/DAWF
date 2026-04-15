@@ -9,7 +9,7 @@ const LoginPage = () => {
       secondaryDescription="This application provides each member access to various contributions made to the Welfare team and also the total amount accumulated by the Welfare team of DEVOPS AFRICA ltd."
       teamImage="/assets/images/team.png"
     >
-      <Suspense fallback={<div className="w-full max-w-md min-h-[24rem] rounded-3xl bg-[#146C43]/80 animate-pulse" aria-hidden />}>
+      <Suspense fallback={<div className="h-full min-h-[24rem] w-full rounded-3xl bg-[#146C43]/80 animate-pulse" aria-hidden />}>
         <Login />
       </Suspense>
     </AuthLayout>

@@ -5,12 +5,10 @@ import { fetchContributions } from '@/lib/actions/contribution'
 import { fetchUpcomingEvents } from '@/lib/actions/events.actions'
 import { fetchUserWithContributions } from '@/lib/actions/users.action'
 import { auth } from "@/lib/auth"
-import prisma from "@/lib/prisma"
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import React, { Suspense } from 'react'
+import React from 'react'
 import { headers } from 'next/headers'
-import { DawfPostVerifyPasswordDialog } from "@/components/dawf/DawfPostVerifyPasswordDialog"
 import { Home } from 'lucide-react'
 import { formatDateParts } from '@/lib/utils'
 import ProfileMenu from '@/components/shared/ProfileMenu'
@@ -24,11 +22,6 @@ const Dashboard = async () => {
   if (!session) {
     redirect("/sign-in")
   }
-
-  const gateUser = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: { mustChangePassword: true },
-  })
 
   const [contributions, userInfo, upcomingEvents] = await Promise.all([
     fetchContributions(1, 10, false),
@@ -56,11 +49,6 @@ const Dashboard = async () => {
   
   return (
     <div className='flex flex-col w-full min-h-screen relative overflow-hidden bg-background'>
-      <Suspense fallback={null}>
-        <DawfPostVerifyPasswordDialog
-          mustChangePassword={gateUser?.mustChangePassword ?? false}
-        />
-      </Suspense>
       {/* Background Logo Pattern */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('/assets/images/logo.png')] bg-[length:120px_120px] bg-repeat z-0" />
       

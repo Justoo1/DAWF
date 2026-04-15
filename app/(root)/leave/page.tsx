@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -58,6 +58,7 @@ interface LeavePolicy {
     name: string;
     isActive: boolean;
     defaultDays: number;
+    isUnlimited: boolean;
 }
 
 interface LeaveBalance {
@@ -84,6 +85,22 @@ interface LeaveRequest {
 
 function isLeaveRequestMutable(status: LeaveRequest['status']) {
     return status === 'PENDING'
+}
+
+function getLeaveStatusLabel(status: LeaveRequest['status']): string {
+    return status === 'REJECTED' ? 'DECLINED' : status
+}
+
+function hasWeekendInRange(startIso: string, endIso: string): boolean {
+    if (!startIso || !endIso) return false
+    const cursor = new Date(startIso)
+    const end = new Date(endIso)
+    while (cursor <= end) {
+        const day = cursor.getDay()
+        if (day === 0 || day === 6) return true
+        cursor.setDate(cursor.getDate() + 1)
+    }
+    return false
 }
 
 const LeaveRequestPage = () => {
@@ -128,6 +145,9 @@ const LeaveRequestPage = () => {
     const calculatedDays = startDate && endDate ? calculateWorkingDays(new Date(startDate), new Date(endDate)) : 0
     const editCalculatedDays =
         editStart && editEnd ? calculateWorkingDays(new Date(editStart), new Date(editEnd)) : 0
+    const todayIso = useMemo(() => format(new Date(), 'yyyy-MM-dd'), [])
+    const selectedPolicyMeta = policies.find((p: LeavePolicy) => p.id === selectedPolicy)
+    const editPolicyMeta = policies.find((p: LeavePolicy) => p.id === editPolicy)
 
     useEffect(() => {
         const loadData = async () => {
@@ -163,6 +183,10 @@ const LeaveRequestPage = () => {
     useEffect(() => {
         if (selectedPolicy) {
             const policy = policies.find((p: LeavePolicy) => p.id === selectedPolicy)
+            if (policy?.isUnlimited) {
+                setMaxDays(null)
+                return
+            }
             const balance = balances.find((b: LeaveBalance) => b.policyId === selectedPolicy)
 
             // Calculate approved days used
@@ -187,6 +211,10 @@ const LeaveRequestPage = () => {
             return
         }
         const policy = policies.find((p: LeavePolicy) => p.id === editPolicy)
+        if (policy?.isUnlimited) {
+            setEditMaxDays(null)
+            return
+        }
         const balance = balances.find((b: LeaveBalance) => b.policyId === editPolicy)
         const approvedRequests = requests.filter(
             (r: LeaveRequest) => r.policyId === editPolicy && r.status === 'APPROVED'
@@ -205,6 +233,14 @@ const LeaveRequestPage = () => {
         const daysNum = calculatedDays
         if (!selectedPolicy || !startDate || !endDate || !session?.user?.id || daysNum <= 0) {
             toast({ title: "Validation Error", description: "Please fill all required fields.", variant: "destructive" })
+            return
+        }
+        if (hasWeekendInRange(startDate, endDate)) {
+            toast({
+                title: "Validation Error",
+                description: "Leave request range cannot include weekends. Please select weekdays only.",
+                variant: "destructive",
+            })
             return
         }
 
@@ -265,6 +301,14 @@ const LeaveRequestPage = () => {
             toast({
                 title: 'Validation Error',
                 description: 'Please fill all required fields.',
+                variant: 'destructive',
+            })
+            return
+        }
+        if (hasWeekendInRange(editStart, editEnd)) {
+            toast({
+                title: 'Validation Error',
+                description: 'Leave request range cannot include weekends. Please select weekdays only.',
                 variant: 'destructive',
             })
             return
@@ -389,7 +433,14 @@ const LeaveRequestPage = () => {
                                         <Input 
                                             type="date" 
                                             value={startDate}
-                                            onChange={(e) => setStartDate(e.target.value)}
+                                            min={todayIso}
+                                            onChange={(e) => {
+                                                const nextStart = e.target.value
+                                                setStartDate(nextStart)
+                                                if (endDate && nextStart && endDate < nextStart) {
+                                                    setEndDate(nextStart)
+                                                }
+                                            }}
                                             className="h-11 pl-10 rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold focus:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:focus:bg-zinc-950"
                                         />
                                         <CalendarIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 dark:text-zinc-600" />
@@ -403,6 +454,8 @@ const LeaveRequestPage = () => {
                                         <Input 
                                             type="date" 
                                             value={endDate}
+                                            min={startDate || todayIso}
+                                            disabled={!startDate}
                                             onChange={(e) => setEndDate(e.target.value)}
                                             className="h-11 pl-10 rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold focus:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:focus:bg-zinc-950"
                                         />
@@ -420,7 +473,14 @@ const LeaveRequestPage = () => {
                                             {calculatedDays} <span className="text-sm font-bold text-zinc-500">working days</span>
                                         </p>
                                     </div>
-                                    {maxDays !== null && (
+                                    {selectedPolicyMeta?.isUnlimited ? (
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] dark:text-zinc-600">Available</p>
+                                            <p className="text-2xl font-black mt-1 text-emerald-600">
+                                                Unlimited
+                                            </p>
+                                        </div>
+                                    ) : maxDays !== null && (
                                         <div className="text-right">
                                             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] dark:text-zinc-600">Available</p>
                                             <p className={`text-2xl font-black mt-1 ${calculatedDays > maxDays ? 'text-red-500' : 'text-emerald-600'}`}>
@@ -515,7 +575,14 @@ const LeaveRequestPage = () => {
                                         <Input
                                             type="date"
                                             value={editStart}
-                                            onChange={(e) => setEditStart(e.target.value)}
+                                            min={todayIso}
+                                            onChange={(e) => {
+                                                const nextStart = e.target.value
+                                                setEditStart(nextStart)
+                                                if (editEnd && nextStart && editEnd < nextStart) {
+                                                    setEditEnd(nextStart)
+                                                }
+                                            }}
                                             className="h-11 pl-10 rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold focus:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:focus:bg-zinc-950"
                                         />
                                         <CalendarIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 dark:text-zinc-600" />
@@ -529,6 +596,8 @@ const LeaveRequestPage = () => {
                                         <Input
                                             type="date"
                                             value={editEnd}
+                                            min={editStart || todayIso}
+                                            disabled={!editStart}
                                             onChange={(e) => setEditEnd(e.target.value)}
                                             className="h-11 pl-10 rounded-lg bg-zinc-50 border-zinc-200 text-zinc-900 font-bold focus:bg-zinc-100 dark:bg-zinc-950/50 dark:border-white/[0.05] dark:text-zinc-300 dark:focus:bg-zinc-950"
                                         />
@@ -548,7 +617,16 @@ const LeaveRequestPage = () => {
                                             <span className="text-sm font-bold text-zinc-500">working days</span>
                                         </p>
                                     </div>
-                                    {editMaxDays !== null && (
+                                    {editPolicyMeta?.isUnlimited ? (
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] dark:text-zinc-600">
+                                                Available
+                                            </p>
+                                            <p className="text-2xl font-black mt-1 text-emerald-600">
+                                                Unlimited
+                                            </p>
+                                        </div>
+                                    ) : editMaxDays !== null && (
                                         <div className="text-right">
                                             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] dark:text-zinc-600">
                                                 Available
@@ -645,7 +723,18 @@ const LeaveRequestPage = () => {
                                             <h4 className="text-base font-bold text-zinc-900 dark:text-white leading-snug mb-4 line-clamp-2">
                                                 {policy.name}
                                             </h4>
-                                            {totalDays > 0 ? (
+                                            {policy.isUnlimited ? (
+                                                <div className="space-y-3">
+                                                    <div className="flex items-baseline gap-2">
+                                                        <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
+                                                            Unlimited
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                                        No annual day cap for this leave type.
+                                                    </p>
+                                                </div>
+                                            ) : totalDays > 0 ? (
                                                 <div className="space-y-3.5">
                                                     <div className="flex items-baseline gap-2">
                                                         <span className="text-4xl font-black tabular-nums text-zinc-900 dark:text-white tracking-tight">
@@ -730,7 +819,7 @@ const LeaveRequestPage = () => {
                                                             : "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200"
                                                 }`}
                                             >
-                                                {req.status}
+                                                {getLeaveStatusLabel(req.status)}
                                             </span>
                                             <span className="text-[10px] font-semibold tabular-nums text-zinc-500 tracking-wide dark:text-zinc-600">
                                                 #{req.id.slice(-4).toUpperCase()}

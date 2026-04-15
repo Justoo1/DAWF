@@ -14,8 +14,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { PasswordInput } from "@/components/ui/password-input"
-import { PasswordRequirementsHints } from "@/components/auth/PasswordRequirementsHints"
 import {
   Form,
   FormControl,
@@ -65,9 +63,6 @@ export function AddEmployeeDialog() {
   const [successSummary, setSuccessSummary] = useState<EmployeeSaveSummary | null>(
     null
   )
-  const [successTempPassword, setSuccessTempPassword] = useState<string | null>(
-    null
-  )
   const [loading, setLoading] = useState(false)
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([])
   const [clients, setClients] = useState<{ id: string; name: string }[]>([])
@@ -80,8 +75,6 @@ export function AddEmployeeDialog() {
     mode: 'onChange',
     reValidateMode: 'onChange',
   })
-
-  const generateInitialPassword = form.watch('generateInitialPassword')
 
   useEffect(() => {
     if (!open) {
@@ -141,17 +134,12 @@ export function AddEmployeeDialog() {
         welfareContributionsBeforeExit: values.welfareContributionsBeforeExit?.trim()
           ? parseFloat(values.welfareContributionsBeforeExit)
           : undefined,
-        generateInitialPassword: values.generateInitialPassword,
-        initialPassword: values.generateInitialPassword
-          ? undefined
-          : values.initialPassword?.trim() || undefined,
       })
 
       if (result.success) {
         const clientName =
           clients.find((c) => c.id === values.clientId)?.name ?? "—"
         setSuccessSummary(buildEmployeeSaveSummary(values, clientName))
-        setSuccessTempPassword(result.generatedPassword ?? null)
         setOpen(false)
         form.reset(addEmployeeDefaultValues)
         setSuccessOpen(true)
@@ -182,12 +170,10 @@ export function AddEmployeeDialog() {
           setSuccessOpen(v)
           if (!v) {
             setSuccessSummary(null)
-            setSuccessTempPassword(null)
           }
         }}
         variant="add"
         summary={successSummary}
-        temporaryPassword={successTempPassword}
       />
 
       <Dialog
@@ -209,7 +195,8 @@ export function AddEmployeeDialog() {
           <DialogHeader className="border-b border-border/60 px-6 py-4 text-left">
             <DialogTitle>Add New Employee</DialogTitle>
             <DialogDescription>
-              Create an employee record and assign a client. They receive a verification email. You can set an initial password or generate one; otherwise they set a password from the email link.
+              Create an employee record and assign a client. They sign in with Google using this
+              work email once their account is saved (same email as in Google Workspace).
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -324,66 +311,6 @@ export function AddEmployeeDialog() {
                       </FormItem>
                     )}
                   />
-
-                  <FormField
-                    control={form.control}
-                    name="generateInitialPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="space-y-1">
-                            <FormLabel className="text-base">Generate temporary password</FormLabel>
-                            <p className="text-xs text-muted-foreground max-w-md">
-                              Creates a short random password to share with the employee. They must set a new password after first sign-in.
-                            </p>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={(checked) => {
-                                field.onChange(checked)
-                                if (checked) {
-                                  form.setValue('initialPassword', '')
-                                  form.clearErrors('initialPassword')
-                                }
-                              }}
-                            />
-                          </FormControl>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {!generateInitialPassword && (
-                    <FormField
-                      control={form.control}
-                      name="initialPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Initial password (optional)</FormLabel>
-                          <FormControl>
-                            <PasswordInput
-                              autoComplete="new-password"
-                              className="h-11 rounded-lg"
-                              placeholder="Strong password (see requirements below)"
-                              maxLength={128}
-                              {...field}
-                            />
-                          </FormControl>
-                          <PasswordRequirementsHints
-                            password={field.value || ""}
-                            variant="light"
-                            className="mt-1"
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            If set, the employee uses this until they choose a new one. Leave empty if they will set a password only from the verification email.
-                          </p>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
 
                   <FormField
                     control={form.control}
