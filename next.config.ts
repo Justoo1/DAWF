@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { getAuthEnvCandidate, normalizeToOrigin } from "./lib/auth-app-url";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const withPWA = require('next-pwa')({
   dest: 'public',
@@ -8,11 +9,11 @@ const withPWA = require('next-pwa')({
   buildExcludes: [/middleware-manifest\.json$/],
 });
 
+const authEnvCandidate = getAuthEnvCandidate();
+
 const nextConfig: NextConfig = {
-  // Enable strict mode for better error handling
   reactStrictMode: true,
 
-  // Image optimization configuration
   images: {
     remotePatterns: [
       {
@@ -26,20 +27,18 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Experimental features for better performance
   experimental: {
-    // Enable Server Actions
     serverActions: {
       bodySizeLimit: '2mb',
     },
   },
 
-  // Environment variables exposed to the browser
   env: {
-    NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
+    ...(authEnvCandidate
+      ? { NEXT_PUBLIC_BETTER_AUTH_URL: normalizeToOrigin(authEnvCandidate) }
+      : {}),
   },
 
-  // Headers for security
   async headers() {
     return [
       {
