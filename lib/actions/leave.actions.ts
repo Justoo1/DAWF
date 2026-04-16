@@ -374,8 +374,18 @@ export async function deletePendingLeaveRequest(requestId: string) {
   }
 }
 
-export async function fetchLeaveRequests(viewerId: string) {
+export async function fetchLeaveRequests(
+  viewerId: string,
+  options?: { scope?: "self" | "review" }
+) {
   try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user?.id || session.user.id !== viewerId) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const scope = options?.scope ?? "review";
+
     const viewer = await prisma.user.findUnique({
       where: { id: viewerId },
       select: { role: true, department: true }
@@ -390,7 +400,9 @@ export async function fetchLeaveRequests(viewerId: string) {
 
     let whereClause: Record<string, unknown> = {};
 
-    if (viewer.role === 'MANAGER') {
+    if (scope === "self") {
+      whereClause = { userId: viewerId };
+    } else if (viewer.role === 'MANAGER') {
       const managedDepts = departments
         .filter(d => d.managerId === viewerId)
         .map(d => d.name);

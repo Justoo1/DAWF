@@ -157,7 +157,7 @@ const LeaveRequestPage = () => {
             const [policiesRes, balancesRes, requestsRes, holidaysRes] = await Promise.all([
                 fetchLeavePolicies(),
                 fetchUserLeaveBalances(session.user.id, new Date().getFullYear()),
-                fetchLeaveRequests(session.user.id),
+                fetchLeaveRequests(session.user.id, { scope: "self" }),
                 fetchPublicHolidays(),
             ])
 
@@ -276,7 +276,7 @@ const LeaveRequestPage = () => {
             setIsModalOpen(false)
             
             // Refresh requests
-            const requestsRes = await fetchLeaveRequests(session.user.id)
+            const requestsRes = await fetchLeaveRequests(session.user.id, { scope: "self" })
             if (requestsRes.success) setRequests(requestsRes.requests || [])
         } else {
             toast({ title: "Error", description: res.error || "Failed to submit request", variant: "destructive" })
@@ -333,7 +333,7 @@ const LeaveRequestPage = () => {
             toast({ title: 'Request updated', description: 'Your pending leave request has been updated.' })
             setEditOpen(false)
             setEditId(null)
-            const requestsRes = await fetchLeaveRequests(session.user.id)
+            const requestsRes = await fetchLeaveRequests(session.user.id, { scope: "self" })
             if (requestsRes.success) setRequests(requestsRes.requests || [])
         } else {
             toast({
@@ -352,7 +352,7 @@ const LeaveRequestPage = () => {
         if (res.success) {
             toast({ title: 'Request withdrawn', description: 'Your pending leave request has been removed.' })
             setDeleteTarget(null)
-            const requestsRes = await fetchLeaveRequests(session.user.id)
+            const requestsRes = await fetchLeaveRequests(session.user.id, { scope: "self" })
             if (requestsRes.success) setRequests(requestsRes.requests || [])
         } else {
             toast({
