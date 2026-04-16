@@ -28,7 +28,7 @@ interface BookingApprovalCardProps {
     room: {
       id: string
       name: string
-      capacity: number
+      capacity: string
       location: string | null
     }
     user: {

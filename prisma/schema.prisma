@@ -250,7 +250,7 @@ model EventAttendee {
 model ConferenceRoom {
   id          String                  @id @default(cuid())
   name        String                  @unique
-  capacity    Int
+  capacity    String // Supports single value ("4") or range ("1-4")
   location    String?
   amenities   String? // JSON array: ['Projector', 'Whiteboard', 'Video Conference']
   isActive    Boolean                 @default(true)

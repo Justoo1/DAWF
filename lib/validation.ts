@@ -342,7 +342,21 @@ export const EventCreateSchema = z.object({
 export const ConferenceRoomSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, { message: "Room name must be at least 2 characters" }),
-  capacity: z.number().int().positive({ message: "Capacity must be positive" }),
+  capacity: z
+    .string()
+    .trim()
+    .min(1, { message: "Capacity is required" })
+    .regex(/^\d+(\s*-\s*\d+)?$/, {
+      message: "Use a number or range (e.g. 4 or 1-4)",
+    })
+    .refine((value) => {
+      const normalized = value.replace(/\s+/g, "");
+      if (!normalized.includes("-")) {
+        return Number(normalized) > 0;
+      }
+      const [min, max] = normalized.split("-").map(Number);
+      return Number.isFinite(min) && Number.isFinite(max) && min > 0 && max > 0 && min <= max;
+    }, { message: "Range must be positive and min must be <= max" }),
   location: z.string().optional(),
   amenities: z.string().optional(), // JSON array as string
   isActive: z.boolean().default(true),

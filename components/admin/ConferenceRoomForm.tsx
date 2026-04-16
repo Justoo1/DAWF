@@ -42,7 +42,7 @@ const ConferenceRoomForm = ({ room, isEdit, onSuccess, onCancel }: ConferenceRoo
     resolver: zodResolver(ConferenceRoomSchema),
     defaultValues: {
       name: room?.name || "",
-      capacity: room?.capacity || 0,
+      capacity: room?.capacity || "",
       location: room?.location || "",
       description: room?.description || "",
       isActive: room?.isActive ?? true,
@@ -145,14 +145,15 @@ const ConferenceRoomForm = ({ room, isEdit, onSuccess, onCancel }: ConferenceRoo
               </FormLabel>
               <FormControl>
                 <Input
-                  type="number"
+                  type="text"
                   className="h-11 rounded-lg"
                   {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                  min={1}
-                  placeholder="Maximum number of people"
+                  placeholder="e.g. 4 or 1-4"
                 />
               </FormControl>
+              <FormDescription>
+                Enter a single number or a range (for example: 4, 1-4, 10-20).
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

@@ -57,7 +57,7 @@ const ConferenceRoomsPage = async () => {
                 >
                   <h3 className="text-base font-semibold text-white">{room.name}</h3>
                   <div className="mt-2 space-y-1 text-sm text-zinc-300">
-                    <p>Capacity: {room.capacity} people</p>
+                    <p>Capacity: {room.capacity}</p>
                     {room.location && <p>Location: {room.location}</p>}
                     {room.description && <p className="text-zinc-400">{room.description}</p>}
                     {room.amenities && (
