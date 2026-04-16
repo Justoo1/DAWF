@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { getAuthAppOrigin } from "./auth-app-url";
+import { allowedWorkEmailMessage, isAllowedWorkEmail } from "./allowed-email-domains";
 import prisma from "./prisma";
 
 export const auth = betterAuth({
@@ -53,8 +54,14 @@ export const auth = betterAuth({
       if (!userId) return;
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { isActive: true },
+        select: { isActive: true, email: true },
       });
+      if (user && !isAllowedWorkEmail(user.email)) {
+        await prisma.session.deleteMany({ where: { userId } });
+        throw new APIError("FORBIDDEN", {
+          message: allowedWorkEmailMessage(),
+        });
+      }
       if (user && !user.isActive) {
         await prisma.session.deleteMany({ where: { userId } });
         throw new APIError("FORBIDDEN", {

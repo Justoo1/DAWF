@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { isAllowedWorkEmail } from "@/lib/allowed-email-domains";
 
 function appOrigin(req: NextRequest) {
   return req.nextUrl.origin;
@@ -44,6 +45,11 @@ export async function GET(req: NextRequest) {
   if (!user) {
     await prisma.verification.deleteMany({ where: { id: record.id } });
     return NextResponse.redirect(`${origin}/sign-in?error=invalid_token`);
+  }
+
+  if (!isAllowedWorkEmail(record.identifier)) {
+    await prisma.verification.deleteMany({ where: { id: record.id } });
+    return NextResponse.redirect(`${origin}/wrong-email`);
   }
 
   await prisma.$transaction(async (tx) => {

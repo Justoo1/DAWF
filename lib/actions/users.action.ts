@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import prisma from '../prisma'
 import { ContributionStatus, UserRole } from '@prisma/client';
+import { allowedWorkEmailMessage, isAllowedWorkEmail } from '@/lib/allowed-email-domains';
 import { auth } from '@/lib/auth'
 import { getAuthAppOrigin } from '@/lib/auth-app-url';
 import { sendEmployeeVerificationEmail } from '@/lib/auth-email';
@@ -597,6 +598,9 @@ export async function createEmployee(data: {
     }
 
     const email = data.email.trim().toLowerCase()
+    if (!isAllowedWorkEmail(email)) {
+      return { success: false, error: allowedWorkEmailMessage() }
+    }
 
     const existingUser = await prisma.user.findFirst({
       where: { email: { equals: email, mode: 'insensitive' } },
@@ -706,6 +710,9 @@ export async function updateEmployeeProfile(
     }
 
     const newEmail = data.email.trim().toLowerCase()
+    if (!isAllowedWorkEmail(newEmail)) {
+      return { success: false, error: allowedWorkEmailMessage() }
+    }
 
     const existing = await prisma.user.findUnique({
       where: { id: userId },
@@ -930,6 +937,9 @@ export async function adminResendEmployeeVerificationEmail(userId: string) {
       success: false,
       error: 'This employee is already verified.',
     }
+  }
+  if (!isAllowedWorkEmail(employee.email)) {
+    return { success: false, error: allowedWorkEmailMessage() }
   }
 
   try {
