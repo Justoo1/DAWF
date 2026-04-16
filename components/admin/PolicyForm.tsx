@@ -25,10 +25,16 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [uploadedFileName, setUploadedFileName] = useState('')
+  const [uploadedAttachmentName, setUploadedAttachmentName] = useState('')
+  const [attachmentDataBase64, setAttachmentDataBase64] = useState<string | null>(null)
+  const [attachmentMime, setAttachmentMime] = useState<string | null>(null)
+  const [removeAttachment, setRemoveAttachment] = useState(false)
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
     content: initialData?.content || '',
   })
+
+  const MAX_ATTACHMENT_MB = 10
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,6 +48,9 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
           title: formData.title,
           content: formData.content,
           updatedBy: userEmail,
+          attachmentName: attachmentDataBase64 ? uploadedAttachmentName : undefined,
+          attachmentMime: attachmentDataBase64 ? (attachmentMime || 'application/pdf') : undefined,
+          attachmentDataBase64: attachmentDataBase64 || undefined,
         })
       } else if (initialData) {
         result = await updatePolicy({
@@ -49,6 +58,10 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
           title: formData.title,
           content: formData.content,
           updatedBy: userEmail,
+          attachmentName: attachmentDataBase64 ? uploadedAttachmentName : undefined,
+          attachmentMime: attachmentDataBase64 ? (attachmentMime || 'application/pdf') : undefined,
+          attachmentDataBase64: attachmentDataBase64 || undefined,
+          removeAttachment,
         })
       }
 
@@ -146,6 +159,62 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
     }
   }
 
+  const toBase64 = (bytes: Uint8Array) => {
+    let binary = ''
+    const chunkSize = 0x8000
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize)
+      binary += String.fromCharCode(...chunk)
+    }
+    return btoa(binary)
+  }
+
+  const handleAttachmentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      toast({
+        title: 'Unsupported file type',
+        description: 'Only PDF files are supported for policy attachments.',
+        variant: 'destructive',
+      })
+      e.target.value = ''
+      return
+    }
+
+    if (file.size > MAX_ATTACHMENT_MB * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: `Please upload a PDF up to ${MAX_ATTACHMENT_MB}MB.`,
+        variant: 'destructive',
+      })
+      e.target.value = ''
+      return
+    }
+
+    try {
+      const arrayBuffer = await file.arrayBuffer()
+      const base64 = toBase64(new Uint8Array(arrayBuffer))
+      setAttachmentDataBase64(base64)
+      setAttachmentMime('application/pdf')
+      setUploadedAttachmentName(file.name)
+      setRemoveAttachment(false)
+      toast({
+        title: 'Attachment added',
+        description: `${file.name} is attached to this policy.`,
+      })
+    } catch {
+      toast({
+        title: 'Attachment failed',
+        description: 'Unable to read the selected PDF.',
+        variant: 'destructive',
+      })
+    } finally {
+      e.target.value = ''
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {!onCancel && (
@@ -200,6 +269,55 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
               <p className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
                 Imported: {uploadedFileName}
               </p>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="policy-attachment" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
+            Policy PDF Attachment
+          </Label>
+          <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 p-4">
+            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+              <Upload className="h-4 w-4" />
+              <span>Attach a PDF for in-app reading</span>
+            </div>
+            <Input
+              id="policy-attachment"
+              type="file"
+              accept=".pdf,application/pdf"
+              onChange={handleAttachmentUpload}
+              disabled={loading}
+              className="mt-3 h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-zinc-900 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 dark:file:bg-zinc-800 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-700 dark:file:text-zinc-200"
+            />
+            <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              PDF only, up to {MAX_ATTACHMENT_MB}MB.
+            </p>
+            {uploadedAttachmentName ? (
+              <p className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                Attached: {uploadedAttachmentName}
+              </p>
+            ) : null}
+            {mode === 'edit' && initialData?.attachmentName && !attachmentDataBase64 ? (
+              <div className="mt-2 flex items-center gap-2">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                  Existing attachment: {initialData.attachmentName}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setRemoveAttachment(true)
+                    setUploadedAttachmentName('')
+                    setAttachmentDataBase64(null)
+                    setAttachmentMime(null)
+                  }}
+                  className="h-7 rounded-md px-2 text-[10px]"
+                >
+                  Remove file
+                </Button>
+              </div>
             ) : null}
           </div>
         </div>

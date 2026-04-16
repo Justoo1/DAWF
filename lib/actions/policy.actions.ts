@@ -10,7 +10,11 @@ export interface Policy {
   content: string
   version: number
   isActive: boolean
+  createdBy: string | null
   updatedBy: string | null
+  attachmentName: string | null
+  attachmentMime: string | null
+  attachmentData: Uint8Array | null
   createdAt: Date
   updatedAt: Date
 }
@@ -19,6 +23,9 @@ export interface CreatePolicyParams {
   title: string
   content: string
   updatedBy: string
+  attachmentName?: string
+  attachmentMime?: string
+  attachmentDataBase64?: string
 }
 
 export interface UpdatePolicyParams {
@@ -26,6 +33,10 @@ export interface UpdatePolicyParams {
   title?: string
   content?: string
   updatedBy: string
+  attachmentName?: string
+  attachmentMime?: string
+  attachmentDataBase64?: string
+  removeAttachment?: boolean
 }
 
 // Fetch active policy by slug
@@ -46,6 +57,62 @@ export async function fetchPolicyBySlug(slug: string) {
   } catch (error) {
     console.error("Error fetching policy:", error)
     return { success: false, error: "Failed to fetch policy" }
+  }
+}
+
+// Fetch the policy shown on /policy:
+// prefer the welfare constitution slug, then fall back to latest active policy.
+export async function fetchPublicPolicy(preferredSlug = "welfare-fund-constitution") {
+  try {
+    const preferred = await prisma.policy.findFirst({
+      where: {
+        isActive: true,
+        slug: preferredSlug,
+      },
+    });
+
+    if (preferred) {
+      return { success: true, policy: preferred };
+    }
+
+    const fallback = await prisma.policy.findFirst({
+      where: { isActive: true },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    if (!fallback) {
+      return { success: false, error: "Policy not found" };
+    }
+
+    return { success: true, policy: fallback };
+  } catch (error) {
+    console.error("Error fetching public policy:", error);
+    return { success: false, error: "Failed to fetch policy" };
+  }
+}
+
+// Fetch active policies for public listing, keeping the preferred slug first.
+export async function fetchPublicPolicies(preferredSlug = "welfare-fund-constitution") {
+  try {
+    const policies = await prisma.policy.findMany({
+      where: { isActive: true },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    if (policies.length === 0) {
+      return { success: false, error: "Policy not found", policies: [] };
+    }
+
+    const sorted = [...policies].sort((a, b) => {
+      if (a.slug === preferredSlug) return -1;
+      if (b.slug === preferredSlug) return 1;
+      return 0;
+    });
+
+    return { success: true, policies: sorted };
+  } catch (error) {
+    console.error("Error fetching public policies:", error);
+    return { success: false, error: "Failed to fetch policies", policies: [] };
   }
 }
 
@@ -88,7 +155,13 @@ export async function createPolicy(params: CreatePolicyParams) {
         title: params.title,
         slug,
         content: params.content,
+        createdBy: params.updatedBy,
         updatedBy: params.updatedBy,
+        attachmentName: params.attachmentName ?? null,
+        attachmentMime: params.attachmentMime ?? null,
+        attachmentData: params.attachmentDataBase64
+          ? Buffer.from(params.attachmentDataBase64, "base64")
+          : null,
       },
     })
 
@@ -118,6 +191,20 @@ export async function updatePolicy(params: UpdatePolicyParams) {
       data: {
         ...(params.title && { title: params.title }),
         ...(params.content && { content: params.content }),
+        ...(params.removeAttachment
+          ? {
+              attachmentName: null,
+              attachmentMime: null,
+              attachmentData: null,
+            }
+          : {}),
+        ...(params.attachmentDataBase64
+          ? {
+              attachmentName: params.attachmentName ?? existingPolicy.attachmentName,
+              attachmentMime: params.attachmentMime ?? "application/pdf",
+              attachmentData: Buffer.from(params.attachmentDataBase64, "base64"),
+            }
+          : {}),
         updatedBy: params.updatedBy,
         version: existingPolicy.version + 1,
       },

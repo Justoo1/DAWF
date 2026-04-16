@@ -260,6 +260,20 @@
   font-style: italic;
 }
 
+/* Public policy renderer: normalize rich text colors in dark mode. */
+.policy-content {
+  color: hsl(var(--foreground));
+}
+
+.policy-content * {
+  color: inherit !important;
+}
+
+.policy-content a {
+  color: hsl(var(--primary)) !important;
+  text-decoration: underline;
+}
+
 .ProseMirror u {
   text-decoration: underline;
 }
