@@ -2,9 +2,44 @@
 
 import { revalidatePath } from 'next/cache'
 import prisma from '../prisma'
-import { ContributionStatus, Prisma, UserRole } from '@prisma/client';
+import { ContributionStatus, UserRole } from '@prisma/client';
 import { auth } from '@/lib/auth'
+import { getAuthAppOrigin } from '@/lib/auth-app-url';
+import { sendEmployeeVerificationEmail } from '@/lib/auth-email';
 import { headers } from 'next/headers'
+import { randomBytes, randomUUID } from 'crypto'
+
+const EMPLOYEE_VERIFICATION_TTL_MS = 1000 * 60 * 60 * 24 * 2 // 48 hours
+
+async function sendEmployeeVerificationInvite(email: string, displayName: string) {
+  const token = randomBytes(32).toString('hex')
+  const now = new Date()
+  const expiresAt = new Date(now.getTime() + EMPLOYEE_VERIFICATION_TTL_MS)
+  const verifyUrl = `${getAuthAppOrigin()}/api/employee-verification?token=${encodeURIComponent(token)}`
+
+  await prisma.$transaction(async (tx) => {
+    await tx.verification.deleteMany({
+      where: {
+        identifier: {
+          equals: email,
+          mode: 'insensitive',
+        },
+      },
+    })
+    await tx.verification.create({
+      data: {
+        id: randomUUID(),
+        identifier: email,
+        value: token,
+        expiresAt,
+        createdAt: now,
+        updatedAt: now,
+      },
+    })
+  })
+
+  await sendEmployeeVerificationEmail(email, displayName, verifyUrl)
+}
 
 /** Fast path for layout chrome: one indexed lookup, no contribution rows or aggregates. */
 export async function fetchAdminShellUser(email: string) {
@@ -606,15 +641,24 @@ export async function createEmployee(data: {
         isContributor: data.isContributor ?? true,
         exitDate: data.exitDate,
         welfareContributionsBeforeExit: data.welfareContributionsBeforeExit,
-        emailVerified: true,
+        emailVerified: false,
       },
     })
+
+    let verificationEmailSent = false
+    try {
+      await sendEmployeeVerificationInvite(email, displayName)
+      verificationEmailSent = true
+    } catch (emailError) {
+      console.error('Employee verification email failed:', emailError)
+    }
 
     revalidatePath('/admin/employees')
     revalidatePath('/admin/manage-employees')
     return {
       success: true,
       user,
+      verificationEmailSent,
     }
   } catch (error) {
     console.error('Error creating employee:', error)
@@ -640,7 +684,7 @@ export async function updateEmployeeProfile(
     welfareContributionsBeforeExit?: number | null
   }
 ): Promise<
-  | { success: true; emailChanged: boolean }
+  | { success: true; emailChanged: boolean; verificationEmailSent: boolean }
   | { success: false; error: string }
 > {
   try {
@@ -741,10 +785,12 @@ export async function updateEmployeeProfile(
           }),
       ...(emailChanged
         ? {
-            emailVerified: true,
+            emailVerified: false,
           }
         : {}),
     }
+
+    let verificationEmailSent = false
 
     await prisma.$transaction(async (tx) => {
       if (emailChanged) {
@@ -766,9 +812,18 @@ export async function updateEmployeeProfile(
       })
     })
 
+    if (emailChanged) {
+      try {
+        await sendEmployeeVerificationInvite(newEmail, displayName)
+        verificationEmailSent = true
+      } catch (emailError) {
+        console.error('Employee verification email failed after email update:', emailError)
+      }
+    }
+
     revalidatePath('/admin/employees')
     revalidatePath('/admin/manage-employees')
-    return { success: true, emailChanged }
+    return { success: true, emailChanged, verificationEmailSent }
   } catch (error) {
     console.error('Error updating employee profile:', error)
     return {
@@ -860,14 +915,37 @@ async function requireAdminSessionForAuthActions(): Promise<
   return { ok: true }
 }
 
-/** @deprecated Google-only auth; kept so old callers get a clear error. */
-export async function adminResendEmployeeVerificationEmail(_userId: string) {
+export async function adminResendEmployeeVerificationEmail(userId: string) {
   const gate = await requireAdminSessionForAuthActions()
   if (!gate.ok) return { success: false, error: gate.error }
-  return {
-    success: false,
-    error:
-      'Verification email is not used. Employees sign in with Google using their work email once an admin has added them.',
+  const employee = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, name: true, emailVerified: true },
+  })
+  if (!employee) {
+    return { success: false, error: 'Employee not found' }
+  }
+  if (employee.emailVerified) {
+    return {
+      success: false,
+      error: 'This employee is already verified.',
+    }
+  }
+
+  try {
+    await sendEmployeeVerificationInvite(
+      employee.email.trim().toLowerCase(),
+      employee.name || employee.email
+    )
+    revalidatePath('/admin/employees')
+    revalidatePath('/admin/manage-employees')
+    return { success: true }
+  } catch (error) {
+    console.error('Error resending employee verification email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send verification email',
+    }
   }
 }
 

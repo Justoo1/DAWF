@@ -9,9 +9,11 @@ import {
   MoreHorizontal,
   UserCheck,
   UserX,
+  Mail,
 } from "lucide-react";
 import { UserAvatarHover } from "./UserAvatarHover";
 import {
+  adminResendEmployeeVerificationEmail,
   deleteUser,
   revalidateUserPath,
   updateEmployeeStatus,
@@ -213,6 +215,28 @@ const Employees = ({
         description: result.error,
       });
     }
+  };
+
+  const handleResendVerificationEmail = async (
+    id: string | undefined,
+    name: string
+  ) => {
+    if (!id) return;
+    const result = await adminResendEmployeeVerificationEmail(id);
+    if (result.success) {
+      toast({
+        title: "Verification email sent",
+        description: `A new verification link was sent to ${name}.`,
+      });
+      revalidateUserPath("/admin/employees");
+      router.refresh();
+      return;
+    }
+    toast({
+      variant: "destructive",
+      title: "Could not send verification email",
+      description: result.error ?? "Something went wrong.",
+    });
   };
 
   return (
@@ -524,6 +548,19 @@ const Employees = ({
                                   isAdmin={isAdmin}
                                 />
                              </div>
+                          )}
+                          {isAdmin && needsEmailVerification && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="h-9 w-full justify-start rounded-lg px-2 text-popover-foreground hover:bg-accent hover:text-accent-foreground"
+                              onClick={() =>
+                                void handleResendVerificationEmail(record.id, record.name)
+                              }
+                            >
+                              <Mail className="mr-2 h-4 w-4" />
+                              Resend verification email
+                            </Button>
                           )}
                           {isAdmin && (
                             <Button
