@@ -15,7 +15,6 @@ export function ProfileChecker() {
         pathname.startsWith("/sign-in") ||
         pathname.startsWith("/sign-up") ||
         pathname.startsWith("/wrong-email") ||
-        pathname.startsWith("/complete-profile") ||
         pathname.startsWith("/verify-email-pending") ||
         pathname.startsWith("/account-deactivated") ||
         pathname.startsWith("/set-password") ||
@@ -56,9 +55,8 @@ export function ProfileChecker() {
 
         const user = sessionUser
 
-        if (!user.dateOfBirth) {
-          router.push("/complete-profile")
-        }
+        // Profile completion is surfaced as UI state on `/dawf` instead of forcing
+        // navigation to a dedicated completion route.
       } catch (error) {
         console.error("Error checking profile:", error)
       }

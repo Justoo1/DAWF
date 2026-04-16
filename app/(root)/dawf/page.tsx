@@ -39,6 +39,8 @@ const Dashboard = async () => {
     )
   }
 
+  const isProfileComplete = Boolean(userInfo.user.dateOfBirth)
+
   const latestEvent =
     upcomingEvents.success && upcomingEvents.events?.length
       ? upcomingEvents.events[0]
@@ -80,6 +82,23 @@ const Dashboard = async () => {
 
           {/* Column 2: Center Card & Branding */}
           <div className="flex-grow w-full max-w-[850px] space-y-12">
+            {!isProfileComplete ? (
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-6 py-5 max-w-2xl">
+                <p className="font-bold text-sm md:text-base text-amber-50">
+                  Profile incomplete
+                </p>
+                <p className="text-xs md:text-sm text-amber-100/80 mt-1">
+                  Please add your date of birth in Settings so we can activate your account fully.
+                </p>
+                <Link
+                  href="/settings"
+                  className="mt-2 inline-flex underline font-semibold text-amber-50"
+                >
+                  Complete in Settings
+                </Link>
+              </div>
+            ) : null}
+
             <Link href="/dashboard" className="block transform transition-transform hover:scale-[1.01] active:scale-[0.99]">
               <UserCard userData={userInfo.user} />
             </Link>

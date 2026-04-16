@@ -39,8 +39,8 @@ const CompleteProfileForm = () => {
         // Check if user already has birthday set
         const user = session.data.user as { dateOfBirth?: Date | null }
         if (user?.dateOfBirth) {
-          // Already has birthday, redirect to home
-          router.push("/")
+          // Already has birthday, redirect to dashboard landing
+          router.push("/dawf")
         } else {
           setLoading(false)
         }
@@ -66,7 +66,7 @@ const CompleteProfileForm = () => {
           title: "Success",
           description: "Profile completed successfully!",
         })
-        router.push("/")
+        router.push("/dawf")
         router.refresh()
       } else {
         toast({
