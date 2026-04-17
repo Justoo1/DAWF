@@ -389,6 +389,19 @@ export const ConferenceRoomBookingSchema = z.object({
 })
 export type ConferenceRoomBooking = z.infer<typeof ConferenceRoomBookingSchema>
 
+/** Build a local calendar Date from YYYY-MM-DD and HH:mm (or HH:mm:ss from time inputs). */
+export function combineLocalDateAndTime(dateStr: string, timeStr: string): Date | null {
+  if (!dateStr?.trim() || !timeStr?.trim()) return null
+  const [y, mo, d] = dateStr.split("-").map(Number)
+  if (!y || !mo || !d) return null
+  const mTime = /^(\d{1,2}):(\d{2})/.exec(timeStr.trim())
+  if (!mTime) return null
+  const hh = Number(mTime[1])
+  const mm = Number(mTime[2])
+  if (hh > 23 || mm > 59) return null
+  return new Date(y, mo - 1, d, hh, mm, 0, 0)
+}
+
 export const ConferenceRoomBookingCreateSchema = z.object({
   roomId: z.string().min(1, { message: "Select a conference room" }),
   title: z
@@ -396,17 +409,19 @@ export const ConferenceRoomBookingCreateSchema = z.object({
     .trim()
     .min(2, { message: "Meeting title is required" }),
   description: z.string().optional(),
-  start: z.string(),
-  end: z.string(),
-  attendeeCount: z.number().int().positive().optional()
-}).refine((data) => {
-  const start = new Date(data.start)
-  const end = new Date(data.end)
-  return end > start
-}, {
-  message: "End time must be after start time",
-  path: ["end"]
-})
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Date is required" }),
+  startTime: z.string().min(1, { message: "Start time is required" }),
+  endTime: z.string().min(1, { message: "End time is required" }),
+  attendeeCount: z.number().int().positive().optional(),
+}).refine(
+  (data) => {
+    const start = combineLocalDateAndTime(data.date, data.startTime)
+    const end = combineLocalDateAndTime(data.date, data.endTime)
+    if (!start || !end) return false
+    return end.getTime() > start.getTime()
+  },
+  { message: "End time must be after start time", path: ["endTime"] }
+)
 
 /** Admin list row: Prisma booking with `room` + `user` includes (see fetchAllBookings). */
 export type ConferenceRoomBookingValues = Omit<

@@ -26,16 +26,6 @@ export type DawfRecentBooking = {
   roomName: string;
 };
 
-function parseRoomAmenities(raw: string | null): string[] {
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? (parsed as string[]) : [];
-  } catch {
-    return [];
-  }
-}
-
 function stripBookHash() {
   if (typeof window === "undefined") return;
   const raw = window.location.hash.replace(/^#/, "");
@@ -157,40 +147,13 @@ export function DawfRoomBookingModal({
         <DialogHeader>
           <DialogTitle>Book a conference room</DialogTitle>
           <DialogDescription>
-            Choose a room, load availability for your day, pick a free slot (or set times manually),
-            then submit. Approvers will be notified.
+            Pick a room and date, load availability for that room, choose a free time slot, then
+            submit. Approvers will be notified.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-8">
           <DawfRoomBookingForm userId={userId} rooms={rooms} />
-
-          <div>
-            <h3 className="mb-3 text-sm font-bold text-foreground">Available rooms</h3>
-            <div className="max-h-48 space-y-2 overflow-y-auto rounded-lg border border-border p-3">
-              {rooms.map((room) => {
-                const amenities = parseRoomAmenities(room.amenities ?? null);
-                return (
-                  <div
-                    key={room.id}
-                    className="rounded-md border border-border/80 bg-muted/30 px-3 py-2 text-sm dark:bg-muted/15"
-                  >
-                    <p className="font-semibold text-foreground">{room.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Capacity: {room.capacity}
-                      {room.location ? ` · ${room.location}` : ""}
-                    </p>
-                    {amenities.length > 0 ? (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {amenities.slice(0, 4).join(", ")}
-                        {amenities.length > 4 ? "…" : ""}
-                      </p>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
 
           <div>
             <h3 className="mb-3 text-sm font-bold text-foreground">My recent bookings</h3>

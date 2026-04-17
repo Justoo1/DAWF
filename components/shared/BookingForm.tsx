@@ -1,6 +1,10 @@
 "use client"
 
-import { ConferenceRoomBookingCreateSchema } from '@/lib/validation'
+import {
+  ConferenceRoomBookingCreateSchema,
+  combineLocalDateAndTime,
+  ConferenceRoomValues,
+} from '@/lib/validation'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -30,7 +34,6 @@ import {
 } from '@/lib/actions/conferenceRoom.actions'
 import { Textarea } from '../ui/textarea'
 import { useMemo, useState } from 'react'
-import { ConferenceRoomValues } from '@/lib/validation'
 import { RequiredMark } from '@/components/ui/required-mark'
 import { cn } from '@/lib/utils'
 
@@ -47,21 +50,16 @@ function pad2(n: number) {
   return String(n).padStart(2, "0")
 }
 
-/** Value for `datetime-local` from a Date in local time */
-function toDatetimeLocalValue(d: Date) {
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`
+function todayDateInputValue() {
+  const t = new Date()
+  return `${t.getFullYear()}-${pad2(t.getMonth() + 1)}-${pad2(t.getDate())}`
 }
 
-/** Business-day slot window from the calendar day of a datetime-local value (local time). */
-function localDayBoundsFromStartInput(startValue: string) {
-  if (!startValue?.trim()) return null
-  const parsed = new Date(startValue)
-  if (Number.isNaN(parsed.getTime())) return null
-  const y = parsed.getFullYear()
-  const m = parsed.getMonth()
-  const d = parsed.getDate()
-  const start = new Date(y, m, d, BUSINESS_START_HOUR, 0, 0, 0)
-  const end = new Date(y, m, d, BUSINESS_END_HOUR, 0, 0, 0)
+function localDayBoundsFromDateOnly(dateStr: string) {
+  const [y, m, d] = dateStr.split("-").map(Number)
+  if (!y || !m || !d) return null
+  const start = new Date(y, m - 1, d, BUSINESS_START_HOUR, 0, 0, 0)
+  const end = new Date(y, m - 1, d, BUSINESS_END_HOUR, 0, 0, 0)
   return { start, end }
 }
 
@@ -70,38 +68,52 @@ function formatSlotLabel(start: Date, end: Date) {
   return `${start.toLocaleTimeString(undefined, opts)} – ${end.toLocaleTimeString(undefined, opts)}`
 }
 
+function timeFromDate(d: Date) {
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`
+}
+
 const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
   const { toast } = useToast()
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false)
   const [slotRows, setSlotRows] = useState<RoomDaySlotRow[] | null>(null)
+  /** Must choose a free slot from the grid after loading availability (typing times alone is not enough). */
+  const [hasPickedAvailableSlot, setHasPickedAvailableSlot] = useState(false)
+  /** `startIso` of the slot the user tapped (for highlighting). */
+  const [pickedSlotKey, setPickedSlotKey] = useState<string | null>(null)
 
-  const defaultStartEnd = useMemo(() => {
-    const start = new Date()
-    const end = new Date(Date.now() + 3600000)
+  const resetSlotSelection = () => {
+    setHasPickedAvailableSlot(false)
+    setPickedSlotKey(null)
+  }
+
+  const defaults = useMemo(() => {
     return {
-      start: toDatetimeLocalValue(start),
-      end: toDatetimeLocalValue(end),
+      date: todayDateInputValue(),
+      startTime: "09:00",
+      endTime: "10:00",
     }
   }, [])
 
   const form = useForm<z.infer<typeof ConferenceRoomBookingCreateSchema>>({
+    mode: "onChange",
     resolver: zodResolver(ConferenceRoomBookingCreateSchema),
     defaultValues: {
       roomId: "",
       title: "",
       description: "",
-      start: defaultStartEnd.start,
-      end: defaultStartEnd.end,
+      date: defaults.date,
+      startTime: defaults.startTime,
+      endTime: defaults.endTime,
       attendeeCount: undefined,
-    }
+    },
   })
 
   const roomIdWatch = form.watch("roomId")
-  const startWatch = form.watch("start")
+  const dateWatch = form.watch("date")
 
   const loadDaySlots = async () => {
     const roomId = form.getValues("roomId")
-    const startVal = form.getValues("start")
+    const dateVal = form.getValues("date")
     if (!roomId) {
       toast({
         variant: "destructive",
@@ -110,21 +122,21 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
       })
       return
     }
-    if (!startVal?.trim()) {
+    if (!dateVal?.trim()) {
       toast({
         variant: "destructive",
-        title: "Set start time",
-        description: "Choose a start date and time first — that date determines which day’s slots are loaded.",
+        title: "Select a date",
+        description: "Choose which day to load slots for.",
       })
       return
     }
 
-    const bounds = localDayBoundsFromStartInput(startVal)
+    const bounds = localDayBoundsFromDateOnly(dateVal)
     if (!bounds) {
       toast({
         variant: "destructive",
-        title: "Invalid start time",
-        description: "Please set a valid start date and time.",
+        title: "Invalid date",
+        description: "Please pick a valid date.",
       })
       return
     }
@@ -144,16 +156,21 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           description: result.error,
         })
         setSlotRows(null)
+        resetSlotSelection()
         return
       }
 
       if ("success" in result && result.success) {
         setSlotRows(result.slots)
+        resetSlotSelection()
         const free = result.slots.filter((s) => s.available).length
         const busy = result.slots.length - free
         toast({
           title: "Availability loaded",
-          description: `${free} free slot${free === 1 ? "" : "s"}, ${busy} busy — pick a free slot or adjust start/end below.`,
+          description:
+            free > 0
+              ? `${free} free slot${free === 1 ? "" : "s"}, ${busy} busy — tap a green slot to confirm your times.`
+              : `No free slots this day (${busy} busy). Try another date.`,
         })
       }
     } catch (error) {
@@ -164,6 +181,7 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
         description: message,
       })
       setSlotRows(null)
+      resetSlotSelection()
     } finally {
       setIsCheckingAvailability(false)
     }
@@ -171,23 +189,48 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
 
   const applySlot = (row: RoomDaySlotRow) => {
     if (!row.available) return
-    const start = new Date(row.startIso)
-    const end = new Date(row.endIso)
-    form.setValue("start", toDatetimeLocalValue(start))
-    form.setValue("end", toDatetimeLocalValue(end))
+    const s = new Date(row.startIso)
+    const e = new Date(row.endIso)
+    form.setValue(
+      "date",
+      `${s.getFullYear()}-${pad2(s.getMonth() + 1)}-${pad2(s.getDate())}`,
+      { shouldValidate: true }
+    )
+    form.setValue("startTime", timeFromDate(s), { shouldValidate: true })
+    form.setValue("endTime", timeFromDate(e), { shouldValidate: true })
+    setHasPickedAvailableSlot(true)
+    setPickedSlotKey(row.startIso)
     toast({
-      title: "Time selected",
-      description: formatSlotLabel(start, end),
+      title: "Slot selected",
+      description: formatSlotLabel(s, e),
     })
   }
 
+  const clearPickState = () => {
+    resetSlotSelection()
+  }
+
   async function onSubmit(values: z.infer<typeof ConferenceRoomBookingCreateSchema>) {
+    const start = combineLocalDateAndTime(values.date, values.startTime)
+    const end = combineLocalDateAndTime(values.date, values.endTime)
+    if (!start || !end) {
+      toast({
+        variant: "destructive",
+        title: "Invalid times",
+        description: "Could not read date and time. Please try again.",
+      })
+      return
+    }
+
     try {
       const result = await createBooking({
-        ...values,
+        roomId: values.roomId,
+        title: values.title,
+        description: values.description,
         userId,
-        start: new Date(values.start),
-        end: new Date(values.end),
+        start,
+        end,
+        attendeeCount: values.attendeeCount,
       })
 
       if (result.error) {
@@ -205,11 +248,13 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           roomId: "",
           title: "",
           description: "",
-          start: defaultStartEnd.start,
-          end: defaultStartEnd.end,
+          date: defaults.date,
+          startTime: defaults.startTime,
+          endTime: defaults.endTime,
           attendeeCount: undefined,
         })
         setSlotRows(null)
+        resetSlotSelection()
         onSuccess?.()
       }
     } catch (error) {
@@ -221,6 +266,9 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
       console.error(error)
     }
   }
+
+  const canSubmit =
+    form.formState.isValid && hasPickedAvailableSlot && !form.formState.isSubmitting
 
   return (
     <Form {...form}>
@@ -237,6 +285,7 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
                 onValueChange={(v) => {
                   field.onChange(v)
                   setSlotRows(null)
+                  resetSlotSelection()
                 }}
                 value={field.value}
               >
@@ -280,23 +329,51 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="date"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Date
+                <RequiredMark />
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="date"
+                  {...field}
+                  value={field.value}
+                  onChange={(e) => {
+                    field.onChange(e.target.value)
+                    setSlotRows(null)
+                    clearPickState()
+                  }}
+                  className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full min-w-0">
           <FormField
             control={form.control}
-            name="start"
+            name="startTime"
             render={({ field }) => (
               <FormItem className="min-w-0">
-                <FormLabel className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <FormLabel className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
                   Start time
+                  <RequiredMark />
                 </FormLabel>
                 <FormControl>
                   <Input
-                    type="datetime-local"
+                    type="time"
                     {...field}
                     value={field.value}
                     onChange={(e) => {
                       field.onChange(e.target.value)
-                      setSlotRows(null)
+                      clearPickState()
                     }}
                     className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full min-w-0"
                   />
@@ -308,18 +385,22 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
 
           <FormField
             control={form.control}
-            name="end"
+            name="endTime"
             render={({ field }) => (
               <FormItem className="min-w-0">
-                <FormLabel className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <FormLabel className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
                   End time
+                  <RequiredMark />
                 </FormLabel>
                 <FormControl>
                   <Input
-                    type="datetime-local"
+                    type="time"
                     {...field}
                     value={field.value}
-                    onChange={(e) => field.onChange(e.target.value)}
+                    onChange={(e) => {
+                      field.onChange(e.target.value)
+                      clearPickState()
+                    }}
                     className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full min-w-0"
                   />
                 </FormControl>
@@ -330,15 +411,16 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
         </div>
 
         <p className="text-xs text-muted-foreground -mt-2">
-          {BUSINESS_START_HOUR}:00–{BUSINESS_END_HOUR}:00 (30-minute slots). The start time’s calendar date
-          selects which day to load. If you change that date, click Check availability again.
+          Slots are for this room on the selected date ({BUSINESS_START_HOUR}:00–{BUSINESS_END_HOUR}
+          :00, 30 minutes each). Load availability, then tap a free slot — that confirms your booking
+          window. Changing date or times clears the selection until you pick a slot again.
         </p>
 
         <Button
           type="button"
           variant="outline"
           onClick={loadDaySlots}
-          disabled={isCheckingAvailability || !roomIdWatch || !startWatch}
+          disabled={isCheckingAvailability || !roomIdWatch || !dateWatch}
           className="w-full h-11 rounded-xl border-slate-200 dark:border-slate-800 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-sm"
         >
           {isCheckingAvailability ? "Loading…" : "Check availability"}
@@ -347,33 +429,52 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
         {slotRows && slotRows.length > 0 ? (
           <div className="space-y-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/30 p-4">
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-              Time slots
+              Time slots (this room)
             </p>
             <p className="text-xs text-muted-foreground">
-              Green = available. Red = already booked. Tap a free slot to set start and end times.
+              Green = free. Gray = booked. Your chosen slot is gray with a &quot;Selected&quot; label.
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-56 overflow-y-auto pr-1">
               {slotRows.map((row) => {
                 const s = new Date(row.startIso)
                 const e = new Date(row.endIso)
                 const label = formatSlotLabel(s, e)
+                const isBusy = !row.available
+                const isPicked =
+                  row.available && hasPickedAvailableSlot && pickedSlotKey === row.startIso
                 return (
                   <button
                     key={row.startIso}
                     type="button"
-                    disabled={!row.available}
-                    title={row.available ? "Use this time" : row.busyLabel || "Busy"}
+                    disabled={isBusy}
+                    title={
+                      isBusy
+                        ? row.busyLabel || "Booked"
+                        : isPicked
+                          ? "Selected time"
+                          : "Use this time"
+                    }
                     onClick={() => applySlot(row)}
                     className={cn(
                       "rounded-lg border px-2 py-2 text-center text-[11px] font-semibold leading-tight transition-colors",
-                      row.available
-                        ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-800 hover:bg-emerald-500/20 dark:text-emerald-200"
-                        : "cursor-not-allowed border-red-500/30 bg-red-500/10 text-red-900/80 dark:text-red-300/90 opacity-90"
+                      isBusy &&
+                        "cursor-not-allowed border-border/80 bg-muted/70 text-muted-foreground opacity-70 dark:bg-muted/40 dark:opacity-80",
+                      !isBusy &&
+                        !isPicked &&
+                        "border-emerald-500/50 bg-emerald-500/10 text-emerald-800 hover:bg-emerald-500/20 dark:text-emerald-200",
+                      !isBusy &&
+                        isPicked &&
+                        "border-slate-400/90 bg-slate-200/90 text-slate-800 opacity-95 dark:border-slate-500 dark:bg-slate-700/90 dark:text-slate-100"
                     )}
                   >
-                    <span className="block">{label}</span>
-                    {!row.available && row.busyLabel ? (
-                      <span className="mt-1 block text-[9px] font-normal opacity-90 line-clamp-2">
+                    <span className={cn("block", isBusy && "opacity-90")}>{label}</span>
+                    {isPicked ? (
+                      <span className="mt-1 block text-[9px] font-medium text-slate-600 dark:text-slate-300">
+                        Selected
+                      </span>
+                    ) : null}
+                    {isBusy && row.busyLabel ? (
+                      <span className="mt-1 block text-[9px] font-normal opacity-80 line-clamp-2">
                         {row.busyLabel}
                       </span>
                     ) : null}
@@ -432,8 +533,15 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
 
         <Button
           type="submit"
-          disabled={form.formState.isSubmitting}
-          className="w-full h-12 rounded-xl bg-[#10A074] hover:bg-[#0d8460] text-white font-bold uppercase tracking-widest text-[13px] transition-all shadow-md shadow-emerald-500/20 active:scale-[0.98]"
+          disabled={!canSubmit}
+          title={
+            !hasPickedAvailableSlot
+              ? "Choose a free slot from the grid after checking availability"
+              : !form.formState.isValid
+                ? "Fill required fields correctly"
+                : undefined
+          }
+          className="w-full h-12 rounded-xl bg-[#10A074] hover:bg-[#0d8460] text-white font-bold uppercase tracking-widest text-[13px] transition-all shadow-md shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-60"
         >
           {form.formState.isSubmitting ? "Booking…" : "Book conference room"}
         </Button>
