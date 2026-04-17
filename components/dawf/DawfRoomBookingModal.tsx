@@ -1,7 +1,6 @@
 "use client";
 
 import { DawfRoomBookingForm } from "@/components/dawf/DawfRoomBookingForm";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   Dialog,
@@ -9,13 +8,12 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { ConferenceRoomValues } from "@/lib/validation";
 import { formatDateTime } from "@/lib/utils";
 import { DoorOpen } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 const BOOK_HASH = "book-room";
 
@@ -40,10 +38,17 @@ function parseRoomAmenities(raw: string | null): string[] {
 
 function stripBookHash() {
   if (typeof window === "undefined") return;
-  if (window.location.hash === `#${BOOK_HASH}`) {
+  const raw = window.location.hash.replace(/^#/, "");
+  if (raw === BOOK_HASH || raw.startsWith(`${BOOK_HASH}/`)) {
     const path = window.location.pathname + window.location.search;
     window.history.replaceState(null, "", path);
   }
+}
+
+function hashOpensModal(): boolean {
+  if (typeof window === "undefined") return false;
+  const raw = window.location.hash.replace(/^#/, "");
+  return raw === BOOK_HASH || raw.startsWith(`${BOOK_HASH}/`);
 }
 
 export function DawfRoomBookingModal({
@@ -55,22 +60,29 @@ export function DawfRoomBookingModal({
   rooms: ConferenceRoomValues[];
   recentBookings: DawfRecentBooking[];
 }) {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    const syncFromHash = () => {
-      if (typeof window === "undefined") return;
-      if (window.location.hash === `#${BOOK_HASH}`) setOpen(true);
-    };
-    syncFromHash();
-    window.addEventListener("hashchange", syncFromHash);
-    return () => window.removeEventListener("hashchange", syncFromHash);
+  const syncOpenFromHash = useCallback(() => {
+    if (hashOpensModal()) setOpen(true);
   }, []);
+
+  useEffect(() => {
+    syncOpenFromHash();
+    const id = window.requestAnimationFrame(() => syncOpenFromHash());
+    window.addEventListener("hashchange", syncOpenFromHash);
+    return () => {
+      window.cancelAnimationFrame(id);
+      window.removeEventListener("hashchange", syncOpenFromHash);
+    };
+  }, [pathname, syncOpenFromHash]);
 
   const onOpenChange = (next: boolean) => {
     setOpen(next);
     if (!next) stripBookHash();
   };
+
+  const openModal = () => setOpen(true);
 
   const roomCount = rooms.length;
   const teaserBookings = recentBookings.slice(0, 2);
@@ -97,47 +109,46 @@ export function DawfRoomBookingModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <Card className="rounded-2xl border border-border bg-card p-6 shadow-lg">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="rounded-xl bg-emerald-500/10 p-3">
-              <DoorOpen className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">
-                Room booking
-              </h2>
-              <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                {roomCount} room{roomCount === 1 ? "" : "s"} available. Book a slot and check
-                availability before you submit.
-              </p>
-              {teaserBookings.length > 0 ? (
-                <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
-                  {teaserBookings.map((b) => (
-                    <li key={b.id}>
-                      <span className="font-medium text-foreground">{b.title}</span>
-                      {" · "}
-                      {b.roomName}
-                      {" · "}
-                      <span className="uppercase">{b.status}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
+      <Card
+        role="button"
+        tabIndex={0}
+        onClick={openModal}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openModal();
+          }
+        }}
+        className="cursor-pointer rounded-2xl border border-border bg-card p-6 shadow-lg outline-none transition-colors hover:border-emerald-500/40 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <div className="flex items-start gap-4">
+          <div className="rounded-xl bg-emerald-500/10 p-3">
+            <DoorOpen className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-            <DialogTrigger asChild>
-              <Button className="rounded-xl font-bold uppercase tracking-widest text-[11px]">
-                Book a room
-              </Button>
-            </DialogTrigger>
-            <Link
-              href="/conference-rooms"
-              className="text-center text-[11px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 sm:text-right"
-            >
-              Full page →
-            </Link>
+          <div>
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">
+              Room booking
+            </h2>
+            <p className="mt-1 max-w-md text-sm text-muted-foreground">
+              {roomCount} room{roomCount === 1 ? "" : "s"} available. Open to choose a room, check
+              free slots, and submit a request.
+            </p>
+            <p className="mt-2 text-xs font-medium text-muted-foreground">
+              Tip: use the sidebar shortcut or this card — same experience.
+            </p>
+            {teaserBookings.length > 0 ? (
+              <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
+                {teaserBookings.map((b) => (
+                  <li key={b.id}>
+                    <span className="font-medium text-foreground">{b.title}</span>
+                    {" · "}
+                    {b.roomName}
+                    {" · "}
+                    <span className="uppercase">{b.status}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
         </div>
       </Card>
@@ -146,11 +157,8 @@ export function DawfRoomBookingModal({
         <DialogHeader>
           <DialogTitle>Book a conference room</DialogTitle>
           <DialogDescription>
-            Choose a room, time, and optional details. Approvers will be notified. You can also use the{" "}
-            <Link href="/conference-rooms" className="font-medium text-primary underline">
-              full booking page
-            </Link>{" "}
-            for a larger layout.
+            Choose a room, load availability for your day, pick a free slot (or set times manually),
+            then submit. Approvers will be notified.
           </DialogDescription>
         </DialogHeader>
 
