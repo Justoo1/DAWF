@@ -216,7 +216,7 @@ const ConferenceRoomForm = ({ room, isEdit, onSuccess, onCancel }: ConferenceRoo
               Add
             </Button>
           </div>
-          <FormDescription>
+          <FormDescription className="text-slate-600 dark:text-slate-300">
             Press Enter or click Add to add an amenity
           </FormDescription>
           {amenities.length > 0 && (
@@ -224,13 +224,13 @@ const ConferenceRoomForm = ({ room, isEdit, onSuccess, onCancel }: ConferenceRoo
               {amenities.map((amenity, index) => (
                 <span
                   key={index}
-                  className="flex items-center gap-1 px-3 py-1 bg-gray-200 rounded-md text-sm"
+                  className="flex items-center gap-1 rounded-md border border-slate-300 bg-slate-100 px-3 py-1 text-sm font-medium text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                 >
                   {amenity}
                   <button
                     type="button"
                     onClick={() => removeAmenity(amenity)}
-                    className="hover:text-red-600"
+                    className="text-slate-500 transition-colors hover:text-red-600 dark:text-slate-300 dark:hover:text-red-400"
                   >
                     <X className="h-3 w-3" />
                   </button>
