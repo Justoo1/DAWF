@@ -14,6 +14,9 @@ const authEnvCandidate = getAuthEnvCandidate();
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
+  // Always load Prisma from node_modules so `prisma generate` is picked up (avoids stale Policy schema in .next).
+  serverExternalPackages: ["@prisma/client"],
+
   images: {
     remotePatterns: [
       {
