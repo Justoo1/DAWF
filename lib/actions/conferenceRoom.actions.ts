@@ -393,6 +393,7 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
     console.log(`Booking created and pending approval. Approvers have been notified.`);
 
     revalidatePath('/conference-rooms');
+    revalidatePath('/dawf');
     revalidatePath('/events');
     return { success: true, booking: createdBooking };
   } catch (error) {
@@ -432,6 +433,7 @@ export async function updateBooking(
     });
 
     revalidatePath('/conference-rooms');
+    revalidatePath('/dawf');
     revalidatePath('/events');
     return { success: true };
   } catch (error) {
@@ -448,6 +450,7 @@ export async function cancelBooking(bookingId: string) {
     });
 
     revalidatePath('/conference-rooms');
+    revalidatePath('/dawf');
     revalidatePath('/events');
     return { success: true };
   } catch (error) {
@@ -463,6 +466,7 @@ export async function deleteBooking(bookingId: string) {
     });
 
     revalidatePath('/conference-rooms');
+    revalidatePath('/dawf');
     revalidatePath('/events');
     return { success: true };
   } catch (error) {
@@ -609,6 +613,7 @@ export async function approveBooking(bookingId: string, approverId: string) {
     }
 
     revalidatePath('/conference-rooms');
+    revalidatePath('/dawf');
     revalidatePath('/events');
     revalidatePath('/approvals');
     return { success: true };
@@ -713,6 +718,7 @@ export async function rejectBooking(bookingId: string, approverId: string, rejec
     }
 
     revalidatePath('/conference-rooms');
+    revalidatePath('/dawf');
     revalidatePath('/events');
     revalidatePath('/approvals');
     return { success: true };

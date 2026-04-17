@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Card } from '@/components/ui/card'
-import { UtensilsCrossed, FileText, BookOpen, Calendar } from 'lucide-react'
+import { UtensilsCrossed, FileText, BookOpen, Calendar, DoorOpen } from 'lucide-react'
 import Link from 'next/link'
 
 const actions = [
@@ -19,6 +19,13 @@ const actions = [
     href: "/leave", 
     color: "text-orange-500",
     bgColor: "bg-orange-500/10",
+  },
+  {
+    icon: DoorOpen,
+    label: "ROOM BOOKING",
+    href: "/dawf#room-booking",
+    color: "text-emerald-500",
+    bgColor: "bg-emerald-500/10",
   },
   {
     icon: BookOpen,
