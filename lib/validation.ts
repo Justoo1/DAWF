@@ -390,12 +390,14 @@ export const ConferenceRoomBookingSchema = z.object({
 export type ConferenceRoomBooking = z.infer<typeof ConferenceRoomBookingSchema>
 
 export const ConferenceRoomBookingCreateSchema = z.object({
-  roomId: z.string(),
-  title: z.string().min(2, { message: "Title must be at least 2 characters" }),
+  roomId: z.string().min(1, { message: "Select a conference room" }),
+  title: z
+    .string()
+    .trim()
+    .min(2, { message: "Meeting title is required" }),
   description: z.string().optional(),
   start: z.string(),
   end: z.string(),
-  purpose: z.string().optional(),
   attendeeCount: z.number().int().positive().optional()
 }).refine((data) => {
   const start = new Date(data.start)

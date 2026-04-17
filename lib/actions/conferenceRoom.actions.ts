@@ -279,6 +279,103 @@ export async function checkRoomAvailability(
   }
 }
 
+const DAY_SLOT_MINUTES = 30;
+
+export type RoomDaySlotRow = {
+  startIso: string;
+  endIso: string;
+  available: boolean;
+  busyLabel?: string;
+};
+
+export type RoomDayBusyBooking = {
+  start: Date;
+  end: Date;
+  title: string;
+  status: string;
+};
+
+/**
+ * Half-hour slots between rangeStart and rangeEnd (inclusive of start, exclusive of end at last slot).
+ * rangeStart/rangeEnd should be sent from the client using the viewer's local calendar day
+ * (e.g. 08:00–18:00 local as ISO strings) so slot boundaries match their timezone.
+ */
+export async function fetchConferenceRoomDaySlots(
+  roomId: string,
+  rangeStartIso: string,
+  rangeEndIso: string
+) {
+  try {
+    const rangeStart = new Date(rangeStartIso);
+    const rangeEnd = new Date(rangeEndIso);
+    if (Number.isNaN(rangeStart.getTime()) || Number.isNaN(rangeEnd.getTime())) {
+      return { error: "Invalid date range" as const };
+    }
+    if (rangeEnd <= rangeStart) {
+      return { error: "End of day must be after start" as const };
+    }
+
+    const maxSpanMs = 20 * 60 * 60 * 1000; // 20h safety cap
+    if (rangeEnd.getTime() - rangeStart.getTime() > maxSpanMs) {
+      return { error: "Date range is too long" as const };
+    }
+
+    const room = await prisma.conferenceRoom.findFirst({
+      where: { id: roomId, isActive: true },
+      select: { id: true },
+    });
+    if (!room) {
+      return { error: "Room not found" as const };
+    }
+
+    const bookings = await prisma.conferenceRoomBooking.findMany({
+      where: {
+        roomId,
+        status: { in: ["APPROVED", "PENDING"] },
+        start: { lt: rangeEnd },
+        end: { gt: rangeStart },
+      },
+      select: { start: true, end: true, title: true, status: true },
+      orderBy: { start: "asc" },
+    });
+
+    const slotMs = DAY_SLOT_MINUTES * 60 * 1000;
+    const slots: RoomDaySlotRow[] = [];
+    for (let t = rangeStart.getTime(); t + slotMs <= rangeEnd.getTime(); t += slotMs) {
+      const slotStart = new Date(t);
+      const slotEnd = new Date(t + slotMs);
+      const conflict = bookings.find(
+        (b) => slotStart < b.end && slotEnd > b.start
+      );
+      slots.push({
+        startIso: slotStart.toISOString(),
+        endIso: slotEnd.toISOString(),
+        available: !conflict,
+        busyLabel: conflict
+          ? `${conflict.title} (${conflict.status})`
+          : undefined,
+      });
+    }
+
+    const busyBookings: RoomDayBusyBooking[] = bookings.map((b) => ({
+      start: b.start,
+      end: b.end,
+      title: b.title,
+      status: b.status,
+    }));
+
+    return {
+      success: true as const,
+      slots,
+      busyBookings,
+      slotMinutes: DAY_SLOT_MINUTES,
+    };
+  } catch (error) {
+    console.error("Day slots fetch error:", error);
+    return { error: "Failed to load availability" as const };
+  }
+}
+
 export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 'status'> & { userId: string }) {
   try {
     // Check room availability
