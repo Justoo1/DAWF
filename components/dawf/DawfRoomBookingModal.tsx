@@ -1,0 +1,216 @@
+"use client";
+
+import { DawfRoomBookingForm } from "@/components/dawf/DawfRoomBookingForm";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ConferenceRoomValues } from "@/lib/validation";
+import { formatDateTime } from "@/lib/utils";
+import { DoorOpen } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+const BOOK_HASH = "book-room";
+
+export type DawfRecentBooking = {
+  id: string;
+  title: string;
+  status: string;
+  startIso: string;
+  endIso: string;
+  roomName: string;
+};
+
+function parseRoomAmenities(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed) ? (parsed as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function stripBookHash() {
+  if (typeof window === "undefined") return;
+  if (window.location.hash === `#${BOOK_HASH}`) {
+    const path = window.location.pathname + window.location.search;
+    window.history.replaceState(null, "", path);
+  }
+}
+
+export function DawfRoomBookingModal({
+  userId,
+  rooms,
+  recentBookings,
+}: {
+  userId: string;
+  rooms: ConferenceRoomValues[];
+  recentBookings: DawfRecentBooking[];
+}) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const syncFromHash = () => {
+      if (typeof window === "undefined") return;
+      if (window.location.hash === `#${BOOK_HASH}`) setOpen(true);
+    };
+    syncFromHash();
+    window.addEventListener("hashchange", syncFromHash);
+    return () => window.removeEventListener("hashchange", syncFromHash);
+  }, []);
+
+  const onOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next) stripBookHash();
+  };
+
+  const roomCount = rooms.length;
+  const teaserBookings = recentBookings.slice(0, 2);
+
+  if (roomCount === 0) {
+    return (
+      <Card className="rounded-2xl border border-border bg-card p-6 shadow-lg">
+        <div className="flex items-start gap-4">
+          <div className="rounded-xl bg-muted p-3">
+            <DoorOpen className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <div>
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">
+              Room booking
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              No active conference rooms are set up yet. Please contact an administrator.
+            </p>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <Card className="rounded-2xl border border-border bg-card p-6 shadow-lg">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="rounded-xl bg-emerald-500/10 p-3">
+              <DoorOpen className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">
+                Room booking
+              </h2>
+              <p className="mt-1 max-w-md text-sm text-muted-foreground">
+                {roomCount} room{roomCount === 1 ? "" : "s"} available. Book a slot and check
+                availability before you submit.
+              </p>
+              {teaserBookings.length > 0 ? (
+                <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
+                  {teaserBookings.map((b) => (
+                    <li key={b.id}>
+                      <span className="font-medium text-foreground">{b.title}</span>
+                      {" · "}
+                      {b.roomName}
+                      {" · "}
+                      <span className="uppercase">{b.status}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+            <DialogTrigger asChild>
+              <Button className="rounded-xl font-bold uppercase tracking-widest text-[11px]">
+                Book a room
+              </Button>
+            </DialogTrigger>
+            <Link
+              href="/conference-rooms"
+              className="text-center text-[11px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 sm:text-right"
+            >
+              Full page →
+            </Link>
+          </div>
+        </div>
+      </Card>
+
+      <DialogContent className="max-h-[min(90vh,900px)] w-full max-w-3xl translate-y-[-48%] overflow-y-auto sm:translate-y-[-50%]">
+        <DialogHeader>
+          <DialogTitle>Book a conference room</DialogTitle>
+          <DialogDescription>
+            Choose a room, time, and optional details. Approvers will be notified. You can also use the{" "}
+            <Link href="/conference-rooms" className="font-medium text-primary underline">
+              full booking page
+            </Link>{" "}
+            for a larger layout.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-8">
+          <DawfRoomBookingForm userId={userId} rooms={rooms} />
+
+          <div>
+            <h3 className="mb-3 text-sm font-bold text-foreground">Available rooms</h3>
+            <div className="max-h-48 space-y-2 overflow-y-auto rounded-lg border border-border p-3">
+              {rooms.map((room) => {
+                const amenities = parseRoomAmenities(room.amenities ?? null);
+                return (
+                  <div
+                    key={room.id}
+                    className="rounded-md border border-border/80 bg-muted/30 px-3 py-2 text-sm dark:bg-muted/15"
+                  >
+                    <p className="font-semibold text-foreground">{room.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Capacity: {room.capacity}
+                      {room.location ? ` · ${room.location}` : ""}
+                    </p>
+                    {amenities.length > 0 ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {amenities.slice(0, 4).join(", ")}
+                        {amenities.length > 4 ? "…" : ""}
+                      </p>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="mb-3 text-sm font-bold text-foreground">My recent bookings</h3>
+            {recentBookings.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No bookings yet.</p>
+            ) : (
+              <ul className="max-h-40 space-y-2 overflow-y-auto text-sm">
+                {recentBookings.map((booking) => (
+                  <li
+                    key={booking.id}
+                    className="rounded-md border border-border bg-muted/20 px-3 py-2 dark:bg-muted/10"
+                  >
+                    <p className="font-medium text-foreground">{booking.title}</p>
+                    <p className="text-muted-foreground">{booking.roomName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDateTime(new Date(booking.startIso)).dateTime} —{" "}
+                      {formatDateTime(new Date(booking.endIso)).dateTime}
+                    </p>
+                    <span className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {booking.status}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -8,9 +8,9 @@ import {
   fetchUserBookings,
 } from '@/lib/actions/conferenceRoom.actions'
 import { fetchUserWithContributions } from '@/lib/actions/users.action'
-import { DawfRoomBookingForm } from '@/components/dawf/DawfRoomBookingForm'
+import { DawfRoomBookingModal } from '@/components/dawf/DawfRoomBookingModal'
 import { ConferenceRoomValues } from '@/lib/validation'
-import { formatDateParts, formatDateTime } from '@/lib/utils'
+import { formatDateParts } from '@/lib/utils'
 import { auth } from "@/lib/auth"
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
@@ -55,20 +55,17 @@ const Dashboard = async () => {
       ? (roomsData.rooms as ConferenceRoomValues[])
       : []
 
-  const recentBookings =
+  const recentBookingsPayload =
     bookingsData.success && bookingsData.bookings
-      ? bookingsData.bookings.slice(0, 5)
+      ? bookingsData.bookings.slice(0, 5).map((b) => ({
+          id: b.id,
+          title: b.title,
+          status: b.status,
+          startIso: b.start.toISOString(),
+          endIso: b.end.toISOString(),
+          roomName: b.room.name,
+        }))
       : []
-
-  function parseRoomAmenities(raw: string | null): string[] {
-    if (!raw) return []
-    try {
-      const parsed = JSON.parse(raw) as unknown
-      return Array.isArray(parsed) ? (parsed as string[]) : []
-    } catch {
-      return []
-    }
-  }
 
   const isProfileComplete = Boolean(userInfo.user.dateOfBirth)
 
@@ -213,117 +210,13 @@ const Dashboard = async () => {
           </div>
         </div>
 
-        {/* Room booking */}
-        <section
-          id="room-booking"
-          className="mt-20 md:mt-24 w-full scroll-mt-24 space-y-6 border-t border-border/60 pt-16"
-        >
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">
-                Room booking
-              </h2>
-              <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-                Reserve a conference room when it is available. Use &quot;Check availability&quot;
-                before submitting, or open the full booking page for your full list of requests.
-              </p>
-            </div>
-            <Link
-              href="/conference-rooms"
-              className="text-xs font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-500 dark:text-emerald-400"
-            >
-              Full booking page →
-            </Link>
-          </div>
-
-          {rooms.length === 0 ? (
-            <Card className="rounded-2xl border border-border bg-card p-8 text-center shadow-lg">
-              <p className="text-sm font-medium text-muted-foreground">
-                No active conference rooms are set up yet. Please contact an administrator.
-              </p>
-            </Card>
-          ) : (
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card className="rounded-2xl border border-border bg-card p-6 shadow-lg">
-                <h3 className="mb-4 text-base font-bold text-foreground">Book a room</h3>
-                <DawfRoomBookingForm userId={userInfo.user.id} rooms={rooms} />
-              </Card>
-
-              <div className="space-y-6">
-                <Card className="rounded-2xl border border-border bg-card p-6 shadow-lg">
-                  <h3 className="mb-4 text-base font-bold text-foreground">Available rooms</h3>
-                  <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
-                    {rooms.map((room) => {
-                      const amenities = parseRoomAmenities(room.amenities ?? null)
-                      return (
-                        <div
-                          key={room.id}
-                          className="rounded-xl border border-border bg-muted/40 p-4 dark:bg-muted/20"
-                        >
-                          <h4 className="font-semibold text-foreground">{room.name}</h4>
-                          <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-                            <p>Capacity: {room.capacity}</p>
-                            {room.location ? <p>Location: {room.location}</p> : null}
-                            {room.description ? (
-                              <p className="text-muted-foreground/90">{room.description}</p>
-                            ) : null}
-                            {amenities.length > 0 ? (
-                              <div className="flex flex-wrap gap-2 pt-2">
-                                {amenities.map((a) => (
-                                  <span
-                                    key={a}
-                                    className="rounded-md border border-border bg-background px-2 py-0.5 text-xs text-foreground"
-                                  >
-                                    {a}
-                                  </span>
-                                ))}
-                              </div>
-                            ) : null}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </Card>
-
-                <Card className="rounded-2xl border border-border bg-card p-6 shadow-lg">
-                  <h3 className="mb-4 text-base font-bold text-foreground">My recent bookings</h3>
-                  {recentBookings.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No bookings yet.</p>
-                  ) : (
-                    <ul className="space-y-3">
-                      {recentBookings.map((booking) => (
-                        <li
-                          key={booking.id}
-                          className="rounded-xl border border-border bg-muted/30 p-3 text-sm dark:bg-muted/15"
-                        >
-                          <p className="font-medium text-foreground">{booking.title}</p>
-                          <p className="text-muted-foreground">{booking.room.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatDateTime(booking.start).dateTime} —{" "}
-                            {formatDateTime(booking.end).dateTime}
-                          </p>
-                          <span
-                            className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                              booking.status === "APPROVED"
-                                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-                                : booking.status === "PENDING"
-                                  ? "bg-amber-500/15 text-amber-800 dark:text-amber-400"
-                                  : booking.status === "REJECTED"
-                                    ? "bg-destructive/15 text-destructive"
-                                    : "bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            {booking.status}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </Card>
-              </div>
-            </div>
-          )}
+        {/* Room booking — opens modal; quick action uses #book-room */}
+        <section className="mt-20 md:mt-24 w-full border-t border-border/60 pt-16">
+          <DawfRoomBookingModal
+            userId={userInfo.user.id}
+            rooms={rooms}
+            recentBookings={recentBookingsPayload}
+          />
         </section>
 
         {/* Footer info */}
