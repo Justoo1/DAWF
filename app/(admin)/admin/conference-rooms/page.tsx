@@ -46,6 +46,11 @@ const ConferenceRoomsAdminPage = async () => {
       ).length || 0
     : 0
 
+  const canReviewBookings =
+    userData.user.role === "ADMIN" ||
+    userData.user.role === "MANAGER" ||
+    userData.user.canApproveBookings
+
   return (
     <main className="admin-main">
       <AdminPageContent>
@@ -56,6 +61,7 @@ const ConferenceRoomsAdminPage = async () => {
           totalBookings={bookingsData.totalBookings || 0}
           upcomingBookingsCount={upcomingBookingsCount}
           userId={userData.user.id}
+          canReviewBookings={canReviewBookings}
         />
       </AdminPageContent>
     </main>

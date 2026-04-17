@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils'
 import { ConferenceRoomValues, ConferenceRoomBookingValues } from '@/lib/validation'
 import { ConferenceRoomModal } from './ConferenceRoomModal'
 import { AdminBookingModal } from './AdminBookingModal'
+import { ConferenceBookingReviewModal } from './ConferenceBookingReviewModal'
 import { Plus, CalendarPlus, Pencil } from 'lucide-react'
 
 interface ConferenceRoomsClientProps {
@@ -27,6 +28,8 @@ interface ConferenceRoomsClientProps {
   totalBookings: number
   upcomingBookingsCount: number
   userId: string
+  /** Can approve / decline pending bookings (admin, manager, or canApproveBookings). */
+  canReviewBookings: boolean
 }
 
 export default function ConferenceRoomsClient({
@@ -35,12 +38,14 @@ export default function ConferenceRoomsClient({
   totalRooms,
   totalBookings,
   upcomingBookingsCount,
-  userId
+  userId,
+  canReviewBookings,
 }: ConferenceRoomsClientProps) {
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false)
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
   const [selectedRoom, setSelectedRoom] = useState<ConferenceRoomValues | undefined>(undefined)
   const [isEdit, setIsEdit] = useState(false)
+  const [reviewBooking, setReviewBooking] = useState<ConferenceRoomBookingValues | null>(null)
 
   const handleAddRoom = () => {
     setSelectedRoom(undefined)
@@ -207,6 +212,12 @@ export default function ConferenceRoomsClient({
 
       <AdminTableCard title="Recent Bookings">
         {bookings.length > 0 ? (
+          <p className="mb-3 text-xs font-medium text-muted-foreground">
+            Click a row to view details
+            {canReviewBookings ? " — pending requests can be approved or declined." : "."}
+          </p>
+        ) : null}
+        {bookings.length > 0 ? (
           <table className={adminTableClassName()}>
             <thead>
               <tr className={adminTheadRowClass}>
@@ -218,7 +229,7 @@ export default function ConferenceRoomsClient({
               </tr>
             </thead>
             <tbody>
-              {bookings.slice(0, 10).map((booking) => {
+              {bookings.map((booking) => {
                 const statusLabel = booking.status === "REJECTED" ? "DECLINED" : booking.status
                 const statusVariant: "default" | "secondary" | "destructive" | "outline" =
                   booking.status === "APPROVED"
@@ -229,7 +240,19 @@ export default function ConferenceRoomsClient({
                         ? "destructive"
                         : "outline"
                 return (
-                  <tr key={booking.id} className={adminTbodyRowClass}>
+                  <tr
+                    key={booking.id}
+                    role="button"
+                    tabIndex={0}
+                    className={cn(adminTbodyRowClass, "cursor-pointer hover:bg-muted/40")}
+                    onClick={() => setReviewBooking(booking)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault()
+                        setReviewBooking(booking)
+                      }
+                    }}
+                  >
                     <td className={adminTdClass}>
                       <div className="min-w-0">
                         <p className="truncate font-bold text-slate-800 dark:text-slate-200">{booking.title}</p>
@@ -299,6 +322,16 @@ export default function ConferenceRoomsClient({
         onClose={() => setIsBookingModalOpen(false)}
         userId={userId}
         rooms={rooms}
+      />
+
+      <ConferenceBookingReviewModal
+        booking={reviewBooking}
+        open={reviewBooking !== null}
+        onOpenChange={(open) => {
+          if (!open) setReviewBooking(null)
+        }}
+        userId={userId}
+        canReviewBookings={canReviewBookings}
       />
     </div>
   )

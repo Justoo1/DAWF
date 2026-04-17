@@ -492,6 +492,7 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
     revalidatePath('/conference-rooms');
     revalidatePath('/dawf');
     revalidatePath('/events');
+    revalidatePath('/admin/conference-rooms');
     return { success: true, booking: createdBooking };
   } catch (error) {
     console.error('Booking creation error:', error);
@@ -604,11 +605,20 @@ export async function approveBooking(bookingId: string, approverId: string) {
     // Get approver details
     const approver = await prisma.user.findUnique({
       where: { id: approverId },
-      select: { name: true, canApproveBookings: true }
+      select: { name: true, canApproveBookings: true, role: true },
     });
 
-    if (!approver || !approver.canApproveBookings) {
-      return { error: 'Only users with booking approval permission can approve bookings' };
+    const canDecide =
+      !!approver &&
+      (approver.canApproveBookings ||
+        approver.role === "ADMIN" ||
+        approver.role === "MANAGER");
+
+    if (!approver || !canDecide) {
+      return {
+        error:
+          "Only admins, managers, or users with booking approval permission can approve bookings",
+      };
     }
 
     // Update booking status to APPROVED
@@ -713,6 +723,7 @@ export async function approveBooking(bookingId: string, approverId: string) {
     revalidatePath('/dawf');
     revalidatePath('/events');
     revalidatePath('/approvals');
+    revalidatePath('/admin/conference-rooms');
     return { success: true };
   } catch (error) {
     console.error('Booking approval error:', error);
@@ -748,11 +759,20 @@ export async function rejectBooking(bookingId: string, approverId: string, rejec
     // Get approver details
     const approver = await prisma.user.findUnique({
       where: { id: approverId },
-      select: { name: true, canApproveBookings: true }
+      select: { name: true, canApproveBookings: true, role: true },
     });
 
-    if (!approver || !approver.canApproveBookings) {
-      return { error: 'Only users with booking approval permission can reject bookings' };
+    const canDecide =
+      !!approver &&
+      (approver.canApproveBookings ||
+        approver.role === "ADMIN" ||
+        approver.role === "MANAGER");
+
+    if (!approver || !canDecide) {
+      return {
+        error:
+          "Only admins, managers, or users with booking approval permission can decline bookings",
+      };
     }
 
     // Update booking status to REJECTED
@@ -818,6 +838,7 @@ export async function rejectBooking(bookingId: string, approverId: string, rejec
     revalidatePath('/dawf');
     revalidatePath('/events');
     revalidatePath('/approvals');
+    revalidatePath('/admin/conference-rooms');
     return { success: true };
   } catch (error) {
     console.error('Booking rejection error:', error);
