@@ -44,25 +44,15 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-        ],
-      },
-    ];
+    const headers: { key: string; value: string }[] = [
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "X-XSS-Protection", value: "1; mode=block" },
+    ]
+    // Prevent clickjacking in production only. Omit in dev so localhost can load in iframes (e.g. IDE browser preview).
+    if (process.env.NODE_ENV === "production") {
+      headers.unshift({ key: "X-Frame-Options", value: "DENY" })
+    }
+    return [{ source: "/(.*)", headers }]
   },
 };
 
