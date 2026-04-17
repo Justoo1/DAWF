@@ -37,5 +37,7 @@ export {
   conferenceRoomBookingTemplate,
   monthlySummaryTemplate,
   roomBookingApprovedTemplate,
-  roomBookingRejectedTemplate
+  roomBookingRejectedTemplate,
+  leaveRequestApprovedTemplate,
+  leaveRequestRejectedTemplate,
 } from './email-templates';

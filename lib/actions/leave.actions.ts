@@ -7,6 +7,8 @@ import { createNotification } from "./notification.actions";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { countLeaveWorkingDays } from "@/lib/leave-working-days";
+import { runAfterResponse } from "@/lib/background-work";
+import { deliverLeaveDecisionNotifications } from "@/lib/jobs/leave-decision-notifications";
 
 async function workingDaysForLeaveRange(startDate: Date, endDate: Date) {
   const holidays = await prisma.publicHoliday.findMany({
@@ -452,7 +454,7 @@ export async function approveLeaveRequest(requestId: string, approverId: string)
     const [request, approver] = await Promise.all([
       prisma.leaveRequest.findUnique({ 
         where: { id: requestId },
-        include: { user: true }
+        include: { user: true, policy: true }
       }),
       prisma.user.findUnique({ where: { id: approverId } })
     ]);
@@ -488,6 +490,19 @@ export async function approveLeaveRequest(requestId: string, approverId: string)
       linkUrl: "/leave"
     });
 
+    runAfterResponse(() =>
+      deliverLeaveDecisionNotifications({
+        decision: "approved",
+        employeeEmail: request.user.email,
+        employeeName: request.user.name,
+        policyName: request.policy.name,
+        workingDays: request.days,
+        startDateIso: request.startDate.toISOString(),
+        endDateIso: request.endDate.toISOString(),
+        approverName: approver.name,
+      })
+    );
+
     revalidatePath("/admin/leave-management/requests");
     revalidatePath("/admin/leave-management/leaves");
     revalidatePath("/leave");
@@ -503,7 +518,7 @@ export async function rejectLeaveRequest(requestId: string, approverId: string, 
     const [request, approver] = await Promise.all([
       prisma.leaveRequest.findUnique({ 
         where: { id: requestId },
-        include: { user: true }
+        include: { user: true, policy: true }
       }),
       prisma.user.findUnique({ where: { id: approverId } })
     ]);
@@ -521,6 +536,8 @@ export async function rejectLeaveRequest(requestId: string, approverId: string, 
       return { success: false, error: "Unauthorized" };
     }
 
+    const declineReasonText = reason?.trim() || "No reason provided.";
+
     await prisma.leaveRequest.update({
       where: { id: requestId },
       data: {
@@ -535,9 +552,23 @@ export async function rejectLeaveRequest(requestId: string, approverId: string, 
       userId: request.userId,
       type: NotificationType.LEAVE_REQUEST_REJECTED,
       title: "Leave Request Declined",
-      message: `Your leave request has been declined. Reason: ${reason || "No reason provided."}`,
+      message: `Your leave request has been declined. Reason: ${declineReasonText}`,
       linkUrl: "/leave"
     });
+
+    runAfterResponse(() =>
+      deliverLeaveDecisionNotifications({
+        decision: "rejected",
+        employeeEmail: request.user.email,
+        employeeName: request.user.name,
+        policyName: request.policy.name,
+        workingDays: request.days,
+        startDateIso: request.startDate.toISOString(),
+        endDateIso: request.endDate.toISOString(),
+        approverName: approver.name,
+        rejectReason: declineReasonText,
+      })
+    );
 
     revalidatePath("/admin/leave-management/requests");
     revalidatePath("/admin/leave-management/leaves");

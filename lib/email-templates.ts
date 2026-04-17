@@ -540,6 +540,161 @@ export function roomBookingRejectedTemplate(
   `;
 }
 
+function escapeHtmlForEmail(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+export function leaveRequestApprovedTemplate(
+  employeeName: string,
+  policyName: string,
+  startDateLabel: string,
+  endDateLabel: string,
+  workingDays: number,
+  approverName: string,
+  leavePageUrl: string
+) {
+  const safeName = escapeHtmlForEmail(employeeName);
+  const safePolicy = escapeHtmlForEmail(policyName);
+  const safeApprover = escapeHtmlForEmail(approverName);
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #10A074 0%, #2F7A67 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">Leave request approved</h1>
+        </div>
+
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <p style="font-size: 18px; margin-bottom: 20px;">Dear ${safeName},</p>
+
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            Your leave request has been <strong style="color: #10A074;">approved</strong>.
+          </p>
+
+          <div style="background: #d1fae5; border-left: 4px solid #10A074; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+            <div style="margin-bottom: 8px;">
+              <p style="margin: 3px 0; color: #047857; font-size: 14px;">Leave type</p>
+              <p style="margin: 0; font-size: 16px; color: #065f46; font-weight: bold;">${safePolicy}</p>
+            </div>
+            <div style="margin-bottom: 8px;">
+              <p style="margin: 3px 0; color: #047857; font-size: 14px;">Dates</p>
+              <p style="margin: 0; font-size: 16px; color: #065f46;">${escapeHtmlForEmail(startDateLabel)} → ${escapeHtmlForEmail(endDateLabel)}</p>
+            </div>
+            <div style="margin-bottom: 8px;">
+              <p style="margin: 3px 0; color: #047857; font-size: 14px;">Working days</p>
+              <p style="margin: 0; font-size: 16px; color: #065f46; font-weight: bold;">${workingDays}</p>
+            </div>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #10A074;">
+              <p style="margin: 0; font-size: 14px; color: #047857;">Approved by: <strong>${safeApprover}</strong></p>
+            </div>
+          </div>
+
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            You can review this and your other requests anytime in DAWF.
+          </p>
+
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="${leavePageUrl}" style="display: inline-block; background: linear-gradient(135deg, #10A074 0%, #2F7A67 100%); color: white; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-size: 15px; font-weight: bold;">
+              Open leave requests
+            </a>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
+            <p style="font-size: 14px; color: #666; margin: 0;">
+              Best regards,<br>
+              <strong>DEVOPS AFRICA Welfare Fund</strong>
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
+export function leaveRequestRejectedTemplate(
+  employeeName: string,
+  policyName: string,
+  startDateLabel: string,
+  endDateLabel: string,
+  workingDays: number,
+  approverName: string,
+  reason: string,
+  leavePageUrl: string
+) {
+  const safeName = escapeHtmlForEmail(employeeName);
+  const safePolicy = escapeHtmlForEmail(policyName);
+  const safeApprover = escapeHtmlForEmail(approverName);
+  const safeReason = escapeHtmlForEmail(reason || "No reason provided.");
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">Leave request declined</h1>
+        </div>
+
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <p style="font-size: 18px; margin-bottom: 20px;">Dear ${safeName},</p>
+
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            Your leave request has been <strong style="color: #dc2626;">declined</strong>.
+          </p>
+
+          <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+            <div style="margin-bottom: 8px;">
+              <p style="margin: 3px 0; color: #991b1b; font-size: 14px;">Leave type</p>
+              <p style="margin: 0; font-size: 16px; color: #7f1d1d; font-weight: bold;">${safePolicy}</p>
+            </div>
+            <div style="margin-bottom: 8px;">
+              <p style="margin: 3px 0; color: #991b1b; font-size: 14px;">Dates</p>
+              <p style="margin: 0; font-size: 16px; color: #7f1d1d;">${escapeHtmlForEmail(startDateLabel)} → ${escapeHtmlForEmail(endDateLabel)}</p>
+            </div>
+            <div style="margin-bottom: 8px;">
+              <p style="margin: 3px 0; color: #991b1b; font-size: 14px;">Working days requested</p>
+              <p style="margin: 0; font-size: 16px; color: #7f1d1d; font-weight: bold;">${workingDays}</p>
+            </div>
+          </div>
+
+          <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+            <p style="margin: 5px 0; color: #78350f; font-size: 14px; font-weight: bold;">Reason</p>
+            <p style="margin: 8px 0 0 0; font-size: 15px; color: #92400e; line-height: 1.6;">${safeReason}</p>
+          </div>
+
+          <p style="font-size: 14px; color: #666; margin-bottom: 8px;">
+            Declined by: <strong>${safeApprover}</strong>
+          </p>
+
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="${leavePageUrl}" style="display: inline-block; background: #1f2937; color: white; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-size: 15px; font-weight: bold;">
+              Open leave requests
+            </a>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
+            <p style="font-size: 14px; color: #666; margin: 0;">
+              Best regards,<br>
+              <strong>DEVOPS AFRICA Welfare Fund</strong>
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
 export function roomBookingPendingApprovalTemplate(
   roomName: string,
   bookingTitle: string,
