@@ -357,7 +357,8 @@ model Policy {
   updatedBy      String? // Email of admin who updated
   attachmentName String?
   attachmentMime String?
-  attachmentData Bytes?
+  /// Relative path from project root, e.g. uploads/policies/{id}.pdf
+  attachmentPath String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

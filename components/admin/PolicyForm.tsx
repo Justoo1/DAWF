@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RequiredMark } from '@/components/ui/required-mark'
-import { createPolicy, updatePolicy, Policy } from '@/lib/actions/policy.actions'
+import { createPolicy, updatePolicy, type PolicySummary } from '@/lib/actions/policy.actions'
 import { ArrowLeft, Save, Upload } from 'lucide-react'
 import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
@@ -15,7 +15,7 @@ import RichTextEditor from '@/components/ui/rich-text-editor'
 interface PolicyFormProps {
   userEmail: string
   mode: 'create' | 'edit'
-  initialData?: Policy
+  initialData?: PolicySummary
   onSuccess?: () => void
   onCancel?: () => void
 }
@@ -119,46 +119,6 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
       .join('')
   }
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    const fileName = file.name.toLowerCase()
-    const isHtml = fileName.endsWith('.html') || fileName.endsWith('.htm')
-    const isText = fileName.endsWith('.txt') || fileName.endsWith('.md') || fileName.endsWith('.markdown')
-
-    if (!isHtml && !isText) {
-      toast({
-        title: 'Unsupported file type',
-        description: 'Upload a .txt, .md, .markdown, .html, or .htm file.',
-        variant: 'destructive',
-      })
-      e.target.value = ''
-      return
-    }
-
-    try {
-      const text = await file.text()
-      setFormData((prev) => ({
-        ...prev,
-        content: isHtml ? text : textToHtmlParagraphs(text),
-      }))
-      setUploadedFileName(file.name)
-      toast({
-        title: 'File imported',
-        description: `${file.name} was loaded into Policy Content.`,
-      })
-    } catch {
-      toast({
-        title: 'Import failed',
-        description: 'Unable to read the selected file.',
-        variant: 'destructive',
-      })
-    } finally {
-      e.target.value = ''
-    }
-  }
-
   const toBase64 = (bytes: Uint8Array) => {
     let binary = ''
     const chunkSize = 0x8000
@@ -169,50 +129,81 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
     return btoa(binary)
   }
 
-  const handleAttachmentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  /** One optional upload: PDF → attachment; .txt / .md / .html → import into Policy Content. */
+  const handlePolicyDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-      toast({
-        title: 'Unsupported file type',
-        description: 'Only PDF files are supported for policy attachments.',
-        variant: 'destructive',
-      })
-      e.target.value = ''
+    const fileName = file.name.toLowerCase()
+    const isPdf = file.type === 'application/pdf' || fileName.endsWith('.pdf')
+    const isHtml = fileName.endsWith('.html') || fileName.endsWith('.htm')
+    const isText =
+      fileName.endsWith('.txt') || fileName.endsWith('.md') || fileName.endsWith('.markdown')
+
+    if (isPdf) {
+      if (file.size > MAX_ATTACHMENT_MB * 1024 * 1024) {
+        toast({
+          title: 'File too large',
+          description: `Please upload a PDF up to ${MAX_ATTACHMENT_MB}MB.`,
+          variant: 'destructive',
+        })
+        e.target.value = ''
+        return
+      }
+
+      try {
+        const arrayBuffer = await file.arrayBuffer()
+        const base64 = toBase64(new Uint8Array(arrayBuffer))
+        setAttachmentDataBase64(base64)
+        setAttachmentMime('application/pdf')
+        setUploadedAttachmentName(file.name)
+        setRemoveAttachment(false)
+        toast({
+          title: 'PDF attached',
+          description: `${file.name} will be available with this policy.`,
+        })
+      } catch {
+        toast({
+          title: 'Upload failed',
+          description: 'Unable to read the selected PDF.',
+          variant: 'destructive',
+        })
+      } finally {
+        e.target.value = ''
+      }
       return
     }
 
-    if (file.size > MAX_ATTACHMENT_MB * 1024 * 1024) {
-      toast({
-        title: 'File too large',
-        description: `Please upload a PDF up to ${MAX_ATTACHMENT_MB}MB.`,
-        variant: 'destructive',
-      })
-      e.target.value = ''
+    if (isHtml || isText) {
+      try {
+        const text = await file.text()
+        setFormData((prev) => ({
+          ...prev,
+          content: isHtml ? text : textToHtmlParagraphs(text),
+        }))
+        setUploadedFileName(file.name)
+        toast({
+          title: 'Content imported',
+          description: `${file.name} was loaded into Policy Content.`,
+        })
+      } catch {
+        toast({
+          title: 'Import failed',
+          description: 'Unable to read the selected file.',
+          variant: 'destructive',
+        })
+      } finally {
+        e.target.value = ''
+      }
       return
     }
 
-    try {
-      const arrayBuffer = await file.arrayBuffer()
-      const base64 = toBase64(new Uint8Array(arrayBuffer))
-      setAttachmentDataBase64(base64)
-      setAttachmentMime('application/pdf')
-      setUploadedAttachmentName(file.name)
-      setRemoveAttachment(false)
-      toast({
-        title: 'Attachment added',
-        description: `${file.name} is attached to this policy.`,
-      })
-    } catch {
-      toast({
-        title: 'Attachment failed',
-        description: 'Unable to read the selected PDF.',
-        variant: 'destructive',
-      })
-    } finally {
-      e.target.value = ''
-    }
+    toast({
+      title: 'Unsupported file type',
+      description: 'Use a PDF to attach, or .txt / .md / .html / .htm to fill the editor.',
+      variant: 'destructive',
+    })
+    e.target.value = ''
   }
 
   return (
@@ -246,62 +237,46 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="policy-file" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
-            Policy File Upload
+          <Label
+            htmlFor="policy-document"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300"
+          >
+            Document (optional)
           </Label>
           <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 p-4">
             <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
               <Upload className="h-4 w-4" />
-              <span>Import content from a document</span>
+              <span>Upload a PDF to attach, or a text/HTML file to import into the editor</span>
             </div>
             <Input
-              id="policy-file"
+              id="policy-document"
               type="file"
-              accept=".txt,.md,.markdown,.html,.htm"
-              onChange={handleFileUpload}
+              accept=".pdf,application/pdf,.txt,.md,.markdown,.html,.htm,text/plain,text/html"
+              onChange={handlePolicyDocumentUpload}
               disabled={loading}
               className="mt-3 h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-zinc-900 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 dark:file:bg-zinc-800 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-700 dark:file:text-zinc-200"
             />
             <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-              Supported: .txt, .md, .markdown, .html, .htm
-            </p>
-            {uploadedFileName ? (
-              <p className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                Imported: {uploadedFileName}
-              </p>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="policy-attachment" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
-            Policy PDF Attachment
-          </Label>
-          <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 p-4">
-            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-              <Upload className="h-4 w-4" />
-              <span>Attach a PDF for in-app reading</span>
-            </div>
-            <Input
-              id="policy-attachment"
-              type="file"
-              accept=".pdf,application/pdf"
-              onChange={handleAttachmentUpload}
-              disabled={loading}
-              className="mt-3 h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-zinc-900 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 dark:file:bg-zinc-800 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-700 dark:file:text-zinc-200"
-            />
-            <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-              PDF only, up to {MAX_ATTACHMENT_MB}MB.
+              PDF up to {MAX_ATTACHMENT_MB}MB for viewing/download, or .txt / .md / .html / .htm to fill
+              policy content.
             </p>
             {uploadedAttachmentName ? (
               <p className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                Attached: {uploadedAttachmentName}
+                PDF attached: {uploadedAttachmentName}
               </p>
             ) : null}
-            {mode === 'edit' && initialData?.attachmentName && !attachmentDataBase64 ? (
-              <div className="mt-2 flex items-center gap-2">
+            {uploadedFileName ? (
+              <p className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                Content imported from: {uploadedFileName}
+              </p>
+            ) : null}
+            {mode === 'edit' &&
+            (initialData?.attachmentName || initialData?.attachmentPath) &&
+            !attachmentDataBase64 &&
+            !removeAttachment ? (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                  Existing attachment: {initialData.attachmentName}
+                  Existing PDF: {initialData.attachmentName ?? "Attached document"}
                 </p>
                 <Button
                   type="button"
@@ -315,9 +290,14 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
                   }}
                   className="h-7 rounded-md px-2 text-[10px]"
                 >
-                  Remove file
+                  Remove PDF
                 </Button>
               </div>
+            ) : null}
+            {mode === 'edit' && removeAttachment && (initialData?.attachmentName || initialData?.attachmentPath) ? (
+              <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+                Attachment will be removed when you save.
+              </p>
             ) : null}
           </div>
         </div>

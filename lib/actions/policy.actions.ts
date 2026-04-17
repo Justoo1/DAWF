@@ -2,6 +2,10 @@
 
 import prisma from '@/lib/prisma'
 import { revalidatePath } from "next/cache"
+import {
+  removePolicyAttachmentFile,
+  writePolicyAttachment,
+} from "@/lib/policy-attachment-storage"
 
 export interface Policy {
   id: string
@@ -14,10 +18,29 @@ export interface Policy {
   updatedBy: string | null
   attachmentName: string | null
   attachmentMime: string | null
-  attachmentData: Uint8Array | null
+  attachmentPath: string | null
   createdAt: Date
   updatedAt: Date
 }
+
+/** Policy list / editor row (PDF lives on disk at attachmentPath). */
+export type PolicySummary = Policy
+
+const policySummarySelect = {
+  id: true,
+  title: true,
+  slug: true,
+  content: true,
+  version: true,
+  isActive: true,
+  createdBy: true,
+  updatedBy: true,
+  attachmentName: true,
+  attachmentMime: true,
+  attachmentPath: true,
+  createdAt: true,
+  updatedAt: true,
+} as const
 
 export interface CreatePolicyParams {
   title: string
@@ -97,6 +120,7 @@ export async function fetchPublicPolicies(preferredSlug = "welfare-fund-constitu
     const policies = await prisma.policy.findMany({
       where: { isActive: true },
       orderBy: { updatedAt: "desc" },
+      select: policySummarySelect,
     });
 
     if (policies.length === 0) {
@@ -123,9 +147,10 @@ export async function fetchAllPolicies() {
       orderBy: {
         updatedAt: "desc",
       },
+      select: policySummarySelect,
     })
 
-    return { success: true, policies }
+    return { success: true as const, policies }
   } catch (error) {
     console.error("Error fetching policies:", error)
     return { success: false, error: "Failed to fetch policies", policies: [] }
@@ -157,13 +182,33 @@ export async function createPolicy(params: CreatePolicyParams) {
         content: params.content,
         createdBy: params.updatedBy,
         updatedBy: params.updatedBy,
-        attachmentName: params.attachmentName ?? null,
-        attachmentMime: params.attachmentMime ?? null,
-        attachmentData: params.attachmentDataBase64
-          ? Buffer.from(params.attachmentDataBase64, "base64")
-          : null,
+        attachmentName: params.attachmentDataBase64 ? (params.attachmentName ?? null) : null,
+        attachmentMime: params.attachmentDataBase64 ? (params.attachmentMime ?? null) : null,
+        attachmentPath: null,
       },
     })
+
+    if (params.attachmentDataBase64) {
+      try {
+        const buffer = Buffer.from(params.attachmentDataBase64, "base64")
+        const attachmentPath = await writePolicyAttachment(policy.id, buffer)
+        const updated = await prisma.policy.update({
+          where: { id: policy.id },
+          data: {
+            attachmentPath,
+            attachmentName: params.attachmentName ?? policy.attachmentName,
+            attachmentMime: params.attachmentMime ?? "application/pdf",
+          },
+        })
+        revalidatePath("/policy")
+        revalidatePath("/admin/policies")
+        return { success: true, policy: updated }
+      } catch (fileErr) {
+        console.error("Error saving policy attachment file:", fileErr)
+        await prisma.policy.delete({ where: { id: policy.id } }).catch(() => {})
+        return { success: false, error: "Failed to save policy file on disk" }
+      }
+    }
 
     revalidatePath("/policy")
     revalidatePath("/admin/policies")
@@ -186,6 +231,18 @@ export async function updatePolicy(params: UpdatePolicyParams) {
       return { success: false, error: "Policy not found" }
     }
 
+    if (params.removeAttachment) {
+      await removePolicyAttachmentFile(existingPolicy.attachmentPath)
+    } else if (params.attachmentDataBase64) {
+      await removePolicyAttachmentFile(existingPolicy.attachmentPath)
+    }
+
+    let newAttachmentPath: string | null | undefined = undefined
+    if (params.attachmentDataBase64) {
+      const buffer = Buffer.from(params.attachmentDataBase64, "base64")
+      newAttachmentPath = await writePolicyAttachment(params.id, buffer)
+    }
+
     const policy = await prisma.policy.update({
       where: { id: params.id },
       data: {
@@ -195,14 +252,14 @@ export async function updatePolicy(params: UpdatePolicyParams) {
           ? {
               attachmentName: null,
               attachmentMime: null,
-              attachmentData: null,
+              attachmentPath: null,
             }
           : {}),
         ...(params.attachmentDataBase64
           ? {
               attachmentName: params.attachmentName ?? existingPolicy.attachmentName,
               attachmentMime: params.attachmentMime ?? "application/pdf",
-              attachmentData: Buffer.from(params.attachmentDataBase64, "base64"),
+              attachmentPath: newAttachmentPath!,
             }
           : {}),
         updatedBy: params.updatedBy,
@@ -253,6 +310,12 @@ export async function togglePolicyStatus(id: string, updatedBy: string) {
 // Delete policy
 export async function deletePolicy(id: string) {
   try {
+    const row = await prisma.policy.findUnique({
+      where: { id },
+      select: { attachmentPath: true },
+    })
+    await removePolicyAttachmentFile(row?.attachmentPath)
+
     await prisma.policy.delete({
       where: { id },
     })

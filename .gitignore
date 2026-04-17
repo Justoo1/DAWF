@@ -39,6 +39,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Policy PDF uploads (filesystem storage; keep directory in repo)
+/uploads/policies/*
+!/uploads/policies/.gitkeep
+
 # PWA files
 **/public/sw.js
 **/public/workbox-*.js

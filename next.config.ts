@@ -29,7 +29,8 @@ const nextConfig: NextConfig = {
 
   experimental: {
     serverActions: {
-      bodySizeLimit: '2mb',
+      // Policy (and similar) uploads send base64 in the action body; allow ~10MB files after encoding.
+      bodySizeLimit: '20mb',
     },
   },
 

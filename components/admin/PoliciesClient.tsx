@@ -7,17 +7,17 @@ import { FileText, Plus, Edit, Eye } from 'lucide-react'
 import { Badge } from "@/components/ui/badge"
 import { AdminPageHeader } from "@/components/admin/layout/AdminPageHeader"
 import { PolicyModal } from './PolicyModal'
-import { Policy } from '@/lib/actions/policy.actions'
+import type { PolicySummary } from '@/lib/actions/policy.actions'
 import Link from 'next/link'
 
 interface PoliciesClientProps {
-  initialPolicies: Policy[]
+  initialPolicies: PolicySummary[]
   userEmail: string
 }
 
 export default function PoliciesClient({ initialPolicies, userEmail }: PoliciesClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedPolicy, setSelectedPolicy] = useState<Policy | undefined>(undefined)
+  const [selectedPolicy, setSelectedPolicy] = useState<PolicySummary | undefined>(undefined)
   const [mode, setMode] = useState<'create' | 'edit'>('create')
 
   const handleAddPolicy = () => {
@@ -26,7 +26,7 @@ export default function PoliciesClient({ initialPolicies, userEmail }: PoliciesC
     setIsModalOpen(true)
   }
 
-  const handleEditPolicy = (policy: Policy) => {
+  const handleEditPolicy = (policy: PolicySummary) => {
     setSelectedPolicy(policy)
     setMode('edit')
     setIsModalOpen(true)

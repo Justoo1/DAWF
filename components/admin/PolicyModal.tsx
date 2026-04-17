@@ -8,13 +8,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import PolicyForm from './PolicyForm'
-import { Policy } from '@/lib/actions/policy.actions'
+import type { PolicySummary } from '@/lib/actions/policy.actions'
 
 interface PolicyModalProps {
   isOpen: boolean
   onClose: () => void
   userEmail: string
-  policy?: Policy
+  policy?: PolicySummary
   mode: 'create' | 'edit'
 }
 

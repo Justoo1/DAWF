@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { readPolicyAttachment } from "@/lib/policy-attachment-storage";
 
 function safeInlineFileName(value: string) {
   return value.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -23,20 +24,24 @@ export async function GET(
     const policy = await prisma.policy.findUnique({
       where: { id: policyId },
       select: {
-        attachmentData: true,
+        attachmentPath: true,
         attachmentMime: true,
         attachmentName: true,
       },
     });
 
-    if (!policy?.attachmentData) {
+    if (!policy?.attachmentPath) {
+      return NextResponse.json({ error: "File not found" }, { status: 404 });
+    }
+
+    const fileBytes = await readPolicyAttachment(policy.attachmentPath);
+    if (!fileBytes) {
       return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
     const fileName = safeInlineFileName(policy.attachmentName ?? "policy.pdf");
-    const fileBytes = new Uint8Array(policy.attachmentData);
 
-    return new NextResponse(fileBytes, {
+    return new NextResponse(new Uint8Array(fileBytes), {
       status: 200,
       headers: {
         "Content-Type": policy.attachmentMime ?? "application/pdf",
