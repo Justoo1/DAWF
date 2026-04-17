@@ -34,6 +34,7 @@ import {
 } from '@/lib/actions/conferenceRoom.actions'
 import { Textarea } from '../ui/textarea'
 import { useMemo, useState } from 'react'
+import { CheckCircle2 } from 'lucide-react'
 import { RequiredMark } from '@/components/ui/required-mark'
 import { cn } from '@/lib/utils'
 
@@ -432,7 +433,7 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
               Time slots (this room)
             </p>
             <p className="text-xs text-muted-foreground">
-              Green = free. Gray = booked. Your chosen slot is gray with a &quot;Selected&quot; label.
+              Green = free. Gray = booked. Your choice shows a checkmark badge.
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-56 overflow-y-auto pr-1">
               {slotRows.map((row) => {
@@ -464,12 +465,17 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
                         "border-emerald-500/50 bg-emerald-500/10 text-emerald-800 hover:bg-emerald-500/20 dark:text-emerald-200",
                       !isBusy &&
                         isPicked &&
-                        "border-slate-400/90 bg-slate-200/90 text-slate-800 opacity-95 dark:border-slate-500 dark:bg-slate-700/90 dark:text-slate-100"
+                        "border-emerald-600/35 bg-gradient-to-b from-slate-100/95 to-slate-200/90 text-slate-800 shadow-sm ring-1 ring-emerald-500/25 dark:from-slate-700/95 dark:to-slate-800/90 dark:text-slate-100 dark:ring-emerald-400/20"
                     )}
                   >
                     <span className={cn("block", isBusy && "opacity-90")}>{label}</span>
                     {isPicked ? (
-                      <span className="mt-1 block text-[9px] font-medium text-slate-600 dark:text-slate-300">
+                      <span className="mt-1.5 inline-flex w-full items-center justify-center gap-1 rounded-full border border-emerald-500/25 bg-emerald-500/10 py-0.5 pl-1 pr-1.5 text-[10px] font-semibold tracking-tight text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-500/15 dark:text-emerald-200">
+                        <CheckCircle2
+                          className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400"
+                          strokeWidth={2.25}
+                          aria-hidden
+                        />
                         Selected
                       </span>
                     ) : null}
