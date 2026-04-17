@@ -47,21 +47,21 @@ function pad2(n: number) {
   return String(n).padStart(2, "0")
 }
 
-function todayDateInputValue() {
-  const t = new Date()
-  return `${t.getFullYear()}-${pad2(t.getMonth() + 1)}-${pad2(t.getDate())}`
-}
-
 /** Value for `datetime-local` from a Date in local time */
 function toDatetimeLocalValue(d: Date) {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`
 }
 
-function localDayBounds(dateStr: string) {
-  const [y, m, d] = dateStr.split("-").map(Number)
-  if (!y || !m || !d) return null
-  const start = new Date(y, m - 1, d, BUSINESS_START_HOUR, 0, 0, 0)
-  const end = new Date(y, m - 1, d, BUSINESS_END_HOUR, 0, 0, 0)
+/** Business-day slot window from the calendar day of a datetime-local value (local time). */
+function localDayBoundsFromStartInput(startValue: string) {
+  if (!startValue?.trim()) return null
+  const parsed = new Date(startValue)
+  if (Number.isNaN(parsed.getTime())) return null
+  const y = parsed.getFullYear()
+  const m = parsed.getMonth()
+  const d = parsed.getDate()
+  const start = new Date(y, m, d, BUSINESS_START_HOUR, 0, 0, 0)
+  const end = new Date(y, m, d, BUSINESS_END_HOUR, 0, 0, 0)
   return { start, end }
 }
 
@@ -73,7 +73,6 @@ function formatSlotLabel(start: Date, end: Date) {
 const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
   const { toast } = useToast()
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false)
-  const [slotDay, setSlotDay] = useState(() => todayDateInputValue())
   const [slotRows, setSlotRows] = useState<RoomDaySlotRow[] | null>(null)
 
   const defaultStartEnd = useMemo(() => {
@@ -98,9 +97,11 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
   })
 
   const roomIdWatch = form.watch("roomId")
+  const startWatch = form.watch("start")
 
   const loadDaySlots = async () => {
     const roomId = form.getValues("roomId")
+    const startVal = form.getValues("start")
     if (!roomId) {
       toast({
         variant: "destructive",
@@ -109,21 +110,21 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
       })
       return
     }
-    if (!slotDay) {
+    if (!startVal?.trim()) {
       toast({
         variant: "destructive",
-        title: "Select a date",
-        description: "Choose which day to view availability for.",
+        title: "Set start time",
+        description: "Choose a start date and time first — that date determines which day’s slots are loaded.",
       })
       return
     }
 
-    const bounds = localDayBounds(slotDay)
+    const bounds = localDayBoundsFromStartInput(startVal)
     if (!bounds) {
       toast({
         variant: "destructive",
-        title: "Invalid date",
-        description: "Please pick a valid date.",
+        title: "Invalid start time",
+        description: "Please set a valid start date and time.",
       })
       return
     }
@@ -152,7 +153,7 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
         const busy = result.slots.length - free
         toast({
           title: "Availability loaded",
-          description: `${free} free slot${free === 1 ? "" : "s"}, ${busy} busy — pick a free slot or set times below.`,
+          description: `${free} free slot${free === 1 ? "" : "s"}, ${busy} busy — pick a free slot or adjust start/end below.`,
         })
       }
     } catch (error) {
@@ -209,7 +210,6 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           attendeeCount: undefined,
         })
         setSlotRows(null)
-        setSlotDay(todayDateInputValue())
         onSuccess?.()
       }
     } catch (error) {
@@ -258,33 +258,87 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           )}
         />
 
-        <div className="space-y-2">
-          <label
-            htmlFor="booking-slot-day"
-            className="text-sm font-semibold text-slate-700 dark:text-slate-300"
-          >
-            Day to check
-          </label>
-          <Input
-            id="booking-slot-day"
-            type="date"
-            value={slotDay}
-            onChange={(e) => {
-              setSlotDay(e.target.value)
-              setSlotRows(null)
-            }}
-            className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full max-w-xs"
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Meeting title
+                <RequiredMark />
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  {...field}
+                  placeholder="e.g. Team planning meeting"
+                  className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full min-w-0">
+          <FormField
+            control={form.control}
+            name="start"
+            render={({ field }) => (
+              <FormItem className="min-w-0">
+                <FormLabel className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Start time
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="datetime-local"
+                    {...field}
+                    value={field.value}
+                    onChange={(e) => {
+                      field.onChange(e.target.value)
+                      setSlotRows(null)
+                    }}
+                    className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full min-w-0"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          <p className="text-xs text-muted-foreground">
-            {BUSINESS_START_HOUR}:00–{BUSINESS_END_HOUR}:00 (30-minute slots). Load availability before choosing start/end times.
-          </p>
+
+          <FormField
+            control={form.control}
+            name="end"
+            render={({ field }) => (
+              <FormItem className="min-w-0">
+                <FormLabel className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  End time
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="datetime-local"
+                    {...field}
+                    value={field.value}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full min-w-0"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
+
+        <p className="text-xs text-muted-foreground -mt-2">
+          {BUSINESS_START_HOUR}:00–{BUSINESS_END_HOUR}:00 (30-minute slots). The start time’s calendar date
+          selects which day to load. If you change that date, click Check availability again.
+        </p>
 
         <Button
           type="button"
           variant="outline"
           onClick={loadDaySlots}
-          disabled={isCheckingAvailability || !roomIdWatch}
+          disabled={isCheckingAvailability || !roomIdWatch || !startWatch}
           className="w-full h-11 rounded-xl border-slate-200 dark:border-slate-800 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-sm"
         >
           {isCheckingAvailability ? "Loading…" : "Check availability"}
@@ -296,7 +350,7 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
               Time slots
             </p>
             <p className="text-xs text-muted-foreground">
-              Green = available. Red = already booked. Tap a free slot to fill start and end times.
+              Green = available. Red = already booked. Tap a free slot to set start and end times.
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-56 overflow-y-auto pr-1">
               {slotRows.map((row) => {
@@ -329,74 +383,6 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
             </div>
           </div>
         ) : null}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full min-w-0">
-          <FormField
-            control={form.control}
-            name="start"
-            render={({ field }) => (
-              <FormItem className="min-w-0">
-                <FormLabel className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  Start time
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="datetime-local"
-                    {...field}
-                    value={field.value}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full min-w-0"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="end"
-            render={({ field }) => (
-              <FormItem className="min-w-0">
-                <FormLabel className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  End time
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="datetime-local"
-                    {...field}
-                    value={field.value}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full min-w-0"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Meeting title
-                <RequiredMark />
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="text"
-                  {...field}
-                  placeholder="e.g. Team planning meeting"
-                  className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <FormField
           control={form.control}
