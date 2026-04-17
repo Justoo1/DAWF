@@ -298,7 +298,7 @@ export type RoomDayBusyBooking = {
 /**
  * Half-hour slots between rangeStart and rangeEnd (inclusive of start, exclusive of end at last slot).
  * rangeStart/rangeEnd should be sent from the client using the viewer's local calendar day
- * (e.g. 08:00–18:00 local as ISO strings) so slot boundaries match their timezone.
+ * (e.g. 10:00–19:00 local as ISO strings) so slot boundaries match their timezone.
  */
 export async function fetchConferenceRoomDaySlots(
   roomId: string,

@@ -44,8 +44,8 @@ interface BookingFormProps {
   onSuccess?: () => void
 }
 
-const BUSINESS_START_HOUR = 8
-const BUSINESS_END_HOUR = 18
+const BUSINESS_START_HOUR = 10
+const BUSINESS_END_HOUR = 19
 
 function pad2(n: number) {
   return String(n).padStart(2, "0")
@@ -62,6 +62,17 @@ function localDayBoundsFromDateOnly(dateStr: string) {
   const start = new Date(y, m - 1, d, BUSINESS_START_HOUR, 0, 0, 0)
   const end = new Date(y, m - 1, d, BUSINESS_END_HOUR, 0, 0, 0)
   return { start, end }
+}
+
+/** Locale-friendly range for UI copy (e.g. "10:00 AM–7:00 PM"). */
+function businessHoursRangeLabel() {
+  const base = new Date(2020, 0, 1)
+  const start = new Date(base)
+  start.setHours(BUSINESS_START_HOUR, 0, 0, 0)
+  const end = new Date(base)
+  end.setHours(BUSINESS_END_HOUR, 0, 0, 0)
+  const opts: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit" }
+  return `${start.toLocaleTimeString(undefined, opts)}–${end.toLocaleTimeString(undefined, opts)}`
 }
 
 function formatSlotLabel(start: Date, end: Date) {
@@ -90,8 +101,8 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
   const defaults = useMemo(() => {
     return {
       date: todayDateInputValue(),
-      startTime: "09:00",
-      endTime: "10:00",
+      startTime: "10:00",
+      endTime: "10:30",
     }
   }, [])
 
@@ -412,9 +423,9 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
         </div>
 
         <p className="text-xs text-muted-foreground -mt-2">
-          Slots are for this room on the selected date ({BUSINESS_START_HOUR}:00–{BUSINESS_END_HOUR}
-          :00, 30 minutes each). Load availability, then tap a free slot — that confirms your booking
-          window. Changing date or times clears the selection until you pick a slot again.
+          Slots are for this room on the selected date ({businessHoursRangeLabel()}, 30 minutes each).
+          Load availability, then tap a free slot — that confirms your booking window. Changing date or
+          times clears the selection until you pick a slot again.
         </p>
 
         <Button
