@@ -8,13 +8,13 @@ import {
   Menu,
   X,
   Calendar,
-  CalendarDays,
   DoorOpen,
   Gift,
   BookOpen,
   LayoutDashboard,
   CheckSquare,
   UtensilsCrossed,
+  FileText,
 } from 'lucide-react'
 import ProfileMenu from './ProfileMenu'
 import NotificationBell from './NotificationBell'
@@ -42,8 +42,8 @@ export const Navbar = () => {
   }, [session])
 
   const navItems = [
-    { href: '/public-calendar', label: 'Schedule', icon: CalendarDays },
     { href: '/events', label: 'Events', icon: Calendar },
+    { href: '/leave', label: 'Leave', icon: FileText },
     { href: '/conference-rooms', label: 'Book room', icon: DoorOpen },
     { href: '/food-orders', label: 'Food', icon: UtensilsCrossed },
     { href: '/disbursements', label: 'Benefits', icon: Gift },
