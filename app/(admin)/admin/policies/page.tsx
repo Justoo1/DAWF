@@ -1,12 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { fetchAllPolicies } from '@/lib/actions/policy.actions'
-import { fetchUserWithContributions } from '@/lib/actions/users.action'
+import { fetchAdminShellUser } from '@/lib/actions/users.action'
 import { auth } from "@/lib/auth"
 import { redirect } from 'next/navigation'
 import { headers } from "next/headers"
-import Link from 'next/link'
-import { Button } from "@/components/ui/button"
-import { FileText, Plus, Edit, Eye } from 'lucide-react'
+import { AdminPageContent } from "@/components/admin/layout/AdminPageContent"
+import PoliciesClient from '@/components/admin/PoliciesClient'
 
 const PoliciesPage = async () => {
   const session = await auth.api.getSession({
@@ -17,9 +15,9 @@ const PoliciesPage = async () => {
     redirect('/')
   }
 
-  const userData = await fetchUserWithContributions(session.user.email)
+  const gate = await fetchAdminShellUser(session.user.email)
 
-  if (userData.user?.role !== "ADMIN"){
+  if (!gate.success || !gate.user || gate.user.role !== "ADMIN"){
     redirect('/')
   }
 
@@ -27,94 +25,12 @@ const PoliciesPage = async () => {
 
   return (
     <main className="admin-main">
-      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-8">
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-          Policy Management
-        </h2>
-        <Link href="/admin/policies/add">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Policy
-          </Button>
-        </Link>
-      </div>
-
-      {policiesData.success && policiesData.policies.length > 0 ? (
-        <div className="grid gap-6">
-          {policiesData.policies.map((policy) => (
-            <Card key={policy.id}>
-              <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
-                <div className="flex items-start space-x-3 flex-1">
-                  <FileText className="h-5 w-5 text-emerald-600 mt-1" />
-                  <div className="flex-1">
-                    <CardTitle className="text-lg font-semibold text-foreground">
-                      {policy.title}
-                    </CardTitle>
-                    <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-muted-foreground">
-                      <span>Slug: <code className="bg-gray-100 px-2 py-1 rounded">{policy.slug}</code></span>
-                      <span>•</span>
-                      <span>Version {policy.version}</span>
-                      <span>•</span>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        policy.isActive
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {policy.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
-                    <div className="mt-2 text-xs text-gray-500">
-                      Last updated: {new Date(policy.updatedAt).toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                      {policy.updatedBy && ` by ${policy.updatedBy}`}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Link href={`/policy`} target="_blank">
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                  </Link>
-                  <Link href={`/admin/policies/edit/${policy.id}`}>
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                  </Link>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm text-muted-foreground line-clamp-2">
-                  {policy.content.replace(/<[^>]*>/g, '').substring(0, 200)}...
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="text-center py-12">
-            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No Policies Yet</h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Get started by creating your first policy document.
-            </p>
-            <Link href="/admin/policies/add">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Policy
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      )}
+      <AdminPageContent>
+        <PoliciesClient 
+          initialPolicies={policiesData.success ? policiesData.policies : []} 
+          userEmail={session.user.email} 
+        />
+      </AdminPageContent>
     </main>
   )
 }
