@@ -44,9 +44,11 @@ interface FoodFormProps {
   vendors: FoodVendorValues[]
   food?: FoodData
   isEdit?: boolean
+  onSuccess?: () => void
+  onCancel?: () => void
 }
 
-const FoodForm = ({ vendors, food, isEdit }: FoodFormProps) => {
+const FoodForm = ({ vendors, food, isEdit, onSuccess, onCancel }: FoodFormProps) => {
   const { toast } = useToast()
   const router = useRouter()
 
@@ -93,8 +95,12 @@ const FoodForm = ({ vendors, food, isEdit }: FoodFormProps) => {
           title: 'Success',
           description: `Food item ${isEdit ? 'updated' : 'created'} successfully`
         })
-        router.push('/admin/food-management/foods')
-        router.refresh()
+        if (onSuccess) {
+          onSuccess()
+        } else {
+          router.push('/admin/food-management/foods')
+          router.refresh()
+        }
       }
     } catch (error) {
       toast({
@@ -259,7 +265,13 @@ const FoodForm = ({ vendors, food, isEdit }: FoodFormProps) => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.back()}
+            onClick={() => {
+              if (onCancel) {
+                onCancel()
+              } else {
+                router.back()
+              }
+            }}
           >
             Cancel
           </Button>
