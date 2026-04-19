@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { fetchAllFoodMenus } from '@/lib/actions/foodMenu.actions'
+import { fetchAllFoodVendors } from '@/lib/actions/foodVendor.actions'
+import { fetchAllFoods } from '@/lib/actions/food.actions'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Edit } from 'lucide-react'
@@ -18,6 +20,9 @@ import {
   adminTheadRowClass,
 } from '@/lib/admin-ui'
 import { cn } from '@/lib/utils'
+import { MenusClient } from '@/components/admin/MenusClient'
+import { auth } from '@/lib/auth'
+import { headers } from 'next/headers'
 
 const MenuActionButton = ({ menuId, status }: { menuId: string, status: string }) => {
   const handlePublish = async () => {
@@ -92,7 +97,17 @@ const MenuActionButton = ({ menuId, status }: { menuId: string, status: string }
 }
 
 const FoodMenusPage = async () => {
-  const menusData = await fetchAllFoodMenus()
+  const session = await auth.api.getSession({ headers: await headers() })
+  
+  const [menusData, vendorsData, foodsData] = await Promise.all([
+    fetchAllFoodMenus(),
+    fetchAllFoodVendors(),
+    fetchAllFoods()
+  ])
+  
+  const vendors = vendorsData.vendors || []
+  const foods = foodsData.foods || []
+  const userId = session?.user?.id || ''
 
   if (menusData.error) {
     return (
@@ -114,15 +129,12 @@ const FoodMenusPage = async () => {
   return (
     <main className="admin-main">
       <AdminPageContent>
-        <AdminPageHeader
-          title="Weekly Menus"
-          description="Create menus, collect selections, and export vendor orders."
-          action={
-            <Link href="/admin/food-management/menus/new">
-              <Button className="shadow-sm">Create New Menu</Button>
-            </Link>
-          }
-        />
+        <MenusClient vendors={vendors} foods={foods} userId={userId}>
+          <AdminPageHeader
+            title="Weekly Menus"
+            description="Create menus, collect selections, and export vendor orders."
+            action={<div />}
+          />
 
         <div className="grid gap-6 md:grid-cols-4">
           <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
@@ -163,9 +175,7 @@ const FoodMenusPage = async () => {
           <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
             <CardContent className="text-center py-12">
               <p className="text-muted-foreground mb-4">No menus created yet.</p>
-              <Link href="/admin/food-management/menus/new">
-                <Button className="shadow-sm">Create Your First Menu</Button>
-              </Link>
+              <p className="text-sm text-muted-foreground">Click "Create New Menu" above to get started!</p>
             </CardContent>
           </Card>
         ) : null}
@@ -386,6 +396,7 @@ const FoodMenusPage = async () => {
             </table>
           </AdminTableCard>
         ) : null}
+        </MenusClient>
       </AdminPageContent>
     </main>
   )

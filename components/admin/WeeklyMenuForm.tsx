@@ -55,11 +55,13 @@ interface WeeklyMenuFormProps {
   userId: string
   menu?: MenuData
   isEdit?: boolean
+  onSuccess?: () => void
+  onCancel?: () => void
 }
 
 const DAYS_OF_WEEK = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'] as const
 
-const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuFormProps) => {
+const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit, onSuccess, onCancel }: WeeklyMenuFormProps) => {
   const { toast } = useToast()
   const router = useRouter()
   const [selectedDay, setSelectedDay] = useState<typeof DAYS_OF_WEEK[number]>('MONDAY')
@@ -165,11 +167,15 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
           title: 'Success',
           description: `Weekly menu ${isEdit ? 'updated' : 'created'} successfully`
         })
-        if (!isEdit) {
-          form.reset()
+        if (onSuccess) {
+          onSuccess()
+        } else {
+          if (!isEdit) {
+            form.reset()
+          }
+          router.push('/admin/food-management/menus')
+          router.refresh()
         }
-        router.push('/admin/food-management/menus')
-        router.refresh()
       }
     } catch (error) {
       toast({
@@ -518,7 +524,13 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit }: WeeklyMenuForm
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.back()}
+            onClick={() => {
+              if (onCancel) {
+                onCancel()
+              } else {
+                router.back()
+              }
+            }}
           >
             Cancel
           </Button>
