@@ -61,7 +61,6 @@ const ApprovalsPage = async () => {
             <BookingApprovalCard
               key={booking.id}
               booking={booking}
-              approverId={userData.user.id}
             />
           ))}
         </div>

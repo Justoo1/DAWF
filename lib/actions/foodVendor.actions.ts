@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import prisma from "../prisma";
 import { FoodVendor } from "../validation";
+import { requireAdmin } from '@/lib/security';
+import { isValidUUID, sanitizeText } from '@/lib/utils/validators';
 
 // ============================================
 // FOOD VENDOR MANAGEMENT
@@ -45,6 +47,10 @@ export async function fetchAllFoodVendorsIncludingInactive() {
 
 export async function fetchFoodVendorById(vendorId: string) {
   try {
+    if (!isValidUUID(vendorId)) {
+      return { error: 'Invalid vendor ID' };
+    }
+    
     const vendor = await prisma.foodVendor.findUnique({
       where: { id: vendorId },
       include: {
@@ -62,21 +68,25 @@ export async function fetchFoodVendorById(vendorId: string) {
     return { success: true, vendor };
   } catch (error) {
     console.error('Food vendor fetch error:', error);
-    return { error: 'Failed to fetch food vendor' };
+    return { error: error instanceof Error ? error.message : 'Failed to fetch food vendor' };
   }
 }
 
 export async function createFoodVendor(vendor: Omit<FoodVendor, 'id'>) {
   try {
+    await requireAdmin();
+    
+    const sanitizedVendor = {
+      ...vendor,
+      name: sanitizeText(vendor.name),
+      contactName: vendor.contactName ? sanitizeText(vendor.contactName) : null,
+      phone: vendor.phone ? sanitizeText(vendor.phone) : null,
+      email: vendor.email ? sanitizeText(vendor.email) : null,
+      description: vendor.description ? sanitizeText(vendor.description) : null,
+    };
+    
     const newVendor = await prisma.foodVendor.create({
-      data: {
-        name: vendor.name,
-        contactName: vendor.contactName || null,
-        phone: vendor.phone || null,
-        email: vendor.email || null,
-        description: vendor.description || null,
-        isActive: vendor.isActive ?? true
-      }
+      data: sanitizedVendor
     });
 
     revalidatePath('/admin/food-management/vendors');
@@ -89,22 +99,30 @@ export async function createFoodVendor(vendor: Omit<FoodVendor, 'id'>) {
       return { error: 'A vendor with this name already exists' };
     }
 
-    return { error: 'Failed to create food vendor' };
+    return { error: error instanceof Error ? error.message : 'Failed to create food vendor' };
   }
 }
 
 export async function updateFoodVendor(vendorId: string, vendor: Omit<FoodVendor, 'id'>) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(vendorId)) {
+      return { error: 'Invalid vendor ID' };
+    }
+    
+    const sanitizedVendor = {
+      ...vendor,
+      name: sanitizeText(vendor.name),
+      contactName: vendor.contactName ? sanitizeText(vendor.contactName) : null,
+      phone: vendor.phone ? sanitizeText(vendor.phone) : null,
+      email: vendor.email ? sanitizeText(vendor.email) : null,
+      description: vendor.description ? sanitizeText(vendor.description) : null,
+    };
+    
     const updatedVendor = await prisma.foodVendor.update({
       where: { id: vendorId },
-      data: {
-        name: vendor.name,
-        contactName: vendor.contactName || null,
-        phone: vendor.phone || null,
-        email: vendor.email || null,
-        description: vendor.description || null,
-        isActive: vendor.isActive ?? true
-      }
+      data: sanitizedVendor
     });
 
     revalidatePath('/admin/food-management/vendors');
@@ -117,12 +135,18 @@ export async function updateFoodVendor(vendorId: string, vendor: Omit<FoodVendor
       return { error: 'A vendor with this name already exists' };
     }
 
-    return { error: 'Failed to update food vendor' };
+    return { error: error instanceof Error ? error.message : 'Failed to update food vendor' };
   }
 }
 
 export async function deleteFoodVendor(vendorId: string) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(vendorId)) {
+      return { error: 'Invalid vendor ID' };
+    }
+    
     // Soft delete by setting isActive to false
     await prisma.foodVendor.update({
       where: { id: vendorId },
@@ -133,12 +157,18 @@ export async function deleteFoodVendor(vendorId: string) {
     return { success: true };
   } catch (error) {
     console.error('Food vendor deletion error:', error);
-    return { error: 'Failed to delete food vendor' };
+    return { error: error instanceof Error ? error.message : 'Failed to delete food vendor' };
   }
 }
 
 export async function reactivateFoodVendor(vendorId: string) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(vendorId)) {
+      return { error: 'Invalid vendor ID' };
+    }
+    
     await prisma.foodVendor.update({
       where: { id: vendorId },
       data: { isActive: true }
@@ -148,13 +178,19 @@ export async function reactivateFoodVendor(vendorId: string) {
     return { success: true };
   } catch (error) {
     console.error('Food vendor reactivation error:', error);
-    return { error: 'Failed to reactivate food vendor' };
+    return { error: error instanceof Error ? error.message : 'Failed to reactivate food vendor' };
   }
 }
 
 /** Enable or disable a vendor without changing other fields. */
 export async function setFoodVendorActive(vendorId: string, isActive: boolean) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(vendorId)) {
+      return { error: 'Invalid vendor ID' };
+    }
+    
     await prisma.foodVendor.update({
       where: { id: vendorId },
       data: { isActive },
@@ -164,7 +200,7 @@ export async function setFoodVendorActive(vendorId: string, isActive: boolean) {
     return { success: true as const };
   } catch (error) {
     console.error('Food vendor active toggle error:', error);
-    return { success: false as const, error: 'Failed to update vendor status' };
+    return { success: false as const, error: error instanceof Error ? error.message : 'Failed to update vendor status' };
   }
 }
 
@@ -174,6 +210,12 @@ export async function setFoodVendorActive(vendorId: string, isActive: boolean) {
  */
 export async function permanentlyDeleteFoodVendor(vendorId: string) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(vendorId)) {
+      return { success: false as const, error: 'Invalid vendor ID' };
+    }
+    
     await prisma.$transaction(async (tx) => {
       await tx.weeklyFoodMenu.deleteMany({ where: { vendorId } });
       await tx.food.deleteMany({ where: { vendorId } });
@@ -187,7 +229,7 @@ export async function permanentlyDeleteFoodVendor(vendorId: string) {
     console.error('Food vendor permanent delete error:', error);
     return {
       success: false as const,
-      error: 'Could not delete this vendor. It may still be referenced elsewhere.',
+      error: error instanceof Error ? error.message : 'Could not delete this vendor. It may still be referenced elsewhere.',
     };
   }
 }

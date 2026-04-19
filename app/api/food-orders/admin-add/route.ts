@@ -26,7 +26,6 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await adminCreateBulkFoodSelections(
-      session.user.id,
       targetUserId,
       menuId,
       { selections }

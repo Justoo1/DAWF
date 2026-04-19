@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "../prisma";
+import { requireAdmin } from '@/lib/security';
+import { isValidUUID, sanitizeText } from '@/lib/utils/validators';
 
 // ============================================
 // FOOD MANAGEMENT
@@ -62,14 +64,27 @@ interface CreateFoodData {
 
 export async function createFood(data: CreateFoodData) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(data.vendorId)) {
+      return { error: 'Invalid vendor ID' };
+    }
+    
+    const sanitizedData = {
+      ...data,
+      name: sanitizeText(data.name),
+      description: data.description ? sanitizeText(data.description) : null,
+      category: data.category ? sanitizeText(data.category) : null,
+    };
+
     const food = await prisma.food.create({
       data: {
-        name: data.name,
-        description: data.description || null,
-        price: data.price || null,
-        category: data.category || null,
-        vendorId: data.vendorId,
-        isSpecialOrder: data.isSpecialOrder || false
+        name: sanitizedData.name,
+        description: sanitizedData.description,
+        price: sanitizedData.price || null,
+        category: sanitizedData.category,
+        vendorId: sanitizedData.vendorId,
+        isSpecialOrder: sanitizedData.isSpecialOrder || false
       },
       include: {
         vendor: true
@@ -80,21 +95,40 @@ export async function createFood(data: CreateFoodData) {
     return { success: true, food };
   } catch (error) {
     console.error('Food creation error:', error);
-    return { error: 'Failed to create food' };
+    return { 
+      error: error instanceof Error ? error.message : 'Failed to create food' 
+    };
   }
 }
 
 export async function updateFood(foodId: string, data: CreateFoodData) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(foodId)) {
+      return { error: 'Invalid food ID' };
+    }
+    
+    if (!isValidUUID(data.vendorId)) {
+      return { error: 'Invalid vendor ID' };
+    }
+    
+    const sanitizedData = {
+      ...data,
+      name: sanitizeText(data.name),
+      description: data.description ? sanitizeText(data.description) : null,
+      category: data.category ? sanitizeText(data.category) : null,
+    };
+
     const food = await prisma.food.update({
       where: { id: foodId },
       data: {
-        name: data.name,
-        description: data.description || null,
-        price: data.price || null,
-        category: data.category || null,
-        vendorId: data.vendorId,
-        isSpecialOrder: data.isSpecialOrder || false
+        name: sanitizedData.name,
+        description: sanitizedData.description,
+        price: sanitizedData.price || null,
+        category: sanitizedData.category,
+        vendorId: sanitizedData.vendorId,
+        isSpecialOrder: sanitizedData.isSpecialOrder || false
       },
       include: {
         vendor: true
@@ -105,12 +139,20 @@ export async function updateFood(foodId: string, data: CreateFoodData) {
     return { success: true, food };
   } catch (error) {
     console.error('Food update error:', error);
-    return { error: 'Failed to update food' };
+    return { 
+      error: error instanceof Error ? error.message : 'Failed to update food' 
+    };
   }
 }
 
 export async function deleteFood(foodId: string) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(foodId)) {
+      return { error: 'Invalid food ID' };
+    }
+
     // Soft delete by setting isActive to false
     await prisma.food.update({
       where: { id: foodId },
@@ -121,6 +163,8 @@ export async function deleteFood(foodId: string) {
     return { success: true };
   } catch (error) {
     console.error('Food deletion error:', error);
-    return { error: 'Failed to delete food' };
+    return { 
+      error: error instanceof Error ? error.message : 'Failed to delete food' 
+    };
   }
 }

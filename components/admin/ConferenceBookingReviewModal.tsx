@@ -24,7 +24,6 @@ type Props = {
   booking: ConferenceRoomBookingValues | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  userId: string
   canReviewBookings: boolean
 }
 
@@ -48,7 +47,6 @@ export function ConferenceBookingReviewModal({
   booking,
   open,
   onOpenChange,
-  userId,
   canReviewBookings,
 }: Props) {
   const router = useRouter()
@@ -78,7 +76,7 @@ export function ConferenceBookingReviewModal({
     if (!booking.id) return
     setBusy("approve")
     try {
-      const res = await approveBooking(booking.id, userId)
+      const res = await approveBooking(booking.id)
       if (res && "error" in res && res.error) {
         toast({ title: "Could not approve", description: res.error, variant: "destructive" })
         return
@@ -104,7 +102,7 @@ export function ConferenceBookingReviewModal({
     }
     setBusy("reject")
     try {
-      const res = await rejectBooking(booking.id, userId, reason)
+      const res = await rejectBooking(booking.id, reason)
       if (res && "error" in res && res.error) {
         toast({ title: "Could not decline", description: res.error, variant: "destructive" })
         return

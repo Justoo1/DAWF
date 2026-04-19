@@ -52,7 +52,6 @@ interface MenuData {
 interface WeeklyMenuFormProps {
   vendors: FoodVendorValues[]
   foods: FoodValues[]
-  userId: string
   menu?: MenuData
   isEdit?: boolean
   onSuccess?: () => void
@@ -61,7 +60,7 @@ interface WeeklyMenuFormProps {
 
 const DAYS_OF_WEEK = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'] as const
 
-const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit, onSuccess, onCancel }: WeeklyMenuFormProps) => {
+const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: WeeklyMenuFormProps) => {
   const { toast } = useToast()
   const router = useRouter()
   const [selectedDay, setSelectedDay] = useState<typeof DAYS_OF_WEEK[number]>('MONDAY')
@@ -153,7 +152,7 @@ const WeeklyMenuForm = ({ vendors, foods, userId, menu, isEdit, onSuccess, onCan
       if (isEdit && menu?.id) {
         result = await updateFoodMenu(menu.id, values)
       } else {
-        result = await createFoodMenu(values, userId)
+        result = await createFoodMenu(values)
       }
 
       if (result.error) {

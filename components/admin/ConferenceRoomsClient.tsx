@@ -330,7 +330,6 @@ export default function ConferenceRoomsClient({
         onOpenChange={(open) => {
           if (!open) setReviewBooking(null)
         }}
-        userId={userId}
         canReviewBookings={canReviewBookings}
       />
     </div>

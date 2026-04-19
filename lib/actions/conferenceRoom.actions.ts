@@ -6,6 +6,8 @@ import { ConferenceRoom, ConferenceRoomBooking, roomFitsHeadcount } from "../val
 import { createNotificationForAllUsers, createNotification, createNotificationForApprovers } from './notification.actions';
 import { sendEmail, conferenceRoomBookingTemplate, roomBookingApprovedTemplate, roomBookingRejectedTemplate } from '../email';
 import { getPublicCalendarQueryRange } from '@/lib/calendar-range';
+import { requireAuth, requireAuthenticatedUser, requireAdmin } from '@/lib/security';
+import { isValidUUID, sanitizeText } from '@/lib/utils/validators';
 
 // ============================================
 // CONFERENCE ROOM MANAGEMENT
@@ -61,31 +63,65 @@ export async function fetchConferenceRoomById(roomId: string) {
 
 export async function createConferenceRoom(room: Omit<ConferenceRoom, 'id'>) {
   try {
-    await prisma.conferenceRoom.create({ data: room });
+    await requireAdmin();
+
+    const sanitizedRoom = {
+      ...room,
+      name: sanitizeText(room.name),
+      description: sanitizeText(room.description),
+      location: sanitizeText(room.location),
+      amenities: sanitizeText(room.amenities),
+    };
+
+    await prisma.conferenceRoom.create({ data: sanitizedRoom });
     revalidatePath('/admin/conference-rooms');
     return { success: true };
   } catch (error) {
     console.error('Conference room creation error:', error);
-    return { error: 'Failed to create conference room' };
+    return { 
+      error: error instanceof Error ? error.message : 'Failed to create conference room' 
+    };
   }
 }
 
 export async function updateConferenceRoom(roomId: string, room: Omit<ConferenceRoom, 'id'>) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(roomId)) {
+      return { error: 'Invalid room ID' };
+    }
+
+    const sanitizedRoom = {
+      ...room,
+      name: sanitizeText(room.name),
+      description: sanitizeText(room.description),
+      location: sanitizeText(room.location),
+      amenities: sanitizeText(room.amenities),
+    };
+
     await prisma.conferenceRoom.update({
       where: { id: roomId },
-      data: room
+      data: sanitizedRoom
     });
     revalidatePath('/admin/conference-rooms');
     return { success: true };
   } catch (error) {
     console.error('Conference room update error:', error);
-    return { error: 'Failed to update conference room' };
+    return { 
+      error: error instanceof Error ? error.message : 'Failed to update conference room' 
+    };
   }
 }
 
 export async function deleteConferenceRoom(roomId: string) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(roomId)) {
+      return { error: 'Invalid room ID' };
+    }
+
     // Soft delete by setting isActive to false
     await prisma.conferenceRoom.update({
       where: { id: roomId },
@@ -95,7 +131,9 @@ export async function deleteConferenceRoom(roomId: string) {
     return { success: true };
   } catch (error) {
     console.error('Conference room deletion error:', error);
-    return { error: 'Failed to delete conference room' };
+    return { 
+      error: error instanceof Error ? error.message : 'Failed to delete conference room' 
+    };
   }
 }
 
@@ -378,11 +416,41 @@ export async function fetchConferenceRoomDaySlots(
 
 export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 'status'> & { userId: string }) {
   try {
+    const session = await requireAuth();
+    const user = await requireAuthenticatedUser();
+    
+    // Validate inputs
+    if (!isValidUUID(booking.roomId)) {
+      return { error: 'Invalid room ID' };
+    }
+    
+    const startDate = new Date(booking.start);
+    const endDate = new Date(booking.end);
+    const now = new Date();
+    
+    // Prevent booking in the past
+    if (startDate < now) {
+      return { error: 'Cannot book a room in the past' };
+    }
+    
+    // Validate time order
+    if (endDate <= startDate) {
+      return { error: 'End time must be after start time' };
+    }
+    
+    // Sanitize inputs
+    const sanitizedBooking = {
+      ...booking,
+      title: sanitizeText(booking.title),
+      purpose: sanitizeText(booking.purpose),
+      description: sanitizeText(booking.description),
+    };
+
     // Check room availability
     const availabilityCheck = await checkRoomAvailability(
       booking.roomId,
-      new Date(booking.start),
-      new Date(booking.end)
+      startDate,
+      endDate
     );
 
     if (!availabilityCheck.success) {
@@ -394,7 +462,7 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
     }
 
     // Get room details and user details
-    const [room, user] = await Promise.all([
+    const [room, bookingUser] = await Promise.all([
       prisma.conferenceRoom.findUnique({
         where: { id: booking.roomId }
       }),
@@ -418,7 +486,7 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
       };
     }
 
-    if (!user) {
+    if (!bookingUser) {
       return { error: 'User not found' };
     }
 
@@ -455,7 +523,7 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
     await createNotificationForApprovers({
       type: 'ROOM_BOOKING_PENDING',
       title: `New Booking Awaiting Approval`,
-      message: `${user.name} has requested to book ${room.name} for ${booking.title} on ${new Date(booking.start).toLocaleDateString()}. Please review and approve/reject.`,
+      message: `${bookingUser.name} has requested to book ${room.name} for ${booking.title} on ${new Date(booking.start).toLocaleDateString()}. Please review and approve/reject.`,
       linkUrl: '/approvals',
     });
 
@@ -477,7 +545,7 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
         const emailHtml = roomBookingPendingApprovalTemplate(
           room.name,
           booking.title,
-          user.name,
+          bookingUser.name,
           startDateTime,
           endDateTime,
           booking.purpose || undefined,
@@ -552,6 +620,31 @@ export async function updateBooking(
 
 export async function cancelBooking(bookingId: string) {
   try {
+    const user = await requireAuthenticatedUser();
+    
+    if (!isValidUUID(bookingId)) {
+      return { error: 'Invalid booking ID' };
+    }
+
+    // Check if booking exists and user owns it OR is admin/approver
+    const booking = await prisma.conferenceRoomBooking.findUnique({
+      where: { id: bookingId },
+      select: { userId: true }
+    });
+    
+    if (!booking) {
+      return { error: 'Booking not found' };
+    }
+
+    // Only allow owner, admin, or approver to cancel
+    const isOwner = booking.userId === user.id;
+    const isAdmin = user.role === 'ADMIN';
+    const isApprover = user.canApproveBookings || user.role === 'MANAGER';
+    
+    if (!isOwner && !isAdmin && !isApprover) {
+      return { error: 'Unauthorized: Only booking owner, admin, or approver can cancel' };
+    }
+
     await prisma.conferenceRoomBooking.update({
       where: { id: bookingId },
       data: { status: 'CANCELLED' }
@@ -563,12 +656,20 @@ export async function cancelBooking(bookingId: string) {
     return { success: true };
   } catch (error) {
     console.error('Booking cancellation error:', error);
-    return { error: 'Failed to cancel booking' };
+    return { 
+      error: error instanceof Error ? error.message : 'Failed to cancel booking' 
+    };
   }
 }
 
 export async function deleteBooking(bookingId: string) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(bookingId)) {
+      return { error: 'Invalid booking ID' };
+    }
+
     await prisma.conferenceRoomBooking.delete({
       where: { id: bookingId }
     });
@@ -579,7 +680,9 @@ export async function deleteBooking(bookingId: string) {
     return { success: true };
   } catch (error) {
     console.error('Booking deletion error:', error);
-    return { error: 'Failed to delete booking' };
+    return { 
+      error: error instanceof Error ? error.message : 'Failed to delete booking' 
+    };
   }
 }
 
@@ -587,8 +690,27 @@ export async function deleteBooking(bookingId: string) {
 // BOOKING APPROVAL MANAGEMENT
 // ============================================
 
-export async function approveBooking(bookingId: string, approverId: string) {
+export async function approveBooking(bookingId: string) {
   try {
+    const approver = await requireAuthenticatedUser();
+    
+    if (!isValidUUID(bookingId)) {
+      return { error: 'Invalid booking ID' };
+    }
+
+    // Check if approver has permission
+    const canDecide =
+      approver.canApproveBookings ||
+      approver.role === "ADMIN" ||
+      approver.role === "MANAGER";
+
+    if (!canDecide) {
+      return {
+        error:
+          "Only admins, managers, or users with booking approval permission can approve bookings",
+      };
+    }
+
     // Get the booking with user and room details
     const booking = await prisma.conferenceRoomBooking.findUnique({
       where: { id: bookingId },
@@ -612,31 +734,12 @@ export async function approveBooking(bookingId: string, approverId: string) {
       return { error: 'Booking is not pending approval' };
     }
 
-    // Get approver details
-    const approver = await prisma.user.findUnique({
-      where: { id: approverId },
-      select: { name: true, canApproveBookings: true, role: true },
-    });
-
-    const canDecide =
-      !!approver &&
-      (approver.canApproveBookings ||
-        approver.role === "ADMIN" ||
-        approver.role === "MANAGER");
-
-    if (!approver || !canDecide) {
-      return {
-        error:
-          "Only admins, managers, or users with booking approval permission can approve bookings",
-      };
-    }
-
     // Update booking status to APPROVED
     await prisma.conferenceRoomBooking.update({
       where: { id: bookingId },
       data: {
         status: 'APPROVED',
-        approvedBy: approverId
+        approvedBy: approver.id
       }
     });
 
@@ -741,8 +844,30 @@ export async function approveBooking(bookingId: string, approverId: string) {
   }
 }
 
-export async function rejectBooking(bookingId: string, approverId: string, rejectionReason: string) {
+export async function rejectBooking(bookingId: string, rejectionReason: string) {
   try {
+    const approver = await requireAuthenticatedUser();
+    
+    if (!isValidUUID(bookingId)) {
+      return { error: 'Invalid booking ID' };
+    }
+
+    // Check if approver has permission
+    const canDecide =
+      approver.canApproveBookings ||
+      approver.role === "ADMIN" ||
+      approver.role === "MANAGER";
+
+    if (!canDecide) {
+      return {
+        error:
+          "Only admins, managers, or users with booking approval permission can decline bookings",
+      };
+    }
+
+    // Sanitize rejection reason
+    const sanitizedReason = sanitizeText(rejectionReason);
+
     // Get the booking with user and room details
     const booking = await prisma.conferenceRoomBooking.findUnique({
       where: { id: bookingId },
@@ -766,32 +891,13 @@ export async function rejectBooking(bookingId: string, approverId: string, rejec
       return { error: 'Booking is not pending approval' };
     }
 
-    // Get approver details
-    const approver = await prisma.user.findUnique({
-      where: { id: approverId },
-      select: { name: true, canApproveBookings: true, role: true },
-    });
-
-    const canDecide =
-      !!approver &&
-      (approver.canApproveBookings ||
-        approver.role === "ADMIN" ||
-        approver.role === "MANAGER");
-
-    if (!approver || !canDecide) {
-      return {
-        error:
-          "Only admins, managers, or users with booking approval permission can decline bookings",
-      };
-    }
-
     // Update booking status to REJECTED
     await prisma.conferenceRoomBooking.update({
       where: { id: bookingId },
       data: {
         status: 'REJECTED',
-        approvedBy: approverId,
-        rejectionReason
+        approvedBy: approver.id,
+        rejectionReason: sanitizedReason
       }
     });
 

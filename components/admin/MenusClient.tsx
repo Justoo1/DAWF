@@ -18,11 +18,10 @@ import { useRouter } from 'next/navigation'
 interface MenusClientProps {
   vendors: FoodVendorValues[]
   foods: FoodValues[]
-  userId: string
   children: React.ReactNode
 }
 
-export function MenusClient({ vendors, foods, userId, children }: MenusClientProps) {
+export function MenusClient({ vendors, foods, children }: MenusClientProps) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
 
@@ -55,7 +54,6 @@ export function MenusClient({ vendors, foods, userId, children }: MenusClientPro
             <WeeklyMenuForm
               vendors={vendors}
               foods={foods}
-              userId={userId}
               onSuccess={handleSuccess}
               onCancel={handleCancel}
             />

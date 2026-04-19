@@ -39,11 +39,10 @@ interface BookingApprovalCardProps {
     }
     createdAt: Date
   }
-  approverId: string
   onApprovalComplete?: () => void
 }
 
-const BookingApprovalCard = ({ booking, approverId, onApprovalComplete }: BookingApprovalCardProps) => {
+const BookingApprovalCard = ({ booking, onApprovalComplete }: BookingApprovalCardProps) => {
   const { toast } = useToast()
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false)
   const [rejectionReason, setRejectionReason] = useState('')
@@ -52,7 +51,7 @@ const BookingApprovalCard = ({ booking, approverId, onApprovalComplete }: Bookin
   const handleApprove = async () => {
     setIsProcessing(true)
     try {
-      const result = await approveBooking(booking.id, approverId)
+      const result = await approveBooking(booking.id)
 
       if (result.error) {
         toast({
@@ -91,7 +90,7 @@ const BookingApprovalCard = ({ booking, approverId, onApprovalComplete }: Bookin
 
     setIsProcessing(true)
     try {
-      const result = await rejectBooking(booking.id, approverId, rejectionReason)
+      const result = await rejectBooking(booking.id, rejectionReason)
 
       if (result.error) {
         toast({

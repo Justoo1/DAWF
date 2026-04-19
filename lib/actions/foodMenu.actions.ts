@@ -6,6 +6,8 @@ import { createNotificationForAllUsers } from "./notification.actions";
 import { getAuthAppUrl } from "../auth-app-url";
 import { sendEmail } from "../email";
 import { foodMenuPublishedTemplate, foodSelectionReminderTemplate } from "../email-templates";
+import { requireAdmin, requireAuthenticatedUser } from '@/lib/security';
+import { isValidUUID, sanitizeText } from '@/lib/utils/validators';
 
 // ============================================
 // WEEKLY FOOD MENU MANAGEMENT
@@ -40,6 +42,10 @@ export async function fetchAllFoodMenus() {
 
 export async function fetchFoodMenuById(menuId: string) {
   try {
+    if (!isValidUUID(menuId)) {
+      return { error: 'Invalid menu ID' };
+    }
+    
     const menu = await prisma.weeklyFoodMenu.findUnique({
       where: { id: menuId },
       include: {
@@ -60,7 +66,7 @@ export async function fetchFoodMenuById(menuId: string) {
     return { success: true, menu };
   } catch (error) {
     console.error('Food menu fetch error:', error);
-    return { error: 'Failed to fetch food menu' };
+    return { error: error instanceof Error ? error.message : 'Failed to fetch food menu' };
   }
 }
 
@@ -119,23 +125,54 @@ interface CreateMenuData {
   }>;
 }
 
-export async function createFoodMenu(data: CreateMenuData, createdBy: string) {
+export async function createFoodMenu(data: CreateMenuData) {
   try {
+    await requireAdmin();
+    
+    const user = await requireAuthenticatedUser();
+    
+    if (!isValidUUID(data.vendorId)) {
+      return { error: 'Invalid vendor ID' };
+    }
+    
+    const weekStartDate = new Date(data.weekStartDate);
+    const weekEndDate = new Date(data.weekEndDate);
+    const selectionOpenDate = new Date(data.selectionOpenDate);
+    const selectionCloseDate = new Date(data.selectionCloseDate);
+    
+    if (weekEndDate <= weekStartDate) {
+      return { error: 'Week end date must be after week start date' };
+    }
+    
+    if (selectionCloseDate <= selectionOpenDate) {
+      return { error: 'Selection close date must be after selection open date' };
+    }
+    
+    const sanitizedData = {
+      ...data,
+      menuItems: data.menuItems.map((item) => ({
+        ...item,
+        itemName: sanitizeText(item.itemName),
+        description: item.description ? sanitizeText(item.description) : null,
+        foodId: item.foodId && isValidUUID(item.foodId) ? item.foodId : null
+      }))
+    };
+    
     const menu = await prisma.weeklyFoodMenu.create({
       data: {
-        vendorId: data.vendorId,
-        weekStartDate: new Date(data.weekStartDate),
-        weekEndDate: new Date(data.weekEndDate),
-        selectionOpenDate: new Date(data.selectionOpenDate),
-        selectionCloseDate: new Date(data.selectionCloseDate),
+        vendorId: sanitizedData.vendorId,
+        weekStartDate,
+        weekEndDate,
+        selectionOpenDate,
+        selectionCloseDate,
         status: 'DRAFT',
-        createdBy,
+        createdBy: user.id,
         menuItems: {
-          create: data.menuItems.map((item) => ({
+          create: sanitizedData.menuItems.map((item) => ({
             dayOfWeek: item.dayOfWeek,
-            foodId: item.foodId || null,
+            foodId: item.foodId,
             itemName: item.itemName,
-            description: item.description || null,
+            description: item.description,
             price: item.price || null,
             isAvailable: item.isAvailable ?? true,
             displayOrder: item.displayOrder ?? 0
@@ -152,12 +189,45 @@ export async function createFoodMenu(data: CreateMenuData, createdBy: string) {
     return { success: true, menu };
   } catch (error) {
     console.error('Food menu creation error:', error);
-    return { error: 'Failed to create food menu' };
+    return { error: error instanceof Error ? error.message : 'Failed to create food menu' };
   }
 }
 
 export async function updateFoodMenu(menuId: string, data: CreateMenuData) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(menuId)) {
+      return { error: 'Invalid menu ID' };
+    }
+    
+    if (!isValidUUID(data.vendorId)) {
+      return { error: 'Invalid vendor ID' };
+    }
+    
+    const weekStartDate = new Date(data.weekStartDate);
+    const weekEndDate = new Date(data.weekEndDate);
+    const selectionOpenDate = new Date(data.selectionOpenDate);
+    const selectionCloseDate = new Date(data.selectionCloseDate);
+    
+    if (weekEndDate <= weekStartDate) {
+      return { error: 'Week end date must be after week start date' };
+    }
+    
+    if (selectionCloseDate <= selectionOpenDate) {
+      return { error: 'Selection close date must be after selection open date' };
+    }
+    
+    const sanitizedData = {
+      ...data,
+      menuItems: data.menuItems.map((item) => ({
+        ...item,
+        itemName: sanitizeText(item.itemName),
+        description: item.description ? sanitizeText(item.description) : null,
+        foodId: item.foodId && isValidUUID(item.foodId) ? item.foodId : null
+      }))
+    };
+    
     // Check if menu is still in DRAFT status
     const existingMenu = await prisma.weeklyFoodMenu.findUnique({
       where: { id: menuId },
@@ -180,17 +250,17 @@ export async function updateFoodMenu(menuId: string, data: CreateMenuData) {
     const menu = await prisma.weeklyFoodMenu.update({
       where: { id: menuId },
       data: {
-        vendorId: data.vendorId,
-        weekStartDate: new Date(data.weekStartDate),
-        weekEndDate: new Date(data.weekEndDate),
-        selectionOpenDate: new Date(data.selectionOpenDate),
-        selectionCloseDate: new Date(data.selectionCloseDate),
+        vendorId: sanitizedData.vendorId,
+        weekStartDate,
+        weekEndDate,
+        selectionOpenDate,
+        selectionCloseDate,
         menuItems: {
-          create: data.menuItems.map((item) => ({
+          create: sanitizedData.menuItems.map((item) => ({
             dayOfWeek: item.dayOfWeek,
-            foodId: item.foodId || null,
+            foodId: item.foodId,
             itemName: item.itemName,
-            description: item.description || null,
+            description: item.description,
             price: item.price || null,
             isAvailable: item.isAvailable ?? true,
             displayOrder: item.displayOrder ?? 0
@@ -207,12 +277,18 @@ export async function updateFoodMenu(menuId: string, data: CreateMenuData) {
     return { success: true, menu };
   } catch (error) {
     console.error('Food menu update error:', error);
-    return { error: 'Failed to update food menu' };
+    return { error: error instanceof Error ? error.message : 'Failed to update food menu' };
   }
 }
 
 export async function publishFoodMenu(menuId: string) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(menuId)) {
+      return { error: 'Invalid menu ID' };
+    }
+    
     const menu = await prisma.weeklyFoodMenu.findUnique({
       where: { id: menuId },
       include: { vendor: true, menuItems: true }
@@ -291,12 +367,18 @@ export async function publishFoodMenu(menuId: string) {
     return { success: true };
   } catch (error) {
     console.error('Food menu publish error:', error);
-    return { error: 'Failed to publish food menu' };
+    return { error: error instanceof Error ? error.message : 'Failed to publish food menu' };
   }
 }
 
 export async function closeFoodMenuSelection(menuId: string) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(menuId)) {
+      return { error: 'Invalid menu ID' };
+    }
+    
     await prisma.weeklyFoodMenu.update({
       where: { id: menuId },
       data: { status: 'CLOSED' }
@@ -307,12 +389,18 @@ export async function closeFoodMenuSelection(menuId: string) {
     return { success: true };
   } catch (error) {
     console.error('Food menu close error:', error);
-    return { error: 'Failed to close food menu selection' };
+    return { error: error instanceof Error ? error.message : 'Failed to close food menu selection' };
   }
 }
 
 export async function markFoodMenuAsSent(menuId: string) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(menuId)) {
+      return { error: 'Invalid menu ID' };
+    }
+    
     await prisma.weeklyFoodMenu.update({
       where: { id: menuId },
       data: { status: 'SENT' }
@@ -322,12 +410,18 @@ export async function markFoodMenuAsSent(menuId: string) {
     return { success: true };
   } catch (error) {
     console.error('Food menu mark as sent error:', error);
-    return { error: 'Failed to mark menu as sent' };
+    return { error: error instanceof Error ? error.message : 'Failed to mark menu as sent' };
   }
 }
 
 export async function revertMenuToDraft(menuId: string) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(menuId)) {
+      return { error: 'Invalid menu ID' };
+    }
+    
     const menu = await prisma.weeklyFoodMenu.findUnique({
       where: { id: menuId },
       select: { status: true }
@@ -350,12 +444,18 @@ export async function revertMenuToDraft(menuId: string) {
     return { success: true };
   } catch (error) {
     console.error('Menu revert error:', error);
-    return { error: 'Failed to revert menu to draft' };
+    return { error: error instanceof Error ? error.message : 'Failed to revert menu to draft' };
   }
 }
 
 export async function deleteFoodMenu(menuId: string) {
   try {
+    await requireAdmin();
+    
+    if (!isValidUUID(menuId)) {
+      return { error: 'Invalid menu ID' };
+    }
+    
     const menu = await prisma.weeklyFoodMenu.findUnique({
       where: { id: menuId },
       select: { status: true }
@@ -378,7 +478,7 @@ export async function deleteFoodMenu(menuId: string) {
     return { success: true };
   } catch (error) {
     console.error('Food menu deletion error:', error);
-    return { error: 'Failed to delete food menu' };
+    return { error: error instanceof Error ? error.message : 'Failed to delete food menu' };
   }
 }
 

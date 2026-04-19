@@ -107,7 +107,6 @@ const FoodMenusPage = async () => {
   
   const vendors = vendorsData.vendors || []
   const foods = foodsData.foods || []
-  const userId = session?.user?.id || ''
 
   if (menusData.error) {
     return (
@@ -129,7 +128,7 @@ const FoodMenusPage = async () => {
   return (
     <main className="admin-main">
       <AdminPageContent>
-        <MenusClient vendors={vendors} foods={foods} userId={userId}>
+        <MenusClient vendors={vendors} foods={foods}>
           <AdminPageHeader
             title="Weekly Menus"
             description="Create menus, collect selections, and export vendor orders."

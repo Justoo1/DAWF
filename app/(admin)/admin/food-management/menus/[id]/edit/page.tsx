@@ -84,7 +84,6 @@ const EditMenuPage = async ({ params }: { params: Promise<{ id: string }> }) => 
             <WeeklyMenuForm
               vendors={vendorsData.vendors}
               foods={foodsData.foods || []}
-              userId={session.user.id}
               menu={menu}
               isEdit
             />
