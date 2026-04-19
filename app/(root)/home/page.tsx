@@ -3,13 +3,7 @@ import UserCard from '@/components/shared/UserCard'
 import { Card } from '@/components/ui/card'
 import { fetchContributions } from '@/lib/actions/contribution'
 import { fetchUpcomingEvents } from '@/lib/actions/events.actions'
-import {
-  fetchAllConferenceRooms,
-  fetchUserBookings,
-} from '@/lib/actions/conferenceRoom.actions'
 import { fetchUserWithContributions } from '@/lib/actions/users.action'
-import { HomeRoomBookingModal } from '@/components/home/HomeRoomBookingModal'
-import { ConferenceRoomValues } from '@/lib/validation'
 import { formatDateParts } from '@/lib/utils'
 import { auth } from "@/lib/auth"
 import Link from 'next/link'
@@ -44,28 +38,6 @@ const Dashboard = async () => {
       </div>
     )
   }
-
-  const [roomsData, bookingsData] = await Promise.all([
-    fetchAllConferenceRooms(),
-    fetchUserBookings(userInfo.user.id),
-  ])
-
-  const rooms: ConferenceRoomValues[] =
-    "rooms" in roomsData && roomsData.rooms
-      ? (roomsData.rooms as ConferenceRoomValues[])
-      : []
-
-  const recentBookingsPayload =
-    bookingsData.success && bookingsData.bookings
-      ? bookingsData.bookings.slice(0, 5).map((b) => ({
-          id: b.id,
-          title: b.title,
-          status: b.status,
-          startIso: b.start.toISOString(),
-          endIso: b.end.toISOString(),
-          roomName: b.room.name,
-        }))
-      : []
 
   const isProfileComplete = Boolean(userInfo.user.dateOfBirth)
 
@@ -209,15 +181,6 @@ const Dashboard = async () => {
 
           </div>
         </div>
-
-        {/* Room booking — opens modal; quick action uses #book-room */}
-        <section className="mt-20 md:mt-24 w-full border-t border-border/60 pt-16">
-          <HomeRoomBookingModal
-            userId={userInfo.user.id}
-            rooms={rooms}
-            recentBookings={recentBookingsPayload}
-          />
-        </section>
 
         {/* Footer info */}
         <div className="mt-28 flex">
