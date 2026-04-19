@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "../prisma";
-import { ConferenceRoom, ConferenceRoomBooking } from "../validation";
+import { ConferenceRoom, ConferenceRoomBooking, roomFitsHeadcount } from "../validation";
 import { createNotificationForAllUsers, createNotification, createNotificationForApprovers } from './notification.actions';
 import { sendEmail, conferenceRoomBookingTemplate, roomBookingApprovedTemplate, roomBookingRejectedTemplate } from '../email';
 import { getPublicCalendarQueryRange } from '@/lib/calendar-range';
@@ -406,6 +406,16 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
 
     if (!room) {
       return { error: 'Conference room not found' };
+    }
+
+    if (
+      booking.attendeeCount != null &&
+      !roomFitsHeadcount(room.capacity, booking.attendeeCount)
+    ) {
+      return {
+        error:
+          'This room does not fit the number of people you entered. Choose another room or change the headcount.',
+      };
     }
 
     if (!user) {

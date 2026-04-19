@@ -389,6 +389,41 @@ export const ConferenceRoomBookingSchema = z.object({
 })
 export type ConferenceRoomBooking = z.infer<typeof ConferenceRoomBookingSchema>
 
+/**
+ * Parse conference room `capacity` strings: single value ("8") or range ("4-8", "8-15").
+ * Returns inclusive [min, max] in people, or null if invalid.
+ */
+export function parseRoomCapacityRange(
+  capacity: string | null | undefined
+): { min: number; max: number } | null {
+  if (capacity == null || !String(capacity).trim()) return null
+  const s = String(capacity).trim().replace(/\s+/g, "")
+  const dash = s.indexOf("-")
+  if (dash === -1) {
+    const n = Number(s)
+    if (!Number.isFinite(n) || n < 1) return null
+    const v = Math.floor(n)
+    return { min: v, max: v }
+  }
+  const a = Number(s.slice(0, dash))
+  const b = Number(s.slice(dash + 1))
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return null
+  const min = Math.max(1, Math.floor(Math.min(a, b)))
+  const max = Math.max(min, Math.floor(Math.max(a, b)))
+  return { min, max }
+}
+
+/** True if `headcount` people fits the room’s published capacity. */
+export function roomFitsHeadcount(
+  roomCapacity: string | null | undefined,
+  headcount: number
+): boolean {
+  if (!Number.isFinite(headcount) || headcount < 1) return false
+  const r = parseRoomCapacityRange(roomCapacity)
+  if (!r) return false
+  return headcount >= r.min && headcount <= r.max
+}
+
 /** Build a local calendar Date from YYYY-MM-DD and HH:mm (or HH:mm:ss from time inputs). */
 export function combineLocalDateAndTime(dateStr: string, timeStr: string): Date | null {
   if (!dateStr?.trim() || !timeStr?.trim()) return null
@@ -412,7 +447,13 @@ export const ConferenceRoomBookingCreateSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Date is required" }),
   startTime: z.string().min(1, { message: "Start time is required" }),
   endTime: z.string().min(1, { message: "End time is required" }),
-  attendeeCount: z.number().int().positive().optional(),
+  attendeeCount: z
+    .number({
+      required_error: "Enter how many people need the room",
+      invalid_type_error: "Enter how many people need the room",
+    })
+    .int({ message: "Use a whole number" })
+    .min(1, { message: "Enter at least 1 person" }),
 }).refine(
   (data) => {
     const start = combineLocalDateAndTime(data.date, data.startTime)
