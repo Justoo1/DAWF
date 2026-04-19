@@ -53,8 +53,6 @@ export function ProfileChecker() {
           return
         }
 
-        const user = sessionUser
-
         // Profile completion is surfaced as UI state on `/home` instead of forcing
         // navigation to a dedicated completion route.
       } catch (error) {

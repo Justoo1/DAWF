@@ -960,7 +960,7 @@ export async function adminResendEmployeeVerificationEmail(userId: string) {
 }
 
 /** @deprecated Password sign-in is disabled. */
-export async function adminSendEmployeePasswordReset(_userId: string) {
+export async function adminSendEmployeePasswordReset() {
   const gate = await requireAdminSessionForAuthActions()
   if (!gate.ok) return { success: false, error: gate.error }
   return {

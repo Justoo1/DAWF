@@ -5,7 +5,7 @@
  * This module is kept so legacy imports do not break; callers should use Google sign-in.
  */
 
-export async function requestPasswordResetForEmail(_email: string) {
+export async function requestPasswordResetForEmail() {
   return { ok: true as const };
 }
 

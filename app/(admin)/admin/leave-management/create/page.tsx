@@ -11,8 +11,7 @@ import {
   Loader2,
   Edit2,
   Power,
-  Trash2,
-  Info
+  Trash2
 } from "lucide-react"
 import { 
   fetchLeavePolicies, 

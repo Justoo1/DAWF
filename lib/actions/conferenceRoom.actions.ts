@@ -416,9 +416,6 @@ export async function fetchConferenceRoomDaySlots(
 
 export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 'status'> & { userId: string }) {
   try {
-    const session = await requireAuth();
-    const user = await requireAuthenticatedUser();
-    
     // Validate inputs
     if (!isValidUUID(booking.roomId)) {
       return { error: 'Invalid room ID' };
@@ -448,7 +445,7 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
 
     // Check room availability
     const availabilityCheck = await checkRoomAvailability(
-      booking.roomId,
+      sanitizedBooking.roomId,
       startDate,
       endDate
     );

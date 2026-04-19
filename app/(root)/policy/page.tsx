@@ -2,15 +2,9 @@ import { Card } from '@/components/ui/card'
 import { fetchPublicPolicies } from '@/lib/actions/policy.actions'
 import { PolicyDetailsDialog } from '@/components/policy/PolicyDetailsDialog'
 import { auth } from "@/lib/auth"
-import { Manrope } from 'next/font/google'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import React from 'react'
-
-const manrope = Manrope({
-  subsets: ["latin"],
-  weight: ["200","300", "400", "500", "600", "700"]
-})
 
 const PolicyPage = async () => {
   const session = await auth.api.getSession({

@@ -97,8 +97,6 @@ const MenuActionButton = ({ menuId, status }: { menuId: string, status: string }
 }
 
 const FoodMenusPage = async () => {
-  const session = await auth.api.getSession({ headers: await headers() })
-  
   const [menusData, vendorsData, foodsData] = await Promise.all([
     fetchAllFoodMenus(),
     fetchAllFoodVendors(),

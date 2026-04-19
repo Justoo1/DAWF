@@ -18,7 +18,6 @@ import { Bar, BarChart, XAxis, YAxis, Pie, PieChart, Cell, Legend, CartesianGrid
 import { FileSpreadsheet, FileText, Loader2, TrendingUp, DollarSign } from 'lucide-react'
 import { AdminPageContent } from '@/components/admin/layout/AdminPageContent'
 import { AdminPageHeader } from '@/components/admin/layout/AdminPageHeader'
-import QuickActions from '@/components/admin/QuickActions'
 import ExcelJS from 'exceljs'
 
 interface FinancialSummary {

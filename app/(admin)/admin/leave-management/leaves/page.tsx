@@ -19,13 +19,6 @@ export default async function AdminLeavesOverviewPage() {
   const requests = result.success ? (result.requests ?? []) : []
   const role = userRes.success && userRes.user ? userRes.user.role : "EMPLOYEE"
 
-  const scopeDescription =
-    role === "ADMIN"
-      ? "You are viewing leave records across the organization."
-      : role === "MANAGER"
-        ? "You are viewing leave for employees in departments you manage."
-        : "You are viewing leave records available for your role."
-
   return (
     <main className="admin-main">
       <div className="mx-auto w-full max-w-7xl space-y-8">
