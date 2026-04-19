@@ -49,6 +49,25 @@ export const auth = betterAuth({
         type: "string",
         required: false,
       },
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "EMPLOYEE",
+      },
+      canApproveBookings: {
+        type: "boolean",
+        required: false,
+        defaultValue: false,
+      },
+      department: {
+        type: "string",
+        required: false,
+      },
+      isActive: {
+        type: "boolean",
+        required: false,
+        defaultValue: true,
+      },
     },
   },
   hooks: {
