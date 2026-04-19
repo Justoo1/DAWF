@@ -174,7 +174,7 @@ const FoodMenusPage = async () => {
           <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
             <CardContent className="text-center py-12">
               <p className="text-muted-foreground mb-4">No menus created yet.</p>
-              <p className="text-sm text-muted-foreground">Click "Create New Menu" above to get started!</p>
+              <p className="text-sm text-muted-foreground">Click &quot;Create New Menu&quot; above to get started!</p>
             </CardContent>
           </Card>
         ) : null}

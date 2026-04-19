@@ -21,6 +21,7 @@ export default function RootLayout({
   const [adminUser, setAdminUser] = useState<AdminShellUser | null>(null)
   const [shellUserFetchFailed, setShellUserFetchFailed] = useState(false)
   const { data: session, isPending: sessionPending } = authClient.useSession()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userRole = ((session?.user as any)?.role as UserRole | undefined) ?? (adminUser?.role as UserRole | undefined) ?? 'EMPLOYEE'
   const profilePending =
     Boolean(session?.user?.email) &&
