@@ -25,7 +25,7 @@ const statusIcons = {
 interface Booking {
   id: string
   title: string
-  room: any
+  room: { name: string }
   start: Date | string
   end: Date | string
   purpose: string | null
@@ -34,10 +34,20 @@ interface Booking {
   rejectionReason: string | null
 }
 
+interface Room {
+  id: string
+  name: string
+  capacity: string | number
+  location?: string | null
+  description?: string | null
+  amenities?: string | null
+  isActive?: boolean
+}
+
 interface ConferenceRoomsClientProps {
   userId: string
-  rooms: any[]
-  bookings: any[]
+  rooms: Room[]
+  bookings: Booking[]
 }
 
 const ConferenceRoomsClient = ({ userId, rooms, bookings }: ConferenceRoomsClientProps) => {
@@ -85,7 +95,7 @@ const ConferenceRoomsClient = ({ userId, rooms, bookings }: ConferenceRoomsClien
                 </DialogDescription>
               </DialogHeader>
               <div className="pt-1">
-                <BookingForm userId={userId} rooms={rooms as ConferenceRoomValues[]} onSuccess={handleSuccess} />
+                <BookingForm userId={userId} rooms={rooms as unknown as ConferenceRoomValues[]} onSuccess={handleSuccess} />
               </div>
             </DialogContent>
           </Dialog>
@@ -105,7 +115,7 @@ const ConferenceRoomsClient = ({ userId, rooms, bookings }: ConferenceRoomsClien
           <CardContent>
             <div className="space-y-4">
               {rooms && rooms.length > 0 ? (
-                rooms.map((room: any) => (
+                rooms.map((room: Room) => (
                   <div
                     key={room.id}
                     className="group p-4 bg-card rounded-xl border border-border/40 hover:border-emerald-300 dark:hover:border-emerald-800/40 hover:shadow-md transition-all"
@@ -165,7 +175,7 @@ const ConferenceRoomsClient = ({ userId, rooms, bookings }: ConferenceRoomsClien
           <CardContent>
             <div className="space-y-4">
               {bookings && bookings.length > 0 ? (
-                bookings.map((booking: any) => {
+                bookings.map((booking: Booking) => {
                   const StatusIcon = statusIcons[booking.status as keyof typeof statusIcons]
                   return (
                     <div

@@ -8,7 +8,6 @@ import {
   Trash2,
   RefreshCw,
   Loader2,
-  Search,
 } from 'lucide-react'
 import {
   Select,
@@ -43,7 +42,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -155,8 +153,8 @@ export function FoodsTable({ initialFoods = [], vendors = [] }: FoodsTableProps)
     }
 
     return result.sort((a, b) => {
-      let aValue: any = a[sortConfig.key] ?? ''
-      let bValue: any = b[sortConfig.key] ?? ''
+      let aValue: string | number | boolean = a[sortConfig.key] ?? ''
+      let bValue: string | number | boolean = b[sortConfig.key] ?? ''
 
       if (sortConfig.key === 'vendorId') {
         aValue = a.vendor?.name?.toLowerCase() ?? ''
@@ -435,7 +433,7 @@ export function FoodsTable({ initialFoods = [], vendors = [] }: FoodsTableProps)
                           <Button
                             variant='ghost'
                             className='w-full justify-start gap-2 h-9 text-sm text-destructive hover:text-destructive hover:bg-destructive/10'
-                            onClick={() => setDeleteId(food.id)}
+                            onClick={() => setDeleteId(food.id || null)}
                           >
                             <Trash2 className='h-4 w-4' />
                             Delete
