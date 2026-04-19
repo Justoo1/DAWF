@@ -5,11 +5,18 @@ import { getAuthAppOrigin } from "./auth-app-url";
 import { allowedWorkEmailMessage, isAllowedWorkEmail } from "./allowed-email-domains";
 import prisma from "./prisma";
 
+const ONE_HOUR_S = 60 * 60
+const ONE_DAY_S = 60 * 60 * 24
+
 export const auth = betterAuth({
   baseURL: getAuthAppOrigin(),
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  session: {
+    expiresIn: ONE_DAY_S,
+    updateAge: ONE_HOUR_S,
+  },
   emailAndPassword: {
     enabled: false,
   },
