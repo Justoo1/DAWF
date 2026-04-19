@@ -1,5 +1,4 @@
 'use client'
-
 import BookingForm from '@/components/shared/BookingForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -75,17 +74,17 @@ const ConferenceRoomsClient = ({ userId, rooms, bookings }: ConferenceRoomsClien
                 Book a Room
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader className="mb-2">
+            <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+              <DialogHeader className="mb-4 pb-2 border-b border-border/50">
                 <DialogTitle className="flex items-center gap-2 text-xl font-bold">
-                  <Calendar className="h-5 w-5 text-emerald-600" />
+                  <Calendar className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                   Book a Conference Room
                 </DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="mt-1">
                   Fill in the details to book a room for your meeting
                 </DialogDescription>
               </DialogHeader>
-              <div className="px-1">
+              <div className="pt-1">
                 <BookingForm userId={userId} rooms={rooms as ConferenceRoomValues[]} onSuccess={handleSuccess} />
               </div>
             </DialogContent>
