@@ -16,6 +16,8 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Bar, BarChart, XAxis, YAxis, Pie, PieChart, Cell, Legend, CartesianGrid } from "recharts"
 import { FileSpreadsheet, FileText, Loader2, TrendingUp, DollarSign } from 'lucide-react'
+import { AdminPageContent } from '@/components/admin/layout/AdminPageContent'
+import { AdminPageHeader } from '@/components/admin/layout/AdminPageHeader'
 import QuickActions from '@/components/admin/QuickActions'
 import ExcelJS from 'exceljs'
 
@@ -355,38 +357,38 @@ export default function Reports() {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Contributions</CardTitle>
-              <DollarSign className="h-4 w-4 text-green-600" />
+              <CardTitle className="text-sm font-semibold text-muted-foreground">Total Contributions</CardTitle>
+              <DollarSign className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{formatCurrency(financialData.totalContribution)}</div>
+              <div className="text-2xl font-bold tracking-tight text-foreground">{formatCurrency(financialData.totalContribution)}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-              <TrendingUp className="h-4 w-4 text-red-600" />
+              <CardTitle className="text-sm font-semibold text-muted-foreground">Total Expenses</CardTitle>
+              <TrendingUp className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{formatCurrency(financialData.totalExpenses)}</div>
+              <div className="text-2xl font-bold tracking-tight text-foreground">{formatCurrency(financialData.totalExpenses)}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Net Amount</CardTitle>
+              <CardTitle className="text-sm font-semibold text-muted-foreground">Net Amount</CardTitle>
               <TrendingUp className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold tracking-tight text-foreground">
                 {formatCurrency(financialData.totalContribution - financialData.totalExpenses)}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Card>
+        <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
           <CardHeader>
             <CardTitle>Financial Overview</CardTitle>
           </CardHeader>
@@ -415,7 +417,7 @@ export default function Reports() {
     if (!contributionData) return null
 
     return (
-      <Card>
+      <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
         <CardHeader>
           <CardTitle>Contributions by Employee</CardTitle>
           <CardDescription>Detailed breakdown of contributions per employee</CardDescription>
@@ -460,7 +462,7 @@ export default function Reports() {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
             <CardHeader>
               <CardTitle>Expense Breakdown</CardTitle>
             </CardHeader>
@@ -487,7 +489,7 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
             <CardHeader>
               <CardTitle>Summary by Type</CardTitle>
             </CardHeader>
@@ -516,7 +518,7 @@ export default function Reports() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
           <CardHeader>
             <CardTitle>Detailed Expenses</CardTitle>
           </CardHeader>
@@ -538,13 +540,13 @@ export default function Reports() {
                     <TableCell>{exp.type}</TableCell>
                     <TableCell>{exp.recipient}</TableCell>
                     <TableCell className="text-right">{formatCurrency(exp.amount)}</TableCell>
-                    <TableCell className="text-sm text-gray-500">{exp.description || 'N/A'}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{exp.description || 'N/A'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
             {expenseData.details.length > 10 && (
-              <p className="text-sm text-gray-500 mt-4 text-center">
+              <p className="text-sm text-muted-foreground mt-4 text-center">
                 Showing 10 of {expenseData.details.length} expenses. Export for full list.
               </p>
             )}
@@ -560,7 +562,7 @@ export default function Reports() {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
             <CardHeader>
               <CardTitle>Events by Type</CardTitle>
             </CardHeader>
@@ -584,7 +586,7 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
             <CardHeader>
               <CardTitle>Event Details</CardTitle>
             </CardHeader>
@@ -595,9 +597,9 @@ export default function Reports() {
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-medium">{evt.title}</p>
-                        <p className="text-sm text-gray-500">{evt.type} • {evt.user}</p>
+                        <p className="text-sm text-muted-foreground">{evt.type} • {evt.user}</p>
                       </div>
-                      <span className="text-sm text-gray-500">{formatDate(evt.start)}</span>
+                      <span className="text-sm text-muted-foreground">{formatDate(evt.start)}</span>
                     </div>
                   </div>
                 ))}
@@ -614,7 +616,7 @@ export default function Reports() {
 
     return (
       <div className="space-y-6">
-        <Card>
+        <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
           <CardHeader>
             <CardTitle>Quarterly Financial Comparison - {selectedYear}</CardTitle>
           </CardHeader>
@@ -641,7 +643,7 @@ export default function Reports() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
           <CardHeader>
             <CardTitle>Quarterly Summary</CardTitle>
           </CardHeader>
@@ -687,22 +689,23 @@ export default function Reports() {
 
   return (
     <main className="admin-main">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Reports & Analytics</h1>
-          <p className="text-gray-600 mt-2">Generate comprehensive reports and analyze welfare fund data</p>
-        </div>
+      <AdminPageContent>
+        <AdminPageHeader
+          title="Reports & Analytics"
+          description="Generate comprehensive reports and analyze welfare fund data."
+          action={<div />}
+        />
 
-        <Card className="mb-6">
+        <Card className="mb-6 border-border/50 shadow-sm ring-1 ring-border/30">
           <CardHeader>
             <CardTitle>Report Configuration</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">Report Type</label>
                 <Select value={reportType} onValueChange={(value) => setReportType(value as ReportType)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 rounded-lg">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -717,9 +720,9 @@ export default function Reports() {
 
               {reportType === 'quarterly_comparison' ? (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">Year</label>
                   <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-11 rounded-lg">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -732,11 +735,11 @@ export default function Reports() {
               ) : (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Start Date</label>
                     <DatePicker selected={startDate} onSelect={setStartDate} className="w-full" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">End Date</label>
                     <DatePicker selected={endDate} onSelect={setEndDate} className="w-full" />
                   </div>
                 </>
@@ -767,11 +770,11 @@ export default function Reports() {
         </Card>
 
         {loading ? (
-          <Card>
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">Loading report data...</p>
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Loading report data...</p>
               </div>
             </CardContent>
           </Card>
@@ -784,11 +787,11 @@ export default function Reports() {
             {reportType === 'quarterly_comparison' && renderQuarterlyComparison()}
           </>
         ) : (
-          <Card>
+          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
-                <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">
                   {reportType === 'quarterly_comparison'
                     ? 'Select a year to view quarterly comparison'
                     : 'Select a date range to generate report'
@@ -798,8 +801,7 @@ export default function Reports() {
             </CardContent>
           </Card>
         )}
-      </div>
-      <QuickActions />
+      </AdminPageContent>
     </main>
   )
 }
