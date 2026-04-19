@@ -377,7 +377,7 @@ const LeaveRequestPage = () => {
             {/* Minimal Header */}
             <header className="px-6 py-5 md:px-12 lg:px-20 flex items-center justify-between sticky top-0 z-40 border-b border-zinc-200/90 bg-white/90 backdrop-blur-xl shadow-[0_1px_0_rgba(0,0,0,0.04)] dark:border-zinc-800 dark:bg-zinc-950/80 dark:shadow-none">
                 <div className="space-y-1.5">
-                    <Link href="/dawf" className="flex items-center gap-2 text-zinc-600 hover:text-emerald-700 dark:text-zinc-500 dark:hover:text-emerald-500 transition-all group">
+                    <Link href="/home" className="flex items-center gap-2 text-zinc-600 hover:text-emerald-700 dark:text-zinc-500 dark:hover:text-emerald-500 transition-all group">
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                         <span className="text-[11px] font-semibold uppercase tracking-[0.15em]">Back to Dashboard</span>
                     </Link>

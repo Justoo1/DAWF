@@ -8,6 +8,7 @@ import { ProfileChecker } from "@/components/auth/ProfileChecker"
 import { ThemeProvider } from "@/components/shared/ThemeProvider"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import "./globals.css";
+import { PLATFORM_NAME, PLATFORM_SHORT_NAME } from "@/lib/brand";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,15 +25,15 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | DEVOPS AFRICA",
-    default: "DEVOPS AFRICA",
+    template: `%s | ${PLATFORM_SHORT_NAME}`,
+    default: PLATFORM_NAME,
   },
-  description: "DEVOPS AFRICA Welfare Fund",
+  description: `${PLATFORM_NAME} — employee portal, welfare, events, and operations.`,
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "DEVOPS AFRICA",
+    title: PLATFORM_SHORT_NAME,
   },
   formatDetection: {
     telephone: false,
@@ -79,10 +80,10 @@ export default function RootLayout({
     // }}>
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="application-name" content="DEVOPS AFRICA" />
+        <meta name="application-name" content={PLATFORM_SHORT_NAME} />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="DEVOPS AFRICA" />
+        <meta name="apple-mobile-web-app-title" content={PLATFORM_SHORT_NAME} />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="apple-touch-icon" href="/assets/images/logo.png" />

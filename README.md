@@ -1,4 +1,4 @@
-# DEVOPS AFRICA - DevOps Africa Welfare Fund
+# DevOps Africa Management System
 
 > A comprehensive welfare management system for employee contributions, events, expenses, and benefits tracking.
 

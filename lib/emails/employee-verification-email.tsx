@@ -11,6 +11,7 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { PLATFORM_NAME, PLATFORM_SHORT_NAME } from "@/lib/brand";
 
 type Props = {
   displayName: string;
@@ -24,8 +25,8 @@ export function EmployeeVerificationEmail({
   initialPassword,
 }: Props) {
   const preview = initialPassword
-    ? "Verify your DEVOPS AFRICA account — your sign-in details are inside."
-    : "Verify your DEVOPS AFRICA account to get started.";
+    ? `Verify your ${PLATFORM_NAME} account — your sign-in details are inside.`
+    : `Verify your ${PLATFORM_NAME} account to get started.`;
 
   return (
     <Html lang="en">
@@ -34,14 +35,14 @@ export function EmployeeVerificationEmail({
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
-            <Text style={brand}>DEVOPS AFRICA</Text>
+            <Text style={brand}>{PLATFORM_SHORT_NAME.toUpperCase()}</Text>
             <Text style={tagline}>Workplace &amp; welfare portal</Text>
           </Section>
 
           <Section style={card}>
             <Heading style={h1}>Welcome, {displayName}</Heading>
             <Text style={paragraph}>
-              An administrator has created your DEVOPS AFRICA account. Please
+              An administrator has created your {PLATFORM_NAME} account. Please
               confirm your email address to activate access. This helps us keep
               your account secure.
             </Text>
@@ -74,7 +75,7 @@ export function EmployeeVerificationEmail({
             <Text style={footer}>
               If you didn&apos;t expect this invitation, you can ignore this email.
               <br />
-              © {new Date().getFullYear()} DEVOPS AFRICA
+              © {new Date().getFullYear()} {PLATFORM_NAME}
             </Text>
           </Section>
         </Container>

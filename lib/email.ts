@@ -1,7 +1,9 @@
 import { Resend } from 'resend';
+import { PLATFORM_NAME, PLATFORM_SHORT_NAME } from './brand';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const fromEmail = process.env.FROM_EMAIL || 'DEVOPS AFRICA <dawf@edtmsys.com>';
+const fromEmail =
+  process.env.FROM_EMAIL || `${PLATFORM_SHORT_NAME} <noreply@devopsafricalimited.com>`;
 
 interface SendEmailParams {
   to: string | string[];

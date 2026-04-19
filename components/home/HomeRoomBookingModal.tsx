@@ -1,6 +1,6 @@
 "use client";
 
-import { DawfRoomBookingForm } from "@/components/dawf/DawfRoomBookingForm";
+import { HomeRoomBookingForm } from "@/components/home/HomeRoomBookingForm";
 import { Card } from "@/components/ui/card";
 import {
   Dialog,
@@ -17,7 +17,7 @@ import { useCallback, useEffect, useState } from "react";
 
 const BOOK_HASH = "book-room";
 
-export type DawfRecentBooking = {
+export type HomeRecentBooking = {
   id: string;
   title: string;
   status: string;
@@ -41,14 +41,14 @@ function hashOpensModal(): boolean {
   return raw === BOOK_HASH || raw.startsWith(`${BOOK_HASH}/`);
 }
 
-export function DawfRoomBookingModal({
+export function HomeRoomBookingModal({
   userId,
   rooms,
   recentBookings,
 }: {
   userId: string;
   rooms: ConferenceRoomValues[];
-  recentBookings: DawfRecentBooking[];
+  recentBookings: HomeRecentBooking[];
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -153,7 +153,7 @@ export function DawfRoomBookingModal({
         </DialogHeader>
 
         <div className="space-y-8">
-          <DawfRoomBookingForm userId={userId} rooms={rooms} />
+          <HomeRoomBookingForm userId={userId} rooms={rooms} />
 
           <div>
             <h3 className="mb-3 text-sm font-bold text-foreground">My recent bookings</h3>

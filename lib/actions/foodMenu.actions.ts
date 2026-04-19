@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import prisma from "../prisma";
 import { createNotificationForAllUsers } from "./notification.actions";
+import { getAuthAppUrl } from "../auth-app-url";
 import { sendEmail } from "../email";
 import { foodMenuPublishedTemplate, foodSelectionReminderTemplate } from "../email-templates";
 
@@ -269,7 +270,7 @@ export async function publishFoodMenu(menuId: string) {
           weekStartDate: menu.weekStartDate,
           weekEndDate: menu.weekEndDate,
           selectionCloseDate: menu.selectionCloseDate,
-          linkUrl: 'https://dawf.edtmsys.com/food-orders'
+          linkUrl: getAuthAppUrl("/food-orders")
         })
       })
     );
@@ -437,7 +438,7 @@ export async function sendSelectionReminders() {
             userName: user.name,
             vendorName: menu.vendor.name,
             selectionCloseDate: menu.selectionCloseDate,
-            linkUrl: 'https://dawf.edtmsys.com/food-orders'
+            linkUrl: getAuthAppUrl("/food-orders")
           })
         })
       );

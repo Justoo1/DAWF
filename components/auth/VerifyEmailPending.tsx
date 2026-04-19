@@ -21,7 +21,7 @@ export function VerifyEmailPending() {
       }
       const u = session.data.user as { email?: string; emailVerified?: boolean }
       if (u.emailVerified !== false) {
-        router.replace("/dawf")
+        router.replace("/home")
         return
       }
       setEmail(u.email ?? null)

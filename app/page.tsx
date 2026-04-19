@@ -9,7 +9,7 @@ export default async function RootPage() {
 
   // If user is authenticated, redirect to dashboard
   if (session) {
-    redirect("/dawf")
+    redirect("/home")
   }
 
   // If not authenticated, redirect to public calendar

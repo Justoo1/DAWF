@@ -1,7 +1,7 @@
 {
-  "name": "DEVOPS AFRICA Welfare Fund",
-  "short_name": "DEVOPS AFRICA",
-  "description": "DEVOPS AFRICA Welfare Fund - Employee contribution and welfare management system",
+  "name": "DevOps Africa Management System",
+  "short_name": "DevOps Africa",
+  "description": "DevOps Africa Management System — employee portal, welfare, events, and operations",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

@@ -1,5 +1,6 @@
 import { render } from "@react-email/render";
 import { sendEmail } from "@/lib/email";
+import { PLATFORM_NAME } from "@/lib/brand";
 import { EmployeeVerificationEmail } from "@/lib/emails/employee-verification-email";
 
 export type SendVerificationEmailOptions = {
@@ -23,7 +24,7 @@ export async function sendEmployeeVerificationEmail(
 
   return sendEmail({
     to,
-    subject: "Verify your email — DEVOPS AFRICA",
+    subject: `Verify your email — ${PLATFORM_NAME}`,
     html,
   });
 }
@@ -35,7 +36,7 @@ export function passwordResetEmailHtml(displayName: string, resetUrl: string) {
 <head><meta charset="utf-8" /></head>
 <body style="font-family: system-ui, sans-serif; line-height: 1.5; color: #111;">
   <p>Hi ${escapeHtml(displayName)},</p>
-  <p>We received a request to reset your DEVOPS AFRICA password. Use the link below to choose a new password:</p>
+  <p>We received a request to reset your ${PLATFORM_NAME} password. Use the link below to choose a new password:</p>
   <p><a href="${escapeHtml(resetUrl)}" style="color: #146C43; font-weight: 600;">Reset my password</a></p>
   <p>If you did not request this, you can ignore this email.</p>
 </body>
@@ -57,7 +58,7 @@ export async function sendPasswordResetEmail(
 ) {
   return sendEmail({
     to,
-    subject: "Reset your DEVOPS AFRICA password",
+    subject: `Reset your ${PLATFORM_NAME} password`,
     html: passwordResetEmailHtml(displayName || to, resetUrl),
   });
 }

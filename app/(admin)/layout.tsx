@@ -9,7 +9,7 @@ import { UserRole } from '@/lib/permissions'
 import { AdminShellUser } from '@/lib/validation'
 import { cn } from '@/lib/utils'
 
-const SIDEBAR_COLLAPSED_KEY = 'dawf-admin-sidebar-collapsed'
+const SIDEBAR_COLLAPSED_KEY = 'devops-africa-admin-sidebar-collapsed'
 
 export default function RootLayout({
   children,

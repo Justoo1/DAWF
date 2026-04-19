@@ -23,7 +23,7 @@ const actions = [
   {
     icon: DoorOpen,
     label: "ROOM BOOKING",
-    href: "/dawf#book-room",
+    href: "/home#book-room",
     color: "text-emerald-500",
     bgColor: "bg-emerald-500/10",
   },

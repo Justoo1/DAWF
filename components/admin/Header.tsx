@@ -8,6 +8,7 @@ import { AdminShellUser } from "@/lib/validation";
 import { AdminSearchField } from "@/components/admin/layout/AdminSearchField";
 import NotificationBell from "@/components/shared/NotificationBell";
 import { Button } from "@/components/ui/button";
+import { PLATFORM_SHORT_NAME } from "@/lib/brand";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -80,12 +81,12 @@ const Header = ({
             </Link>
             <div className="h-4 w-px bg-border/60 rotate-12" aria-hidden />
             <Link
-              href="/dawf"
+              href="/home"
               className="inline-flex items-center gap-1.5 font-medium text-foreground hover:text-primary transition-colors"
-              title="Employee welfare dashboard"
+              title="Employee dashboard"
             >
               <LayoutGrid className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
-              <span className="truncate">DAWF</span>
+              <span className="truncate">{PLATFORM_SHORT_NAME}</span>
             </Link>
           </div>
         </div>

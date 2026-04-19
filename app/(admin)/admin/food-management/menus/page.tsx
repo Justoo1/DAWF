@@ -2,22 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { fetchAllFoodMenus } from '@/lib/actions/foodMenu.actions'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Edit } from 'lucide-react'
+import { Calendar, Clock, Users, Edit } from 'lucide-react'
 import { publishFoodMenu, closeFoodMenuSelection, markFoodMenuAsSent } from '@/lib/actions/foodMenu.actions'
 import { revalidatePath } from 'next/cache'
 import MenuDeleteActions from '@/components/admin/MenuDeleteActions'
-import { Badge } from '@/components/ui/badge'
-import { AdminPageContent } from '@/components/admin/layout/AdminPageContent'
-import { AdminPageHeader } from '@/components/admin/layout/AdminPageHeader'
-import { AdminTableCard } from '@/components/admin/layout/AdminTableCard'
-import {
-  adminTableClassName,
-  adminTbodyRowClass,
-  adminTdClass,
-  adminThClass,
-  adminTheadRowClass,
-} from '@/lib/admin-ui'
-import { cn } from '@/lib/utils'
 
 const MenuActionButton = ({ menuId, status }: { menuId: string, status: string }) => {
   const handlePublish = async () => {
@@ -97,11 +85,9 @@ const FoodMenusPage = async () => {
   if (menusData.error) {
     return (
       <main className="admin-main">
-        <AdminPageContent>
-          <div className="rounded-xl border border-border/50 bg-card p-6 text-sm text-destructive shadow-sm ring-1 ring-border/30">
-            Error: {menusData.error}
-          </div>
-        </AdminPageContent>
+        <div className="mx-auto max-w-7xl">
+          <div className="text-red-500">Error: {menusData.error}</div>
+        </div>
       </main>
     )
   }
@@ -113,280 +99,230 @@ const FoodMenusPage = async () => {
 
   return (
     <main className="admin-main">
-      <AdminPageContent>
-        <AdminPageHeader
-          title="Weekly Menus"
-          description="Create menus, collect selections, and export vendor orders."
-          action={
-            <Link href="/admin/food-management/menus/new">
-              <Button className="shadow-sm">Create New Menu</Button>
-            </Link>
-          }
-        />
+      <div className="mx-auto max-w-7xl space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-semibold text-gray-800">Weekly Menu Management</h1>
+          <Link href="/admin/food-management/menus/new">
+            <Button>Create New Menu</Button>
+          </Link>
+        </div>
 
-        <div className="grid gap-6 md:grid-cols-4">
-          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
+        {/* Statistics */}
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-muted-foreground">Total Menus</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Menus</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold tracking-tight text-foreground">{menusData.totalMenus || 0}</div>
+              <div className="text-2xl font-bold">{menusData.totalMenus || 0}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
+
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-muted-foreground">Published</CardTitle>
+              <CardTitle className="text-sm font-medium">Published</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold tracking-tight text-foreground">{publishedMenus.length}</div>
+              <div className="text-2xl font-bold">{publishedMenus.length}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
+
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-muted-foreground">Closed</CardTitle>
+              <CardTitle className="text-sm font-medium">Closed</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold tracking-tight text-foreground">{closedMenus.length}</div>
+              <div className="text-2xl font-bold">{closedMenus.length}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
+
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-muted-foreground">Drafts</CardTitle>
+              <CardTitle className="text-sm font-medium">Drafts</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold tracking-tight text-foreground">{draftMenus.length}</div>
+              <div className="text-2xl font-bold">{draftMenus.length}</div>
             </CardContent>
           </Card>
         </div>
 
-        {menusData.totalMenus === 0 ? (
-          <Card className="border-border/50 shadow-sm ring-1 ring-border/30">
+        {/* Published Menus */}
+        {publishedMenus.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-green-700">Active Menus (Published)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {publishedMenus.map((menu) => (
+                  <div
+                    key={menu.id}
+                    className="flex justify-between items-start p-4 border rounded-lg bg-green-50 border-green-200"
+                  >
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold">{menu.vendor.name}</h3>
+                      <div className="mt-2 space-y-1 text-sm text-gray-600">
+                        <p className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Week: {new Date(menu.weekStartDate).toLocaleDateString()} - {new Date(menu.weekEndDate).toLocaleDateString()}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Deadline: {new Date(menu.selectionCloseDate).toLocaleString()}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          {menu._count?.selections || 0} selections made
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {menu.menuItems.length} menu items across the week
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 items-start">
+                      <MenuActionButton menuId={menu.id!} status={menu.status} />
+                      <MenuDeleteActions
+                        menuId={menu.id!}
+                        menuTitle={`${menu.vendor.name} - ${new Date(menu.weekStartDate).toLocaleDateString()}`}
+                        status={menu.status}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Closed Menus */}
+        {closedMenus.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-orange-700">Closed Menus (Ready to Export)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {closedMenus.map((menu) => (
+                  <div
+                    key={menu.id}
+                    className="flex justify-between items-start p-4 border rounded-lg bg-orange-50 border-orange-200"
+                  >
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold">{menu.vendor.name}</h3>
+                      <div className="mt-2 space-y-1 text-sm text-gray-600">
+                        <p className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Week: {new Date(menu.weekStartDate).toLocaleDateString()} - {new Date(menu.weekEndDate).toLocaleDateString()}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          {menu._count?.selections || 0} total selections
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 items-start">
+                      <MenuActionButton menuId={menu.id!} status={menu.status} />
+                      <MenuDeleteActions
+                        menuId={menu.id!}
+                        menuTitle={`${menu.vendor.name} - ${new Date(menu.weekStartDate).toLocaleDateString()}`}
+                        status={menu.status}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Draft Menus */}
+        {draftMenus.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-gray-700">Draft Menus</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {draftMenus.map((menu) => (
+                  <div
+                    key={menu.id}
+                    className="flex justify-between items-start p-3 border rounded-lg bg-gray-50"
+                  >
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{menu.vendor.name}</h4>
+                      <p className="text-sm text-gray-600">
+                        Week: {new Date(menu.weekStartDate).toLocaleDateString()} - {new Date(menu.weekEndDate).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {menu.menuItems.length} menu items
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Link href={`/admin/food-management/menus/${menu.id}/edit`}>
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                      </Link>
+                      <MenuDeleteActions
+                        menuId={menu.id!}
+                        menuTitle={`${menu.vendor.name} - ${new Date(menu.weekStartDate).toLocaleDateString()}`}
+                        status={menu.status}
+                      />
+                      <MenuActionButton menuId={menu.id!} status={menu.status} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Sent Menus (Archive) */}
+        {sentMenus.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-gray-500">Completed Menus (Sent to Vendor)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {sentMenus.slice(0, 5).map((menu) => (
+                  <div
+                    key={menu.id}
+                    className="flex justify-between items-center p-2 border rounded bg-white text-sm"
+                  >
+                    <div>
+                      <span className="font-medium">{menu.vendor.name}</span>
+                      <span className="text-gray-500 ml-2">
+                        {new Date(menu.weekStartDate).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <MenuActionButton menuId={menu.id!} status={menu.status} />
+                      <MenuDeleteActions
+                        menuId={menu.id!}
+                        menuTitle={`${menu.vendor.name} - ${new Date(menu.weekStartDate).toLocaleDateString()}`}
+                        status={menu.status}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {menusData.totalMenus === 0 && (
+          <Card>
             <CardContent className="text-center py-12">
-              <p className="text-muted-foreground mb-4">No menus created yet.</p>
+              <p className="text-gray-500 mb-4">No menus created yet</p>
               <Link href="/admin/food-management/menus/new">
-                <Button className="shadow-sm">Create Your First Menu</Button>
+                <Button>Create Your First Menu</Button>
               </Link>
             </CardContent>
           </Card>
-        ) : null}
-
-        {publishedMenus.length > 0 ? (
-          <AdminTableCard title="Published Menus">
-            <table className={adminTableClassName()}>
-              <thead>
-                <tr className={adminTheadRowClass}>
-                  <th className={adminThClass}>Vendor</th>
-                  <th className={cn(adminThClass, "hidden md:table-cell")}>Week</th>
-                  <th className={cn(adminThClass, "hidden lg:table-cell")}>Deadline</th>
-                  <th className={cn(adminThClass, "w-28 text-center")}>Selections</th>
-                  <th className={cn(adminThClass, "hidden lg:table-cell w-24 text-center")}>Items</th>
-                  <th className={cn(adminThClass, "w-28")}>Status</th>
-                  <th className={cn(adminThClass, "w-40 text-right")}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {publishedMenus.map((menu) => (
-                  <tr key={menu.id} className={adminTbodyRowClass}>
-                    <td className={adminTdClass}>
-                      <p className="font-semibold text-foreground">{menu.vendor.name}</p>
-                      <p className="text-xs text-muted-foreground md:hidden">
-                        {new Date(menu.weekStartDate).toLocaleDateString()} – {new Date(menu.weekEndDate).toLocaleDateString()}
-                      </p>
-                    </td>
-                    <td className={cn(adminTdClass, "hidden md:table-cell")}>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(menu.weekStartDate).toLocaleDateString()} – {new Date(menu.weekEndDate).toLocaleDateString()}
-                      </span>
-                    </td>
-                    <td className={cn(adminTdClass, "hidden lg:table-cell")}>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(menu.selectionCloseDate).toLocaleString()}
-                      </span>
-                    </td>
-                    <td className={cn(adminTdClass, "text-center")}>
-                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                        {menu._count?.selections || 0}
-                      </span>
-                    </td>
-                    <td className={cn(adminTdClass, "hidden lg:table-cell text-center")}>
-                      <span className="text-sm text-muted-foreground">{menu.menuItems.length}</span>
-                    </td>
-                    <td className={adminTdClass}>
-                      <Badge className="bg-primary/15 text-primary hover:bg-primary/15" variant="secondary">
-                        PUBLISHED
-                      </Badge>
-                    </td>
-                    <td className={cn(adminTdClass, "text-right")}>
-                      <div className="flex items-center justify-end gap-2">
-                        <MenuActionButton menuId={menu.id!} status={menu.status} />
-                        <MenuDeleteActions
-                          menuId={menu.id!}
-                          menuTitle={`${menu.vendor.name} - ${new Date(menu.weekStartDate).toLocaleDateString()}`}
-                          status={menu.status}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </AdminTableCard>
-        ) : null}
-
-        {closedMenus.length > 0 ? (
-          <AdminTableCard title="Closed Menus">
-            <table className={adminTableClassName()}>
-              <thead>
-                <tr className={adminTheadRowClass}>
-                  <th className={adminThClass}>Vendor</th>
-                  <th className={cn(adminThClass, "hidden md:table-cell")}>Week</th>
-                  <th className={cn(adminThClass, "w-28 text-center")}>Selections</th>
-                  <th className={cn(adminThClass, "w-28")}>Status</th>
-                  <th className={cn(adminThClass, "w-40 text-right")}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {closedMenus.map((menu) => (
-                  <tr key={menu.id} className={adminTbodyRowClass}>
-                    <td className={adminTdClass}>
-                      <p className="font-semibold text-foreground">{menu.vendor.name}</p>
-                      <p className="text-xs text-muted-foreground md:hidden">
-                        {new Date(menu.weekStartDate).toLocaleDateString()} – {new Date(menu.weekEndDate).toLocaleDateString()}
-                      </p>
-                    </td>
-                    <td className={cn(adminTdClass, "hidden md:table-cell")}>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(menu.weekStartDate).toLocaleDateString()} – {new Date(menu.weekEndDate).toLocaleDateString()}
-                      </span>
-                    </td>
-                    <td className={cn(adminTdClass, "text-center")}>
-                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-500/15 text-amber-700 text-xs font-bold">
-                        {menu._count?.selections || 0}
-                      </span>
-                    </td>
-                    <td className={adminTdClass}>
-                      <Badge className="bg-amber-500/15 text-amber-700 hover:bg-amber-500/15" variant="secondary">
-                        CLOSED
-                      </Badge>
-                    </td>
-                    <td className={cn(adminTdClass, "text-right")}>
-                      <div className="flex items-center justify-end gap-2">
-                        <MenuActionButton menuId={menu.id!} status={menu.status} />
-                        <MenuDeleteActions
-                          menuId={menu.id!}
-                          menuTitle={`${menu.vendor.name} - ${new Date(menu.weekStartDate).toLocaleDateString()}`}
-                          status={menu.status}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </AdminTableCard>
-        ) : null}
-
-        {draftMenus.length > 0 ? (
-          <AdminTableCard title="Draft Menus">
-            <table className={adminTableClassName()}>
-              <thead>
-                <tr className={adminTheadRowClass}>
-                  <th className={adminThClass}>Vendor</th>
-                  <th className={cn(adminThClass, "hidden md:table-cell")}>Week</th>
-                  <th className={cn(adminThClass, "hidden lg:table-cell w-24 text-center")}>Items</th>
-                  <th className={cn(adminThClass, "w-28")}>Status</th>
-                  <th className={cn(adminThClass, "w-56 text-right")}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {draftMenus.map((menu) => (
-                  <tr key={menu.id} className={adminTbodyRowClass}>
-                    <td className={adminTdClass}>
-                      <p className="font-semibold text-foreground">{menu.vendor.name}</p>
-                      <p className="text-xs text-muted-foreground md:hidden">
-                        {new Date(menu.weekStartDate).toLocaleDateString()} – {new Date(menu.weekEndDate).toLocaleDateString()}
-                      </p>
-                    </td>
-                    <td className={cn(adminTdClass, "hidden md:table-cell")}>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(menu.weekStartDate).toLocaleDateString()} – {new Date(menu.weekEndDate).toLocaleDateString()}
-                      </span>
-                    </td>
-                    <td className={cn(adminTdClass, "hidden lg:table-cell text-center")}>
-                      <span className="text-sm text-muted-foreground">{menu.menuItems.length}</span>
-                    </td>
-                    <td className={adminTdClass}>
-                      <Badge variant="secondary" className="bg-muted text-muted-foreground hover:bg-muted">
-                        DRAFT
-                      </Badge>
-                    </td>
-                    <td className={cn(adminTdClass, "text-right")}>
-                      <div className="flex items-center justify-end gap-2">
-                        <Link href={`/admin/food-management/menus/${menu.id}/edit`}>
-                          <Button variant="outline" size="sm" className="shadow-sm">
-                            <Edit className="h-4 w-4" />
-                            Edit
-                          </Button>
-                        </Link>
-                        <MenuActionButton menuId={menu.id!} status={menu.status} />
-                        <MenuDeleteActions
-                          menuId={menu.id!}
-                          menuTitle={`${menu.vendor.name} - ${new Date(menu.weekStartDate).toLocaleDateString()}`}
-                          status={menu.status}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </AdminTableCard>
-        ) : null}
-
-        {sentMenus.length > 0 ? (
-          <AdminTableCard title="Sent Menus">
-            <table className={adminTableClassName()}>
-              <thead>
-                <tr className={adminTheadRowClass}>
-                  <th className={adminThClass}>Vendor</th>
-                  <th className={cn(adminThClass, "hidden md:table-cell")}>Week</th>
-                  <th className={cn(adminThClass, "w-28")}>Status</th>
-                  <th className={cn(adminThClass, "w-40 text-right")}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sentMenus.slice(0, 10).map((menu) => (
-                  <tr key={menu.id} className={adminTbodyRowClass}>
-                    <td className={adminTdClass}>
-                      <p className="font-semibold text-foreground">{menu.vendor.name}</p>
-                    </td>
-                    <td className={cn(adminTdClass, "hidden md:table-cell")}>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(menu.weekStartDate).toLocaleDateString()} – {new Date(menu.weekEndDate).toLocaleDateString()}
-                      </span>
-                    </td>
-                    <td className={adminTdClass}>
-                      <Badge variant="secondary" className="bg-muted text-muted-foreground hover:bg-muted">
-                        SENT
-                      </Badge>
-                    </td>
-                    <td className={cn(adminTdClass, "text-right")}>
-                      <div className="flex items-center justify-end gap-2">
-                        <MenuActionButton menuId={menu.id!} status={menu.status} />
-                        <MenuDeleteActions
-                          menuId={menu.id!}
-                          menuTitle={`${menu.vendor.name} - ${new Date(menu.weekStartDate).toLocaleDateString()}`}
-                          status={menu.status}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </AdminTableCard>
-        ) : null}
-      </AdminPageContent>
+        )}
+      </div>
     </main>
   )
 }

@@ -55,7 +55,7 @@ export function ProfileChecker() {
 
         const user = sessionUser
 
-        // Profile completion is surfaced as UI state on `/dawf` instead of forcing
+        // Profile completion is surfaced as UI state on `/home` instead of forcing
         // navigation to a dedicated completion route.
       } catch (error) {
         console.error("Error checking profile:", error)

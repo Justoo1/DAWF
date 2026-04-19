@@ -3,6 +3,7 @@ import Image from "next/image"
 import { type ReactNode } from "react"
 import { Home } from 'lucide-react'
 import Link from "next/link"
+import { COMPANY_LEGAL_NAME, PLATFORM_NAME } from "@/lib/brand"
 
 interface AuthLayoutProps {
   children: ReactNode
@@ -68,15 +69,15 @@ const AuthLayout = ({ children, description, secondaryDescription, teamImage, cl
           <div className="hidden lg:flex flex-col justify-center space-y-6 text-white pl-8">
             <div className="flex items-center gap-6">
               <div className="space-y-1">
-                <h2 className="text-5xl font-black tracking-tighter leading-tight">DAWF</h2>
+                <h2 className="text-3xl font-black tracking-tighter leading-tight">{PLATFORM_NAME}</h2>
                 <div className="text-sm font-bold tracking-[0.1em] text-white/80 uppercase">
-                  DEVOPS AFRICA LTD <br /> WELFARE PROGRAM
+                  {COMPANY_LEGAL_NAME}
                 </div>
               </div>
               <div className="relative size-24 bg-[#10A074] rounded-full flex items-center justify-center overflow-hidden">
                 <Image
                   src="/assets/images/logo.png"
-                  alt="DEVOPS AFRICA logo"
+                  alt="DevOps Africa logo"
                   width={120}
                   height={120}
                   className="object-contain brightness-0 invert opacity-40 scale-150"
@@ -103,7 +104,7 @@ const AuthLayout = ({ children, description, secondaryDescription, teamImage, cl
       {/* Footer */}
       <footer className="absolute bottom-8 left-8 md:left-16 z-10">
         <p className="text-white/40 text-sm font-medium">
-          <Link href="#" className="hover:text-white underline decoration-white/20 underline-offset-4 transition-colors">Devops Africa Team</Link> © All Rights Reserved.
+          <Link href="#" className="hover:text-white underline decoration-white/20 underline-offset-4 transition-colors">DevOps Africa Team</Link> © All Rights Reserved.
         </p>
       </footer>
     </div>

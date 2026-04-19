@@ -35,6 +35,13 @@ export function getAuthAppOrigin(): string {
   return normalizeToOrigin(getAuthEnvCandidate() ?? "http://localhost:3000");
 }
 
+/** Absolute URL for a path on this app (emails, notifications). */
+export function getAuthAppUrl(path: string): string {
+  const origin = getAuthAppOrigin().replace(/\/+$/, "");
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return `${origin}${p}`;
+}
+
 /** Browser: inlined `NEXT_PUBLIC_*` or current origin; server: same as `getAuthAppOrigin`. */
 export function getAuthClientBaseURL(): string {
   if (typeof window !== "undefined") {

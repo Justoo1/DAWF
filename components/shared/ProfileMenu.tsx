@@ -182,7 +182,7 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
 
           <div className="mt-6 flex justify-center border-t border-border pt-4 dark:border-zinc-800">
             <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground">
-              DEVOPS AFRICA Welfare System
+              DevOps Africa Management System
             </span>
           </div>
         </div>

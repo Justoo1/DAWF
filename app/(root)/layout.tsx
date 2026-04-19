@@ -1,10 +1,11 @@
 import Footer from "@/components/shared/Footer";
 import { Navbar } from "@/components/shared/Navbar";
+import { PLATFORM_NAME } from "@/lib/brand";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Dashboard",
-  description: "DEVOPS AFRICA Welfare Fund Dashboard",
+  description: `${PLATFORM_NAME} dashboard`,
 };
 
 export default function Layout({

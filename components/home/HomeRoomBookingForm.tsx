@@ -4,7 +4,7 @@ import BookingForm from "@/components/shared/BookingForm";
 import { ConferenceRoomValues } from "@/lib/validation";
 import { useRouter } from "next/navigation";
 
-export function DawfRoomBookingForm({
+export function HomeRoomBookingForm({
   userId,
   rooms,
 }: {

@@ -1,6 +1,9 @@
 // Email Templates
 // These are pure functions that return HTML strings for emails
 
+import { getAuthAppUrl } from "./auth-app-url";
+import { COMPANY_LEGAL_NAME, PLATFORM_NAME, PLATFORM_SHORT_NAME } from "./brand";
+
 export function birthdayWishTemplate(employeeName: string) {
   return `
     <!DOCTYPE html>
@@ -18,7 +21,7 @@ export function birthdayWishTemplate(employeeName: string) {
           <p style="font-size: 18px; margin-bottom: 20px;">Dear ${employeeName},</p>
 
           <p style="font-size: 16px; margin-bottom: 20px;">
-            🎂 Wishing you a very happy birthday from all of us at DEVOPS AFRICA Limited!
+            🎂 Wishing you a very happy birthday from all of us at ${COMPANY_LEGAL_NAME}!
           </p>
 
           <p style="font-size: 16px; margin-bottom: 20px;">
@@ -32,7 +35,7 @@ export function birthdayWishTemplate(employeeName: string) {
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best wishes,<br>
-              <strong>DEVOPS AFRICA Welfare Fund</strong>
+              <strong>${PLATFORM_NAME}</strong>
             </p>
           </div>
         </div>
@@ -72,7 +75,7 @@ export function childbirthCongratulationsTemplate(parentName: string) {
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               With love and best wishes,<br>
-              <strong>DEVOPS AFRICA Welfare Fund</strong>
+              <strong>${PLATFORM_NAME}</strong>
             </p>
           </div>
         </div>
@@ -113,7 +116,7 @@ export function childbirthAnnouncementTemplate(parentName: string, _allEmployees
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DEVOPS AFRICA Welfare Fund</strong>
+              <strong>${PLATFORM_NAME}</strong>
             </p>
           </div>
         </div>
@@ -153,7 +156,7 @@ export function marriageCongratulationsTemplate(employeeName: string) {
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               With warmest wishes,<br>
-              <strong>DEVOPS AFRICA Welfare Fund</strong>
+              <strong>${PLATFORM_NAME}</strong>
             </p>
           </div>
         </div>
@@ -193,7 +196,7 @@ export function marriageAnnouncementTemplate(employeeName: string) {
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DEVOPS AFRICA Welfare Fund</strong>
+              <strong>${PLATFORM_NAME}</strong>
             </p>
           </div>
         </div>
@@ -237,7 +240,7 @@ export function upcomingEventTemplate(eventTitle: string, eventType: string, eve
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DEVOPS AFRICA Welfare Fund</strong>
+              <strong>${PLATFORM_NAME}</strong>
             </p>
           </div>
         </div>
@@ -327,7 +330,7 @@ export function conferenceRoomBookingTemplate(
           </div>
 
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://dawf.edtmsys.com/events" style="display: inline-block; background: linear-gradient(135deg, #10A074 0%, #2F7A67 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <a href="${getAuthAppUrl("/events")}" style="display: inline-block; background: linear-gradient(135deg, #10A074 0%, #2F7A67 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
               📅 View Calendar
             </a>
           </div>
@@ -335,7 +338,7 @@ export function conferenceRoomBookingTemplate(
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DEVOPS AFRICA Welfare Fund</strong>
+              <strong>${PLATFORM_NAME}</strong>
             </p>
           </div>
         </div>
@@ -393,7 +396,7 @@ export function monthlySummaryTemplate(
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DEVOPS AFRICA Welfare Fund</strong>
+              <strong>${PLATFORM_NAME}</strong>
             </p>
           </div>
         </div>
@@ -459,7 +462,7 @@ export function roomBookingApprovedTemplate(
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DEVOPS AFRICA Welfare Fund</strong>
+              <strong>${PLATFORM_NAME}</strong>
             </p>
           </div>
         </div>
@@ -531,7 +534,7 @@ export function roomBookingRejectedTemplate(
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DEVOPS AFRICA Welfare Fund</strong>
+              <strong>${PLATFORM_NAME}</strong>
             </p>
           </div>
         </div>
@@ -599,7 +602,7 @@ export function leaveRequestApprovedTemplate(
           </div>
 
           <p style="font-size: 16px; margin-bottom: 20px;">
-            You can review this and your other requests anytime in DAWF.
+            You can review this and your other requests anytime in ${PLATFORM_NAME}.
           </p>
 
           <div style="text-align: center; margin: 24px 0;">
@@ -611,7 +614,7 @@ export function leaveRequestApprovedTemplate(
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DEVOPS AFRICA Welfare Fund</strong>
+              <strong>${PLATFORM_NAME}</strong>
             </p>
           </div>
         </div>
@@ -686,7 +689,7 @@ export function leaveRequestRejectedTemplate(
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DEVOPS AFRICA Welfare Fund</strong>
+              <strong>${PLATFORM_NAME}</strong>
             </p>
           </div>
         </div>
@@ -774,7 +777,7 @@ export function roomBookingPendingApprovalTemplate(
           </p>
 
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://dawf.edtmsys.com/approvals" style="display: inline-block; background: linear-gradient(135deg, #10A074 0%, #2F7A67 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <a href="${getAuthAppUrl("/approvals")}" style="display: inline-block; background: linear-gradient(135deg, #10A074 0%, #2F7A67 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
               ✅ Review Request
             </a>
           </div>
@@ -788,7 +791,7 @@ export function roomBookingPendingApprovalTemplate(
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DEVOPS AFRICA Welfare Fund</strong>
+              <strong>${PLATFORM_NAME}</strong>
             </p>
           </div>
         </div>
@@ -871,7 +874,7 @@ export function foodMenuPublishedTemplate({
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DEVOPS AFRICA Food Committee</strong>
+              <strong>${PLATFORM_SHORT_NAME} Food Committee</strong>
             </p>
           </div>
         </div>
@@ -937,7 +940,7 @@ export function foodSelectionReminderTemplate({
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #f59e0b;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Best regards,<br>
-              <strong>DEVOPS AFRICA Food Committee</strong>
+              <strong>${PLATFORM_SHORT_NAME} Food Committee</strong>
             </p>
           </div>
         </div>
@@ -1001,7 +1004,7 @@ export function foodSelectionConfirmedTemplate({
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #10A074;">
             <p style="font-size: 14px; color: #666; margin: 0;">
               Thank you,<br>
-              <strong>DEVOPS AFRICA Food Committee</strong>
+              <strong>${PLATFORM_SHORT_NAME} Food Committee</strong>
             </p>
           </div>
         </div>

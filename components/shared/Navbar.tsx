@@ -63,7 +63,7 @@ export const Navbar = () => {
   const linkActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(`${href}/`))
 
-  if (pathname === '/dawf') return null;
+  if (pathname === "/home") return null;
 
   return (
     <>
