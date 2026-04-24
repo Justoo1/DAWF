@@ -6,7 +6,7 @@ import { createNotification } from "./notification.actions";
 import { sendEmail } from "../email";
 import { foodSelectionConfirmedTemplate } from "../email-templates";
 import { requireAuth, requireAuthenticatedUser, requireFoodCommitteeOrAdmin } from '@/lib/security';
-import { isValidUUID, sanitizeText } from '@/lib/utils/validators';
+import { isValidPrismaId, sanitizeText } from '@/lib/utils/validators';
 
 // ============================================
 // FOOD SELECTION MANAGEMENT
@@ -22,7 +22,7 @@ export async function fetchUserFoodSelections(userId: string, menuId: string) {
       return { error: 'Unauthorized: You can only access your own selections' };
     }
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     
@@ -51,7 +51,7 @@ export async function fetchAllSelectionsForMenu(menuId: string) {
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     
@@ -101,11 +101,11 @@ export async function createOrUpdateFoodSelection(
       return { error: 'Unauthorized: You can only modify your own selections' };
     }
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     
-    if (selectionData.menuItemId && !isValidUUID(selectionData.menuItemId)) {
+    if (selectionData.menuItemId && !isValidPrismaId(selectionData.menuItemId)) {
       return { error: 'Invalid menu item ID' };
     }
     
@@ -218,12 +218,12 @@ export async function createBulkFoodSelections(
       return { error: 'Unauthorized: You can only modify your own selections' };
     }
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     
     for (const selection of data.selections) {
-      if (selection.menuItemId && !isValidUUID(selection.menuItemId)) {
+      if (selection.menuItemId && !isValidPrismaId(selection.menuItemId)) {
         return { error: 'Invalid menu item ID' };
       }
     }
@@ -351,7 +351,7 @@ export async function deleteFoodSelection(userId: string, menuId: string, dayOfW
       return { error: 'Unauthorized: You can only delete your own selections' };
     }
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     
@@ -399,7 +399,7 @@ export async function getMenuOrderSummary(menuId: string) {
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     
@@ -501,7 +501,7 @@ export async function getSelectionStatistics(menuId: string) {
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     
@@ -560,16 +560,16 @@ export async function adminCreateBulkFoodSelections(
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(targetUserId)) {
+    if (!isValidPrismaId(targetUserId)) {
       return { error: 'Invalid target user ID' };
     }
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     
     for (const selection of data.selections) {
-      if (selection.menuItemId && !isValidUUID(selection.menuItemId)) {
+      if (selection.menuItemId && !isValidPrismaId(selection.menuItemId)) {
         return { error: 'Invalid menu item ID' };
       }
     }
@@ -670,7 +670,7 @@ export async function getEmployeesWithoutSelections(menuId: string) {
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     

@@ -7,7 +7,7 @@ import { createNotificationForAllUsers, createNotification, createNotificationFo
 import { sendEmail, conferenceRoomBookingTemplate, roomBookingApprovedTemplate, roomBookingRejectedTemplate } from '../email';
 import { getPublicCalendarQueryRange } from '@/lib/calendar-range';
 import { requireAuth, requireAuthenticatedUser, requireAdmin } from '@/lib/security';
-import { isValidUUID, sanitizeText } from '@/lib/utils/validators';
+import { isValidPrismaId, sanitizeText } from '@/lib/utils/validators';
 
 // ============================================
 // CONFERENCE ROOM MANAGEMENT
@@ -88,7 +88,7 @@ export async function updateConferenceRoom(roomId: string, room: Omit<Conference
   try {
     await requireAdmin();
     
-    if (!isValidUUID(roomId)) {
+    if (!isValidPrismaId(roomId)) {
       return { error: 'Invalid room ID' };
     }
 
@@ -118,7 +118,7 @@ export async function deleteConferenceRoom(roomId: string) {
   try {
     await requireAdmin();
     
-    if (!isValidUUID(roomId)) {
+    if (!isValidPrismaId(roomId)) {
       return { error: 'Invalid room ID' };
     }
 
@@ -417,7 +417,7 @@ export async function fetchConferenceRoomDaySlots(
 export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 'status'> & { userId: string }) {
   try {
     // Validate inputs
-    if (!isValidUUID(booking.roomId)) {
+    if (!isValidPrismaId(booking.roomId)) {
       return { error: 'Invalid room ID' };
     }
     
@@ -619,7 +619,7 @@ export async function cancelBooking(bookingId: string) {
   try {
     const user = await requireAuthenticatedUser();
     
-    if (!isValidUUID(bookingId)) {
+    if (!isValidPrismaId(bookingId)) {
       return { error: 'Invalid booking ID' };
     }
 
@@ -663,7 +663,7 @@ export async function deleteBooking(bookingId: string) {
   try {
     await requireAdmin();
     
-    if (!isValidUUID(bookingId)) {
+    if (!isValidPrismaId(bookingId)) {
       return { error: 'Invalid booking ID' };
     }
 
@@ -691,7 +691,7 @@ export async function approveBooking(bookingId: string) {
   try {
     const approver = await requireAuthenticatedUser();
     
-    if (!isValidUUID(bookingId)) {
+    if (!isValidPrismaId(bookingId)) {
       return { error: 'Invalid booking ID' };
     }
 
@@ -845,7 +845,7 @@ export async function rejectBooking(bookingId: string, rejectionReason: string) 
   try {
     const approver = await requireAuthenticatedUser();
     
-    if (!isValidUUID(bookingId)) {
+    if (!isValidPrismaId(bookingId)) {
       return { error: 'Invalid booking ID' };
     }
 

@@ -7,7 +7,7 @@ import { getAuthAppUrl } from "../auth-app-url";
 import { sendEmail } from "../email";
 import { foodMenuPublishedTemplate, foodSelectionReminderTemplate } from "../email-templates";
 import { requireFoodCommitteeOrAdmin, requireAuthenticatedUser } from '@/lib/security';
-import { isValidUUID, sanitizeText } from '@/lib/utils/validators';
+import { isValidPrismaId, sanitizeText } from '@/lib/utils/validators';
 
 // ============================================
 // WEEKLY FOOD MENU MANAGEMENT
@@ -42,7 +42,7 @@ export async function fetchAllFoodMenus() {
 
 export async function fetchFoodMenuById(menuId: string) {
   try {
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     
@@ -131,7 +131,7 @@ export async function createFoodMenu(data: CreateMenuData) {
     
     const user = await requireAuthenticatedUser();
     
-    if (!isValidUUID(data.vendorId)) {
+    if (!isValidPrismaId(data.vendorId)) {
       return { error: 'Invalid vendor ID' };
     }
     
@@ -154,7 +154,7 @@ export async function createFoodMenu(data: CreateMenuData) {
         ...item,
         itemName: sanitizeText(item.itemName),
         description: item.description ? sanitizeText(item.description) : null,
-        foodId: item.foodId && isValidUUID(item.foodId) ? item.foodId : null
+        foodId: item.foodId && isValidPrismaId(item.foodId) ? item.foodId : null
       }))
     };
     
@@ -197,11 +197,11 @@ export async function updateFoodMenu(menuId: string, data: CreateMenuData) {
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     
-    if (!isValidUUID(data.vendorId)) {
+    if (!isValidPrismaId(data.vendorId)) {
       return { error: 'Invalid vendor ID' };
     }
     
@@ -224,7 +224,7 @@ export async function updateFoodMenu(menuId: string, data: CreateMenuData) {
         ...item,
         itemName: sanitizeText(item.itemName),
         description: item.description ? sanitizeText(item.description) : null,
-        foodId: item.foodId && isValidUUID(item.foodId) ? item.foodId : null
+        foodId: item.foodId && isValidPrismaId(item.foodId) ? item.foodId : null
       }))
     };
     
@@ -285,7 +285,7 @@ export async function publishFoodMenu(menuId: string) {
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     
@@ -375,7 +375,7 @@ export async function closeFoodMenuSelection(menuId: string) {
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     
@@ -397,7 +397,7 @@ export async function markFoodMenuAsSent(menuId: string) {
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     
@@ -418,7 +418,7 @@ export async function revertMenuToDraft(menuId: string) {
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     
@@ -452,7 +452,7 @@ export async function deleteFoodMenu(menuId: string) {
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(menuId)) {
+    if (!isValidPrismaId(menuId)) {
       return { error: 'Invalid menu ID' };
     }
     

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import prisma from "../prisma";
 import { FoodVendor } from "../validation";
 import { requireFoodCommitteeOrAdmin } from '@/lib/security';
-import { isValidUUID, sanitizeText } from '@/lib/utils/validators';
+import { isValidPrismaId, sanitizeText } from '@/lib/utils/validators';
 
 // ============================================
 // FOOD VENDOR MANAGEMENT
@@ -47,7 +47,7 @@ export async function fetchAllFoodVendorsIncludingInactive() {
 
 export async function fetchFoodVendorById(vendorId: string) {
   try {
-    if (!isValidUUID(vendorId)) {
+    if (!isValidPrismaId(vendorId)) {
       return { error: 'Invalid vendor ID' };
     }
     
@@ -107,7 +107,7 @@ export async function updateFoodVendor(vendorId: string, vendor: Omit<FoodVendor
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(vendorId)) {
+    if (!isValidPrismaId(vendorId)) {
       return { error: 'Invalid vendor ID' };
     }
     
@@ -143,7 +143,7 @@ export async function deleteFoodVendor(vendorId: string) {
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(vendorId)) {
+    if (!isValidPrismaId(vendorId)) {
       return { error: 'Invalid vendor ID' };
     }
     
@@ -165,7 +165,7 @@ export async function reactivateFoodVendor(vendorId: string) {
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(vendorId)) {
+    if (!isValidPrismaId(vendorId)) {
       return { error: 'Invalid vendor ID' };
     }
     
@@ -187,7 +187,7 @@ export async function setFoodVendorActive(vendorId: string, isActive: boolean) {
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(vendorId)) {
+    if (!isValidPrismaId(vendorId)) {
       return { error: 'Invalid vendor ID' };
     }
     
@@ -212,7 +212,7 @@ export async function permanentlyDeleteFoodVendor(vendorId: string) {
   try {
     await requireFoodCommitteeOrAdmin();
     
-    if (!isValidUUID(vendorId)) {
+    if (!isValidPrismaId(vendorId)) {
       return { success: false as const, error: 'Invalid vendor ID' };
     }
     
