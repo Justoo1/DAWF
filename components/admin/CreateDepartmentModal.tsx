@@ -190,11 +190,11 @@ export default function CreateDepartmentModal() {
         throw new Error(deptRes.error || "Failed to create department");
       }
 
-      const assigned =
-        selectedMembers.length + (managerId && !selectedMemberIds.has(managerId) ? 1 : 0);
+      const linkedIds = new Set(selectedMembers.map((m) => m.id));
+      if (managerId) linkedIds.add(managerId);
       const assignNote =
-        assigned > 0
-          ? ` ${assigned} employee(s) linked to this department.`
+        linkedIds.size > 0
+          ? ` ${linkedIds.size} employee(s) linked to this department.`
           : "";
 
       toast({
@@ -358,6 +358,89 @@ export default function CreateDepartmentModal() {
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="space-y-3 border-t border-border/60 pt-6">
+            <Label>Assign employees</Label>
+            <p className="text-xs text-muted-foreground">
+              Optional. Active employees on the selected client can be added to this
+              department now. The manager is included automatically if not already
+              listed.
+            </p>
+
+            <div className="relative">
+              <Input
+                value={memberSearch}
+                onChange={(e) => setMemberSearch(e.target.value)}
+                className="h-11 rounded-lg"
+                placeholder={
+                  clientId
+                    ? "Search employees to add…"
+                    : "Select a client first"
+                }
+                leftIcon={<Search className="h-4 w-4" />}
+                disabled={isSubmitting || !clientId || employeesLoading}
+              />
+            </div>
+
+            {memberSearch.trim() && filteredMemberSearch.length > 0 && (
+              <div className="overflow-hidden rounded-lg border border-border bg-background shadow-sm">
+                {filteredMemberSearch.map((emp) => (
+                  <button
+                    key={emp.id}
+                    type="button"
+                    onClick={() => toggleMember(emp)}
+                    className="flex w-full flex-col border-b px-4 py-3 text-left text-sm transition-colors last:border-b-0 hover:bg-muted/50"
+                  >
+                    <span className="font-semibold">{emp.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {emp.email}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Selected ({selectedMembers.length})
+              </p>
+              {selectedMembers.length === 0 ? (
+                <p className="rounded-lg border border-dashed py-6 text-center text-sm text-muted-foreground">
+                  No additional employees yet.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {selectedMembers.map((emp) => (
+                    <li
+                      key={emp.id}
+                      className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/30 p-3"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                        <User className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">{emp.name}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {emp.email}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeMember(emp.id)}
+                        disabled={isSubmitting}
+                        aria-label={`Remove ${emp.name}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
 
