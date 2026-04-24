@@ -174,7 +174,7 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
               <SelectTrigger
                 className={cn(
                   adminFilterSelectTriggerClass,
-                  "h-11 rounded-xl border-slate-100 dark:border-zinc-700 ring-offset-0 focus:ring-1 focus:ring-[#10A074] dark:focus:ring-emerald-500"
+                  "h-11 rounded-xl border-slate-100 dark:border-zinc-700 ring-offset-0 focus:ring-1 focus:ring-[#10b981] dark:focus:ring-emerald-500"
                 )}
               >
                 <SelectValue placeholder="Select year" />
@@ -192,7 +192,7 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
               <SelectTrigger
                 className={cn(
                   adminFilterSelectTriggerClass,
-                  "h-11 rounded-xl border-slate-100 dark:border-zinc-700 ring-offset-0 focus:ring-1 focus:ring-[#10A074] dark:focus:ring-emerald-500"
+                  "h-11 rounded-xl border-slate-100 dark:border-zinc-700 ring-offset-0 focus:ring-1 focus:ring-[#10b981] dark:focus:ring-emerald-500"
                 )}
               >
                 <SelectValue placeholder="Select HR Group" />
@@ -208,7 +208,7 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
 
           <Button 
             onClick={handleApplyFilters}
-            className="h-11 px-8 rounded-xl bg-[#10A074] hover:bg-[#10A074]/90 text-white font-medium shadow-sm transition-all"
+            className="h-11 px-8 rounded-xl bg-[#10b981] hover:bg-[#10b981]/90 text-white font-medium shadow-sm transition-all"
           >
             Apply Filters <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
@@ -227,9 +227,9 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
               <div className="flex flex-col gap-4">
                   <h2 className="text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-100">{viewTitle}</h2>
                   <div className="flex flex-wrap gap-2">
-                      <div className="flex items-center gap-2 bg-[#10A074]/10 dark:bg-emerald-500/15 px-4 py-1.5 rounded-xl border border-[#10A074]/20 dark:border-emerald-500/30">
-                          <div className="w-2 h-2 rounded-full bg-[#10A074] dark:bg-emerald-400" />
-                          <span className="text-[12px] font-bold text-[#10A074] dark:text-emerald-400 uppercase tracking-wider">Total Headcount: {totalHeadcount}</span>
+                      <div className="flex items-center gap-2 bg-[#10b981]/10 dark:bg-emerald-500/15 px-4 py-1.5 rounded-xl border border-[#10b981]/20 dark:border-emerald-500/30">
+                          <div className="w-2 h-2 rounded-full bg-[#10b981] dark:bg-emerald-400" />
+                          <span className="text-[12px] font-bold text-[#10b981] dark:text-emerald-400 uppercase tracking-wider">Total Headcount: {totalHeadcount}</span>
                       </div>
                       <div className="flex items-center gap-2 bg-rose-50 dark:bg-rose-950/40 px-4 py-1.5 rounded-xl border border-rose-100 dark:border-rose-900/50">
                           <div className="w-2 h-2 rounded-full bg-rose-500" />
@@ -243,16 +243,16 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
                   variant="ghost" 
                   size="sm" 
                   onClick={handleToday}
-                  className="h-9 px-4 rounded-xl text-slate-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800 hover:text-[#10A074] dark:hover:text-emerald-400 transition-all font-bold text-xs"
+                  className="h-9 px-4 rounded-xl text-slate-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800 hover:text-[#10b981] dark:hover:text-emerald-400 transition-all font-bold text-xs"
                 >
                   today
                 </Button>
                 <div className="w-[1px] h-4 bg-slate-200 dark:bg-zinc-700 mx-1" />
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={handlePrev} className="h-9 w-9 rounded-xl text-slate-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800 hover:text-[#10A074] dark:hover:text-emerald-400 transition-all">
+                  <Button variant="ghost" size="icon" onClick={handlePrev} className="h-9 w-9 rounded-xl text-slate-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800 hover:text-[#10b981] dark:hover:text-emerald-400 transition-all">
                     <ChevronLeft className="h-5 w-5" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={handleNext} className="h-9 w-9 rounded-xl text-slate-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800 hover:text-[#10A074] dark:hover:text-emerald-400 transition-all">
+                  <Button variant="ghost" size="icon" onClick={handleNext} className="h-9 w-9 rounded-xl text-slate-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800 hover:text-[#10b981] dark:hover:text-emerald-400 transition-all">
                     <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
@@ -303,8 +303,8 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
                             className="rounded-xl border-none bg-slate-900/95 p-3 text-white shadow-2xl backdrop-blur-md"
                           >
                             <div className="max-w-[220px] space-y-2">
-                              <p className="mb-1.5 flex items-center gap-2 border-b border-slate-700 pb-1 text-[10px] font-black uppercase tracking-widest text-[#10A074]">
-                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#10A074]" />
+                              <p className="mb-1.5 flex items-center gap-2 border-b border-slate-700 pb-1 text-[10px] font-black uppercase tracking-widest text-[#10b981]">
+                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#10b981]" />
                                 On leave this day
                               </p>
                               <ul className="grid gap-1">
@@ -379,7 +379,7 @@ export default function LeaveCalendar({ leaves, holidays, departments, totalHead
           background-color: #f8fafc !important;
         }
         .custom-calendar .fc-day-today .fc-daygrid-day-number {
-          color: #10A074 !important;
+          color: #10b981 !important;
         }
         .custom-calendar .headcount-banner,
         .custom-calendar .on-leave-banner {

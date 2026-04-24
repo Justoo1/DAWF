@@ -11,13 +11,13 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 20,
     borderBottom: 2,
-    borderBottomColor: '#10A074',
+    borderBottomColor: '#10b981',
     paddingBottom: 10,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#10A074',
+    color: '#10b981',
     marginBottom: 5,
   },
   subtitle: {
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   itemCount: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#10A074',
+    color: '#10b981',
   },
   employeeList: {
     paddingLeft: 15,

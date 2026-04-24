@@ -25,13 +25,13 @@ const AuthLayout = ({ children, description, secondaryDescription, teamImage, cl
       {/* Top Navigation */}
       <nav className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 py-6 md:px-16">
         <Link href="/" className="flex items-center gap-2 group transition-all">
-          <div className="p-1.5 rounded-md bg-[#10A074]/10">
-            <Home className="text-[#10A074] w-5 h-5" />
+          <div className="p-1.5 rounded-md bg-[#10b981]/10">
+            <Home className="text-[#10b981] w-5 h-5" />
           </div>
           <span className="text-white text-sm font-semibold tracking-[0.2em] uppercase">Home</span>
         </Link>
         <div className="flex items-center gap-8 md:gap-12">
-          <Link href="/public-calendar" className="text-white text-sm font-semibold tracking-[0.2em] uppercase hover:text-[#10A074] transition-colors">
+          <Link href="/public-calendar" className="text-white text-sm font-semibold tracking-[0.2em] uppercase hover:text-[#10b981] transition-colors">
             Events
           </Link>
         </div>
@@ -74,7 +74,7 @@ const AuthLayout = ({ children, description, secondaryDescription, teamImage, cl
                   {COMPANY_LEGAL_NAME}
                 </div>
               </div>
-              <div className="relative size-24 bg-[#10A074] rounded-full flex items-center justify-center overflow-hidden">
+              <div className="relative size-24 bg-[#10b981] rounded-full flex items-center justify-center overflow-hidden">
                 <Image
                   src="/assets/images/logo.png"
                   alt="DevOps Africa logo"

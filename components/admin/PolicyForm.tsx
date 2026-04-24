@@ -325,7 +325,7 @@ const PolicyForm = ({ userEmail, mode, initialData, onSuccess, onCancel }: Polic
         <Button
           type="submit"
           disabled={loading}
-          className="h-11 px-6 rounded-xl bg-[#10A074] hover:bg-[#0d8460] text-white font-bold uppercase tracking-widest text-[12px] transition-all shadow-md shadow-emerald-500/10"
+          className="h-11 px-6 rounded-xl bg-[#10b981] hover:bg-[#059669] text-white font-bold uppercase tracking-widest text-[12px] transition-all shadow-md shadow-emerald-500/10"
         >
           <Save className="h-4 w-4 mr-2" />
           {loading ? 'Saving...' : mode === 'create' ? 'Create Policy' : 'Update Policy'}

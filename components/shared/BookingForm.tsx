@@ -619,7 +619,7 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
                 ? "Fill required fields correctly"
                 : undefined
           }
-          className="w-full h-12 rounded-xl bg-[#10A074] hover:bg-[#0d8460] text-white font-bold uppercase tracking-widest text-[13px] transition-all shadow-md shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-60"
+          className="w-full h-12 rounded-xl bg-[#10b981] hover:bg-[#059669] text-white font-bold uppercase tracking-widest text-[13px] transition-all shadow-md shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-60"
         >
           {form.formState.isSubmitting ? "Booking…" : "Book conference room"}
         </Button>

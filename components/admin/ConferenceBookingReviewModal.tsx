@@ -239,7 +239,7 @@ export function ConferenceBookingReviewModal({
                   </Button>
                   <Button
                     type="button"
-                    className="rounded-xl bg-[#10A074] font-semibold hover:bg-[#0d8460]"
+                    className="rounded-xl bg-[#10b981] font-semibold hover:bg-[#059669]"
                     onClick={onApprove}
                     disabled={busy !== null}
                   >

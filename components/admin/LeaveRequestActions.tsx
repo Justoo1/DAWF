@@ -244,7 +244,7 @@ export default function LeaveRequestActions({
             <AlertDialogCancel disabled={busy === "approve"}>Cancel</AlertDialogCancel>
             <Button
               type="button"
-              className="bg-[#10A074] hover:bg-[#0d8a62] text-white"
+              className="bg-[#10b981] hover:bg-[#059669] text-white"
               disabled={busy === "approve"}
               onClick={(e) => {
                 e.preventDefault()

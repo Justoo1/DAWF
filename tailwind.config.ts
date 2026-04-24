@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import colors from "tailwindcss/colors";
 import animate from "tailwindcss-animate";
 
 export default {
@@ -54,7 +55,9 @@ export default {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
-  			}
+  			},
+  			/** Platform green: rgb(16 185 129) — same scale as emerald */
+  			green: colors.emerald,
   		},
 		backgroundImage: {
 			'bg-img': "url('/assets/images/bg.png')",

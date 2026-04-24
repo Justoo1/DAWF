@@ -54,7 +54,7 @@ export function AutomateContributionsButton() {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="outline" className="border-[#10A074] text-[#10A074] hover:bg-[#10A074]/10">
+        <Button variant="outline" className="border-[#10b981] text-[#10b981] hover:bg-[#10b981]/10">
           <Calculator className="mr-2 h-4 w-4" />
           Generate This Month
         </Button>
@@ -71,7 +71,7 @@ export function AutomateContributionsButton() {
           <AlertDialogAction 
             onClick={handleAutomate}
             disabled={loading}
-            className="bg-[#10A074] hover:bg-[#10A074]/90 text-white"
+            className="bg-[#10b981] hover:bg-[#10b981]/90 text-white"
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Confirm

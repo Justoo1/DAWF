@@ -27,12 +27,12 @@ export default async function AdminLeavesOverviewPage() {
             <nav className="mb-2 flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-500">
               <Link
                 href="/admin"
-                className="transition-colors hover:text-[#10A074] dark:hover:text-emerald-400"
+                className="transition-colors hover:text-[#10b981] dark:hover:text-emerald-400"
               >
                 Admin Dashboard
               </Link>
               <ChevronRight className="h-4 w-4 text-slate-400 dark:text-zinc-600" />
-              <span className="font-bold text-[#10A074] dark:text-emerald-400">Leave Management</span>
+              <span className="font-bold text-[#10b981] dark:text-emerald-400">Leave Management</span>
             </nav>
             <h1 className="text-3xl font-black tracking-tight text-slate-800 dark:text-zinc-100">
               All leave

@@ -50,7 +50,7 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
 
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
     if (sortConfig?.key !== columnKey) return <ChevronDown className="ml-1 h-3 w-3 opacity-30" />
-    return sortConfig.direction === 'asc' ? <ChevronUp className="ml-1 h-3 w-3 text-[#10A074]" /> : <ChevronDown className="ml-1 h-3 w-3 text-[#10A074]" />
+    return sortConfig.direction === 'asc' ? <ChevronUp className="ml-1 h-3 w-3 text-[#10b981]" /> : <ChevronDown className="ml-1 h-3 w-3 text-[#10b981]" />
   }
 
   const handleSort = (key: string) => {
@@ -147,13 +147,13 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
             placeholder="Search by name, department or leave type..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-12 pl-12 rounded-2xl bg-slate-50 dark:bg-zinc-900/80 border border-transparent dark:border-zinc-800 ring-offset-0 focus-visible:ring-1 focus-visible:ring-[#10A074] dark:focus-visible:ring-emerald-500 placeholder:text-slate-400 dark:placeholder:text-zinc-500 text-[14px] text-slate-900 dark:text-zinc-100"
+            className="h-12 pl-12 rounded-2xl bg-slate-50 dark:bg-zinc-900/80 border border-transparent dark:border-zinc-800 ring-offset-0 focus-visible:ring-1 focus-visible:ring-[#10b981] dark:focus-visible:ring-emerald-500 placeholder:text-slate-400 dark:placeholder:text-zinc-500 text-[14px] text-slate-900 dark:text-zinc-100"
           />
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="h-12 w-full md:w-[200px] rounded-2xl bg-slate-50 dark:bg-zinc-900/80 border border-transparent dark:border-zinc-800 ring-offset-0 focus:ring-1 focus:ring-[#10A074] dark:focus:ring-emerald-500 text-slate-900 dark:text-zinc-100">
+            <SelectTrigger className="h-12 w-full md:w-[200px] rounded-2xl bg-slate-50 dark:bg-zinc-900/80 border border-transparent dark:border-zinc-800 ring-offset-0 focus:ring-1 focus:ring-[#10b981] dark:focus:ring-emerald-500 text-slate-900 dark:text-zinc-100">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-slate-400 dark:text-zinc-500" />
                 <SelectValue placeholder="All Types" />
@@ -171,7 +171,7 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
             <Button 
                 variant="ghost" 
                 onClick={() => { setSearchQuery(""); setTypeFilter("all"); }}
-                className="text-slate-400 dark:text-zinc-500 hover:text-[#10A074] dark:hover:text-emerald-400 font-bold text-xs uppercase tracking-widest"
+                className="text-slate-400 dark:text-zinc-500 hover:text-[#10b981] dark:hover:text-emerald-400 font-bold text-xs uppercase tracking-widest"
             >
                 Reset
             </Button>
@@ -241,7 +241,7 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
                     title="View request details"
                     className={cn(
                       adminTbodyRowClass,
-                      "group duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10A074] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950"
+                      "group duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10b981] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950"
                     )}
                     onClick={() => setSelectedRequest(request)}
                     onKeyDown={(e) => {
@@ -253,7 +253,7 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
                   >
                     <td className={cn(adminTdClass, "px-8 py-4")}>
                       <div className="flex items-center gap-4">
-                        <div className="h-11 w-11 rounded-2xl bg-[#10A074]/10 dark:bg-emerald-500/15 flex items-center justify-center text-[#10A074] dark:text-emerald-400 font-black text-xs">
+                        <div className="h-11 w-11 rounded-2xl bg-[#10b981]/10 dark:bg-emerald-500/15 flex items-center justify-center text-[#10b981] dark:text-emerald-400 font-black text-xs">
                           {request.user.name.split(' ').map(n => n[0]).join('')}
                         </div>
                         <div className="flex flex-col min-w-0">
@@ -290,9 +290,9 @@ export default function LeaveRequestsTable({ initialRequests, currentTab }: Leav
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <ShieldCheck className="h-4 w-4 text-[#10A074] dark:text-emerald-400" />
+                          <ShieldCheck className="h-4 w-4 text-[#10b981] dark:text-emerald-400" />
                           <div className="flex flex-col">
-                             <span className="text-[11px] font-black text-[#10A074] dark:text-emerald-400 uppercase tracking-tighter">DEPT MANAGER</span>
+                             <span className="text-[11px] font-black text-[#10b981] dark:text-emerald-400 uppercase tracking-tighter">DEPT MANAGER</span>
                              <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-medium leading-none">{request.managerName}</span>
                           </div>
                         </div>

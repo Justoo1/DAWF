@@ -38,7 +38,7 @@ export default function PoliciesClient({ initialPolicies, userEmail }: PoliciesC
         title="Policies"
         description="Create and manage policy documents."
         action={
-          <Button onClick={handleAddPolicy} className="shadow-md h-10 px-5 rounded-xl bg-[#10A074] hover:bg-[#0d8460] text-white font-bold uppercase tracking-widest text-[11px] transition-all active:scale-95">
+          <Button onClick={handleAddPolicy} className="shadow-md h-10 px-5 rounded-xl bg-[#10b981] hover:bg-[#059669] text-white font-bold uppercase tracking-widest text-[11px] transition-all active:scale-95">
             <Plus className="h-4 w-4 mr-2" />
             Add New Policy
           </Button>

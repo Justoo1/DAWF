@@ -12,7 +12,7 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 162 82% 35%;
+    --primary: 160 84% 39%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -24,7 +24,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 162 82% 35%;
+    --ring: 160 84% 39%;
     --radius: 0.5rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -40,8 +40,8 @@
     --card-foreground: 0 0% 95%;
     --popover: 0 0% 9%;
     --popover-foreground: 0 0% 95%;
-    --primary: 142.1 70.6% 45.3%;
-    --primary-foreground: 144.9 80.4% 10%;
+    --primary: 160 84% 45%;
+    --primary-foreground: 160 84% 10%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 15%;
@@ -52,7 +52,7 @@
     --destructive-foreground: 0 85.7% 97.3%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 142.4 71.8% 29.2%;
+    --ring: 160 84% 40%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -117,7 +117,7 @@
   position: relative;
   overflow: hidden;
   border-width: 0px;
-  background-color: #10A0748C;
+  background-color: #10b9818c;
   box-shadow: rgba(0, 0, 0, 0.08) 0px 5px 15px 0px, rgba(25, 28, 33, 0.2) 0px 15px 35px -5px, rgba(0, 0, 0, 0.07) 0px 0px 0px 1px;
 }
 
@@ -125,8 +125,8 @@
   .cl-internal-d26w8c {
     width: 27rem;
     height: 30rem;
-    box-shadow: #10A0748C;
-    background-color: #10A0748C;
+    box-shadow: #10b9818c;
+    background-color: #10b9818c;
    
   }
 }
@@ -159,7 +159,7 @@
   justify-content: center;
   margin-top: -0.5rem;
   padding-top: 0.5rem;
-  background: #10A0748C;
+  background: #10b9818c;
 }
 
 .cl-internal-16vtwdp {
@@ -175,7 +175,7 @@
 } */
 /* cl-internal-3sk05j */
 .cl-internal-1m349jh{
-  background: #10a0750b !important;
+  background: #10b9810b !important;
 }
 
 /* Tiptap Editor Styles */
@@ -366,10 +366,10 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(16, 160, 116, 0.2);
+  background: rgba(16, 185, 129, 0.2);
   border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 160, 116, 0.4);
+  background: rgba(16, 185, 129, 0.4);
 }

@@ -191,9 +191,9 @@ function LeaveRequestDetailBody({ request }: { request: AdminLeaveRequestRow }) 
               </div>
             ) : (
               <div className="flex items-start gap-2">
-                <ShieldCheck className="h-4 w-4 text-[#10A074] dark:text-emerald-400 shrink-0 mt-0.5" aria-hidden />
+                <ShieldCheck className="h-4 w-4 text-[#10b981] dark:text-emerald-400 shrink-0 mt-0.5" aria-hidden />
                 <div>
-                  <p className="text-xs font-black text-[#10A074] dark:text-emerald-400 uppercase tracking-tight">
+                  <p className="text-xs font-black text-[#10b981] dark:text-emerald-400 uppercase tracking-tight">
                     Department manager
                   </p>
                   <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">{request.managerName}</p>

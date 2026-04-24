@@ -191,9 +191,9 @@ export default function AdminAllLeavesTable({
     if (sortConfig?.key !== columnKey)
       return <ChevronDown className="ml-1 h-3 w-3 opacity-30" />
     return sortConfig.direction === "asc" ? (
-      <ChevronUp className="ml-1 h-3 w-3 text-[#10A074]" />
+      <ChevronUp className="ml-1 h-3 w-3 text-[#10b981]" />
     ) : (
-      <ChevronDown className="ml-1 h-3 w-3 text-[#10A074]" />
+      <ChevronDown className="ml-1 h-3 w-3 text-[#10b981]" />
     )
   }
 
@@ -339,7 +339,7 @@ export default function AdminAllLeavesTable({
               className={cn(
                 "flex flex-col gap-3 rounded-xl border bg-white p-5 shadow-sm transition-colors dark:bg-zinc-950",
                 active
-                  ? "border-[#10A074] ring-2 ring-[#10A074]/25 dark:border-emerald-500/50"
+                  ? "border-[#10b981] ring-2 ring-[#10b981]/25 dark:border-emerald-500/50"
                   : "border-slate-100 dark:border-slate-800"
               )}
             >
@@ -359,8 +359,8 @@ export default function AdminAllLeavesTable({
                     className={cn(
                       "flex h-9 w-9 items-center justify-center rounded-lg border text-slate-500 transition-colors dark:text-slate-400",
                       active
-                        ? "border-[#10A074] bg-emerald-50 text-[#10A074] dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-400"
-                        : "border-slate-200 bg-slate-50 hover:border-[#10A074]/50 hover:text-[#10A074] dark:border-slate-700 dark:bg-slate-800/90 dark:hover:border-emerald-500/40"
+                        ? "border-[#10b981] bg-emerald-50 text-[#10b981] dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-400"
+                        : "border-slate-200 bg-slate-50 hover:border-[#10b981]/50 hover:text-[#10b981] dark:border-slate-700 dark:bg-slate-800/90 dark:hover:border-emerald-500/40"
                     )}
                   >
                     <ListFilter className="h-4 w-4" strokeWidth={2.5} aria-hidden />
@@ -374,7 +374,7 @@ export default function AdminAllLeavesTable({
                 type="button"
                 onClick={() => toggleInsight(key)}
                 aria-pressed={active}
-                className="flex flex-col gap-1 rounded-lg text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#10A074] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950"
+                className="flex flex-col gap-1 rounded-lg text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#10b981] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950"
               >
                 <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 sm:text-3xl tabular-nums">
                   {value}
@@ -409,7 +409,7 @@ export default function AdminAllLeavesTable({
             className={cn(
               "rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide transition-colors",
               statusFilter === key
-                ? "border-[#10A074] bg-emerald-50 text-[#10A074] dark:border-emerald-500/50 dark:bg-emerald-500/10 dark:text-emerald-400"
+                ? "border-[#10b981] bg-emerald-50 text-[#10b981] dark:border-emerald-500/50 dark:bg-emerald-500/10 dark:text-emerald-400"
                 : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400"
             )}
           >
@@ -432,7 +432,7 @@ export default function AdminAllLeavesTable({
             placeholder="Search by name, email, department, or leave type…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-12 rounded-2xl border border-transparent bg-slate-50 pl-12 text-[14px] text-slate-900 ring-offset-0 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#10A074] dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus-visible:ring-emerald-500"
+            className="h-12 rounded-2xl border border-transparent bg-slate-50 pl-12 text-[14px] text-slate-900 ring-offset-0 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#10b981] dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus-visible:ring-emerald-500"
           />
         </div>
         <div className="flex w-full flex-wrap items-center gap-3 md:w-auto">
@@ -467,7 +467,7 @@ export default function AdminAllLeavesTable({
                 setStatusFilter("all")
                 setInsightFilter(null)
               }}
-              className="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-[#10A074] dark:text-zinc-500 dark:hover:text-emerald-400"
+              className="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-[#10b981] dark:text-zinc-500 dark:hover:text-emerald-400"
             >
               Reset
             </button>
@@ -559,7 +559,7 @@ export default function AdminAllLeavesTable({
                     title="View details"
                     className={cn(
                       adminTbodyRowClass,
-                      "cursor-pointer duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10A074] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950"
+                      "cursor-pointer duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10b981] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950"
                     )}
                     onClick={() => setSelectedRequest(request)}
                     onKeyDown={(e) => {
@@ -571,7 +571,7 @@ export default function AdminAllLeavesTable({
                   >
                     <td className={cn(adminTdClass, "px-6 py-4")}>
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#10A074]/10 text-xs font-black text-[#10A074] dark:bg-emerald-500/15 dark:text-emerald-400">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#10b981]/10 text-xs font-black text-[#10b981] dark:bg-emerald-500/15 dark:text-emerald-400">
                           {request.user.name
                             .split(" ")
                             .map((n) => n[0])

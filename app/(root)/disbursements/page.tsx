@@ -122,7 +122,7 @@ const DisbursementsPage = async () => {
         </Card>
 
         {/* Info Box */}
-        <Card className="bg-gradient-to-r from-emerald-600 to-teal-600 border-none">
+        <Card className="bg-gradient-to-r from-emerald-600 to-emerald-500 border-none">
           <CardContent className="p-6">
             <h3 className="text-white font-bold text-lg mb-2">About Disbursements</h3>
             <p className="text-white/90 text-sm">

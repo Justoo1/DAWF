@@ -116,7 +116,7 @@ export function CreateHolidayModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#10A074] hover:bg-[#10A074]/90 text-white">
+        <Button className="bg-[#10b981] hover:bg-[#10b981]/90 text-white">
           <Plus className="mr-2 h-4 w-4" />
           Add Public Holiday
         </Button>
@@ -139,7 +139,7 @@ export function CreateHolidayModal() {
             {syncLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <CalendarIcon className="mr-2 h-4 w-4 text-[#10A074]" />
+              <CalendarIcon className="mr-2 h-4 w-4 text-[#10b981]" />
             )}
             Sync Official Holidays ({new Date().getFullYear()})
           </Button>
@@ -211,7 +211,7 @@ export function CreateHolidayModal() {
             </Button>
             <Button
               type="submit"
-              className="bg-[#10A074] hover:bg-[#10A074]/90 text-white"
+              className="bg-[#10b981] hover:bg-[#10b981]/90 text-white"
               disabled={loading || syncLoading}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

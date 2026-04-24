@@ -51,7 +51,7 @@ const FoodOrdersPage = async () => {
           <div className="absolute -top-10 -right-10 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl" />
           
           <div className="relative flex items-center gap-4 bg-card/40 backdrop-blur-sm border border-border/50 p-6 rounded-2xl shadow-sm">
-            <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 p-4 rounded-2xl border border-emerald-500/20">
+            <div className="bg-gradient-to-br from-emerald-500/20 to-emerald-400/20 p-4 rounded-2xl border border-emerald-500/20">
               <UtensilsCrossed className="h-9 w-9 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div className="flex-1">

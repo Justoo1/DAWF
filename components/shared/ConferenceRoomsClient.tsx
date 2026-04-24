@@ -64,11 +64,11 @@ const ConferenceRoomsClient = ({ userId, rooms, bookings }: ConferenceRoomsClien
       {/* Header Section with Gradient Glow */}
       <div className="relative">
         <div className="absolute -top-20 -left-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl" />
-        <div className="absolute -top-10 -right-10 w-48 h-48 bg-teal-500/10 rounded-full blur-3xl" />
+        <div className="absolute -top-10 -right-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl" />
         
         <div className="relative flex items-center justify-between gap-4 bg-card/40 backdrop-blur-sm border border-border/50 p-6 rounded-2xl shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 p-4 rounded-2xl border border-emerald-500/20">
+            <div className="bg-gradient-to-br from-emerald-500/20 to-emerald-400/20 p-4 rounded-2xl border border-emerald-500/20">
               <Building2 className="h-9 w-9 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
@@ -79,7 +79,7 @@ const ConferenceRoomsClient = ({ userId, rooms, bookings }: ConferenceRoomsClien
           
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="h-12 px-6 rounded-xl bg-[#10A074] hover:bg-[#0d8460] text-white font-bold shadow-md shadow-emerald-500/20 transition-all hover:shadow-lg hover:shadow-emerald-500/30 active:scale-[0.98]">
+              <Button className="h-12 px-6 rounded-xl bg-[#10b981] hover:bg-[#059669] text-white font-bold shadow-md shadow-emerald-500/20 transition-all hover:shadow-lg hover:shadow-emerald-500/30 active:scale-[0.98]">
                 <Plus className="h-4 w-4 mr-2" />
                 Book a Room
               </Button>
@@ -144,7 +144,7 @@ const ConferenceRoomsClient = ({ userId, rooms, bookings }: ConferenceRoomsClien
                             {JSON.parse(room.amenities).map((amenity: string, index: number) => (
                               <span
                                 key={index}
-                                className="px-2.5 py-1 bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-950/30 dark:to-teal-950/30 text-emerald-800 dark:text-emerald-300 rounded-md text-[10px] font-semibold border border-emerald-200 dark:border-emerald-800/30"
+                                className="px-2.5 py-1 bg-gradient-to-r from-emerald-100 to-emerald-50 dark:from-emerald-950/30 dark:to-emerald-900/30 text-emerald-800 dark:text-emerald-300 rounded-md text-[10px] font-semibold border border-emerald-200 dark:border-emerald-800/30"
                               >
                                 {amenity}
                               </span>

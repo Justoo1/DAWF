@@ -32,7 +32,7 @@ export function VerifyEmailPending() {
 
   if (loading) {
     return (
-      <Card className="w-full max-w-md border-none bg-[#10A0748C] text-white flex items-center justify-center p-8">
+      <Card className="w-full max-w-md border-none bg-[#10b9818C] text-white flex items-center justify-center p-8">
         <Loader className="h-8 w-8 animate-spin text-white" />
       </Card>
     )

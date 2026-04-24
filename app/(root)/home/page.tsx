@@ -162,11 +162,11 @@ const Dashboard = async () => {
                </Link>
             </div>
 
-            {/* Total Accumulated Card (Specific Green #10A074) */}
-            <Card className="bg-[#10A074] border-none p-8 rounded-2xl shadow-2xl relative overflow-hidden group">
+            {/* Total Accumulated Card (Specific Green #10b981) */}
+            <Card className="bg-[#10b981] border-none p-8 rounded-2xl shadow-2xl relative overflow-hidden group">
                 <div className="flex items-center gap-8 relative z-10">
                     <div className="flex-shrink-0 w-28 h-28 bg-white rounded-xl flex items-center justify-center shadow-inner">
-                        <span className="text-7xl font-black text-[#10A074]">₵</span>
+                        <span className="text-7xl font-black text-[#10b981]">₵</span>
                     </div>
                     <div className="space-y-2">
                         <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none">

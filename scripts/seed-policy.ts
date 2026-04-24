@@ -2,22 +2,22 @@ import prisma from '@/lib/prisma'
 
 const welfarePolicyContent = `
 <div class="policy-document">
-  <h1 style="color: #047857; font-size: 2rem; font-weight: bold; margin-bottom: 1rem; text-align: center;">
+  <h1 style="color: #10b981; font-size: 2rem; font-weight: bold; margin-bottom: 1rem; text-align: center;">
     DEVOPS AFRICA LIMITED
   </h1>
-  <h2 style="color: #047857; font-size: 1.5rem; font-weight: bold; margin-bottom: 2rem; text-align: center; border-bottom: 2px solid #047857; padding-bottom: 0.5rem;">
+  <h2 style="color: #10b981; font-size: 1.5rem; font-weight: bold; margin-bottom: 2rem; text-align: center; border-bottom: 2px solid #10b981; padding-bottom: 0.5rem;">
     CONSTITUTION - WELFARE FUND FOR STAFF
   </h2>
 
   <section style="margin-bottom: 2rem;">
-    <h3 style="color: #047857; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">1.0 INTRODUCTION</h3>
+    <h3 style="color: #10b981; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">1.0 INTRODUCTION</h3>
     <p style="line-height: 1.6; margin-bottom: 1rem;">
       DevOps Africa staff have established a welfare fund named DevOps Africa Welfare Funds (DAWF) (hereinafter referred to as 'Fund'). The address will be c/o DevOps Africa Limited 289 CFC Estate Dome, Accra - Accra.
     </p>
   </section>
 
   <section style="margin-bottom: 2rem;">
-    <h3 style="color: #047857; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">2.0 OBJECTIVES</h3>
+    <h3 style="color: #10b981; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">2.0 OBJECTIVES</h3>
     <p style="line-height: 1.6; margin-bottom: 1rem;">The objectives of the Fund are:</p>
     <p style="line-height: 1.6; margin-bottom: 0.5rem;">To support members in times of celebrations and bereavement. The support include:</p>
     <ul style="list-style-type: disc; margin-left: 2rem; line-height: 1.8;">
@@ -32,28 +32,28 @@ const welfarePolicyContent = `
   </section>
 
   <section style="margin-bottom: 2rem;">
-    <h3 style="color: #047857; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">3.0 MEMBERSHIP</h3>
+    <h3 style="color: #10b981; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">3.0 MEMBERSHIP</h3>
     <p style="line-height: 1.6; margin-bottom: 1rem;">
       All employees permanent of DevOps Africa shall be Members of the Fund.
     </p>
   </section>
 
   <section style="margin-bottom: 2rem;">
-    <h3 style="color: #047857; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">4.0 INVESTMENT ACCOUNT AND SIGNATORIES</h3>
+    <h3 style="color: #10b981; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">4.0 INVESTMENT ACCOUNT AND SIGNATORIES</h3>
     <p style="line-height: 1.6; margin-bottom: 1rem;">
       The Fund will open an investment account with an agreed bank in the name of the Fund. The signatories to the Fund shall be Chairman, Secretary, Treasurer and an Ex-Officio member.
     </p>
   </section>
 
   <section style="margin-bottom: 2rem;">
-    <h3 style="color: #047857; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">5.0 INVESTMENTS</h3>
+    <h3 style="color: #10b981; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">5.0 INVESTMENTS</h3>
     <p style="line-height: 1.6; margin-bottom: 1rem;">
       The Funds shall be invested in a short-term unit trust or any other investment that the Members may decide on from time to time.
     </p>
   </section>
 
   <section style="margin-bottom: 2rem;">
-    <h3 style="color: #047857; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">6.0 SOURCES OF FUNDS</h3>
+    <h3 style="color: #10b981; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">6.0 SOURCES OF FUNDS</h3>
     <ul style="list-style-type: disc; margin-left: 2rem; line-height: 1.8;">
       <li>Monthly contributions of GHS100.00 per member (to be reviewed as and when necessary)</li>
       <li>Interest accrued on investments</li>
@@ -62,17 +62,17 @@ const welfarePolicyContent = `
   </section>
 
   <section style="margin-bottom: 2rem;">
-    <h3 style="color: #047857; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">7.0 BENEFITS</h3>
+    <h3 style="color: #10b981; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">7.0 BENEFITS</h3>
     <p style="line-height: 1.6; margin-bottom: 1rem;">
       Members shall be eligible for benefits provided they have contributed for a period of not less than 4 months. Members in good standing shall qualify for benefits under the following events:
     </p>
 
-    <h4 style="color: #059669; font-size: 1.1rem; font-weight: 600; margin: 1rem 0 0.5rem; margin-left: 1rem;">7.1 Donation to Family/Next of kin in the event of a Loss of a member:</h4>
+    <h4 style="color: #10b981; font-size: 1.1rem; font-weight: 600; margin: 1rem 0 0.5rem; margin-left: 1rem;">7.1 Donation to Family/Next of kin in the event of a Loss of a member:</h4>
     <ul style="list-style-type: disc; margin-left: 3rem; line-height: 1.8;">
       <li>Member – Amount to donate should a member die – GHS 100 * total number of members</li>
     </ul>
 
-    <h4 style="color: #059669; font-size: 1.1rem; font-weight: 600; margin: 1rem 0 0.5rem; margin-left: 1rem;">7.2 Loss of immediate Relative of a member:</h4>
+    <h4 style="color: #10b981; font-size: 1.1rem; font-weight: 600; margin: 1rem 0 0.5rem; margin-left: 1rem;">7.2 Loss of immediate Relative of a member:</h4>
     <p style="line-height: 1.6; margin-bottom: 0.5rem; margin-left: 3rem;">Where immediate relative shall mean:</p>
     <ul style="list-style-type: disc; margin-left: 3rem; line-height: 1.8;">
       <li>Parent - GHS 1,500</li>
@@ -80,7 +80,7 @@ const welfarePolicyContent = `
       <li>Child (Adopted or Biological) - GHS 2,000</li>
     </ul>
 
-    <h4 style="color: #059669; font-size: 1.1rem; font-weight: 600; margin: 1rem 0 0.5rem; margin-left: 1rem;">7.3 Celebrations</h4>
+    <h4 style="color: #10b981; font-size: 1.1rem; font-weight: 600; margin: 1rem 0 0.5rem; margin-left: 1rem;">7.3 Celebrations</h4>
 
     <div style="margin-left: 2rem; margin-bottom: 1rem;">
       <p style="font-weight: 600; margin-bottom: 0.5rem;">Birthdays:</p>
@@ -104,7 +104,7 @@ const welfarePolicyContent = `
       <p>The welfare shall give a donation of GHS 3,000</p>
     </div>
 
-    <h4 style="color: #059669; font-size: 1.1rem; font-weight: 600; margin: 1rem 0 0.5rem; margin-left: 1rem;">7.4 Other Benefits</h4>
+    <h4 style="color: #10b981; font-size: 1.1rem; font-weight: 600; margin: 1rem 0 0.5rem; margin-left: 1rem;">7.4 Other Benefits</h4>
     <p style="line-height: 1.6; margin-bottom: 0.5rem; margin-left: 2rem;">The Welfare shall thus provide assistance as follows:</p>
     <ul style="list-style-type: disc; margin-left: 3rem; line-height: 1.8;">
       <li><strong>Hospital visitation items - GHS 500:</strong> For a staff member who is hospitalized, the welfare shall donate and pay a visit to the member in the hospital. Items donated should be worth GHS 350.00.</li>
@@ -113,13 +113,13 @@ const welfarePolicyContent = `
   </section>
 
   <section style="margin-bottom: 2rem;">
-    <h3 style="color: #047857; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">8.0 DOCUMENTATION</h3>
+    <h3 style="color: #10b981; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">8.0 DOCUMENTATION</h3>
     <p style="line-height: 1.6; margin-bottom: 0.5rem;"><strong>8.1</strong> A member will acknowledge via email upon receipt of welfare donation or assistance.</p>
     <p style="line-height: 1.6; margin-bottom: 1rem;"><strong>8.2</strong> All receipts of purchases shall be forwarded to the Treasurer for safe custody.</p>
   </section>
 
   <section style="margin-bottom: 2rem;">
-    <h3 style="color: #047857; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">9.0 APPOINTMENT OF OFFICIALS/TRUSTEES</h3>
+    <h3 style="color: #10b981; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">9.0 APPOINTMENT OF OFFICIALS/TRUSTEES</h3>
     <ul style="list-style-type: disc; margin-left: 2rem; line-height: 1.8; margin-bottom: 1rem;">
       <li>Chairman (Emmanuel)</li>
       <li>Secretary (Philemon, Obed)</li>
@@ -131,7 +131,7 @@ const welfarePolicyContent = `
   </section>
 
   <section style="margin-bottom: 2rem;">
-    <h3 style="color: #047857; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">10.0 SEPARATION</h3>
+    <h3 style="color: #10b981; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">10.0 SEPARATION</h3>
     <p style="line-height: 1.6; margin-bottom: 0.5rem;">A member shall be deemed separated from the group through the following circumstances:</p>
     <ul style="list-style-type: disc; margin-left: 2rem; line-height: 1.8; margin-bottom: 1rem;">
       <li>Retirement</li>
@@ -144,14 +144,14 @@ const welfarePolicyContent = `
   </section>
 
   <section style="margin-bottom: 2rem;">
-    <h3 style="color: #047857; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">11.0 AMENDMENT</h3>
+    <h3 style="color: #10b981; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">11.0 AMENDMENT</h3>
     <p style="line-height: 1.6; margin-bottom: 1rem;">
       To make any amendments, a quorum of 2/3 of the membership should be present with a simple majority being in favor of the proposed amendment.
     </p>
   </section>
 
   <section style="margin-bottom: 2rem;">
-    <h3 style="color: #047857; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">12.0 DISCIPLINE</h3>
+    <h3 style="color: #10b981; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.75rem;">12.0 DISCIPLINE</h3>
     <p style="line-height: 1.6; margin-bottom: 1rem;">
       All members of the Fund shall abide by the provisions of the Fund Rules, conduct themselves as disciplined members and maintain the spirit of teamwork and collective responsibility.
     </p>
@@ -160,8 +160,8 @@ const welfarePolicyContent = `
     </p>
   </section>
 
-  <section style="margin-bottom: 2rem; background-color: #f0fdf4; padding: 1rem; border-left: 4px solid #047857;">
-    <h4 style="color: #047857; font-size: 1.1rem; font-weight: bold; margin-bottom: 0.75rem;">NOTE:</h4>
+  <section style="margin-bottom: 2rem; background-color: #f0fdf4; padding: 1rem; border-left: 4px solid #10b981;">
+    <h4 style="color: #10b981; font-size: 1.1rem; font-weight: bold; margin-bottom: 0.75rem;">NOTE:</h4>
     <p style="line-height: 1.6; margin-bottom: 0.5rem;">
       A member (seconded by another member) can raise an issue or propose a revision at a general meeting or where it is an emergency, raise it with the chairman directly.
     </p>
