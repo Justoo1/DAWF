@@ -6,7 +6,7 @@ import { createNotificationForAllUsers } from "./notification.actions";
 import { getAuthAppUrl } from "../auth-app-url";
 import { sendEmail } from "../email";
 import { foodMenuPublishedTemplate, foodSelectionReminderTemplate } from "../email-templates";
-import { requireAdmin, requireAuthenticatedUser } from '@/lib/security';
+import { requireFoodCommitteeOrAdmin, requireAuthenticatedUser } from '@/lib/security';
 import { isValidUUID, sanitizeText } from '@/lib/utils/validators';
 
 // ============================================
@@ -127,7 +127,7 @@ interface CreateMenuData {
 
 export async function createFoodMenu(data: CreateMenuData) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     const user = await requireAuthenticatedUser();
     
@@ -195,7 +195,7 @@ export async function createFoodMenu(data: CreateMenuData) {
 
 export async function updateFoodMenu(menuId: string, data: CreateMenuData) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     if (!isValidUUID(menuId)) {
       return { error: 'Invalid menu ID' };
@@ -283,7 +283,7 @@ export async function updateFoodMenu(menuId: string, data: CreateMenuData) {
 
 export async function publishFoodMenu(menuId: string) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     if (!isValidUUID(menuId)) {
       return { error: 'Invalid menu ID' };
@@ -373,7 +373,7 @@ export async function publishFoodMenu(menuId: string) {
 
 export async function closeFoodMenuSelection(menuId: string) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     if (!isValidUUID(menuId)) {
       return { error: 'Invalid menu ID' };
@@ -395,7 +395,7 @@ export async function closeFoodMenuSelection(menuId: string) {
 
 export async function markFoodMenuAsSent(menuId: string) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     if (!isValidUUID(menuId)) {
       return { error: 'Invalid menu ID' };
@@ -416,7 +416,7 @@ export async function markFoodMenuAsSent(menuId: string) {
 
 export async function revertMenuToDraft(menuId: string) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     if (!isValidUUID(menuId)) {
       return { error: 'Invalid menu ID' };
@@ -450,7 +450,7 @@ export async function revertMenuToDraft(menuId: string) {
 
 export async function deleteFoodMenu(menuId: string) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     if (!isValidUUID(menuId)) {
       return { error: 'Invalid menu ID' };

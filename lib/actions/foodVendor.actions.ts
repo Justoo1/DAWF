@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import prisma from "../prisma";
 import { FoodVendor } from "../validation";
-import { requireAdmin } from '@/lib/security';
+import { requireFoodCommitteeOrAdmin } from '@/lib/security';
 import { isValidUUID, sanitizeText } from '@/lib/utils/validators';
 
 // ============================================
@@ -74,7 +74,7 @@ export async function fetchFoodVendorById(vendorId: string) {
 
 export async function createFoodVendor(vendor: Omit<FoodVendor, 'id'>) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     const sanitizedVendor = {
       ...vendor,
@@ -105,7 +105,7 @@ export async function createFoodVendor(vendor: Omit<FoodVendor, 'id'>) {
 
 export async function updateFoodVendor(vendorId: string, vendor: Omit<FoodVendor, 'id'>) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     if (!isValidUUID(vendorId)) {
       return { error: 'Invalid vendor ID' };
@@ -141,7 +141,7 @@ export async function updateFoodVendor(vendorId: string, vendor: Omit<FoodVendor
 
 export async function deleteFoodVendor(vendorId: string) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     if (!isValidUUID(vendorId)) {
       return { error: 'Invalid vendor ID' };
@@ -163,7 +163,7 @@ export async function deleteFoodVendor(vendorId: string) {
 
 export async function reactivateFoodVendor(vendorId: string) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     if (!isValidUUID(vendorId)) {
       return { error: 'Invalid vendor ID' };
@@ -185,7 +185,7 @@ export async function reactivateFoodVendor(vendorId: string) {
 /** Enable or disable a vendor without changing other fields. */
 export async function setFoodVendorActive(vendorId: string, isActive: boolean) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     if (!isValidUUID(vendorId)) {
       return { error: 'Invalid vendor ID' };
@@ -210,7 +210,7 @@ export async function setFoodVendorActive(vendorId: string, isActive: boolean) {
  */
 export async function permanentlyDeleteFoodVendor(vendorId: string) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     if (!isValidUUID(vendorId)) {
       return { success: false as const, error: 'Invalid vendor ID' };

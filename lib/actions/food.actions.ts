@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "../prisma";
-import { requireAdmin } from '@/lib/security';
+import { requireFoodCommitteeOrAdmin } from '@/lib/security';
 import { isValidUUID, sanitizeText } from '@/lib/utils/validators';
 
 // ============================================
@@ -64,7 +64,7 @@ interface CreateFoodData {
 
 export async function createFood(data: CreateFoodData) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     if (!isValidUUID(data.vendorId)) {
       return { error: 'Invalid vendor ID' };
@@ -103,7 +103,7 @@ export async function createFood(data: CreateFoodData) {
 
 export async function updateFood(foodId: string, data: CreateFoodData) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     if (!isValidUUID(foodId)) {
       return { error: 'Invalid food ID' };
@@ -147,7 +147,7 @@ export async function updateFood(foodId: string, data: CreateFoodData) {
 
 export async function deleteFood(foodId: string) {
   try {
-    await requireAdmin();
+    await requireFoodCommitteeOrAdmin();
     
     if (!isValidUUID(foodId)) {
       return { error: 'Invalid food ID' };
