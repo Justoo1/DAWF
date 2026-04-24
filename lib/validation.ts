@@ -55,6 +55,7 @@ const addEmployeeFormObjectSchema = z.object({
     .trim()
     .min(1, { message: 'Employment start date is required' }),
   role: z.enum(['EMPLOYEE', 'MANAGER', 'ADMIN', 'FOOD_COMMITTEE']),
+  employmentType: z.enum(['FULL_TIME', 'CONTRACT']),
   isActive: z.boolean(),
   isContributor: z.boolean(),
   exitDate: z.string().optional(),
@@ -130,20 +131,36 @@ function refineEmployeeDatesAndExit(
   }
 }
 
+function refineContributorVsEmploymentType(
+  data: { employmentType: 'FULL_TIME' | 'CONTRACT'; isContributor: boolean },
+  ctx: z.RefinementCtx
+) {
+  if (data.employmentType === 'CONTRACT' && data.isContributor) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Contract employees are not welfare contributors',
+      path: ['isContributor'],
+    })
+  }
+}
+
 /** Admin “Add employee” modal — client-side validation before server action. */
 export const addEmployeeFormSchema = addEmployeeFormObjectSchema.superRefine(
   (data, ctx) => {
     refineEmployeeDatesAndExit(data, ctx, { requireExitDateWhenInactive: true })
+    refineContributorVsEmploymentType(data, ctx)
   }
 )
 
 export type AddEmployeeFormValues = z.infer<typeof addEmployeeFormSchema>
 
 /** Admin edit employee — exit date optional when marking inactive (can be filled later). */
-export const editEmployeeFormSchema = addEmployeeFormObjectSchema
-  .superRefine((data, ctx) =>
+export const editEmployeeFormSchema = addEmployeeFormObjectSchema.superRefine(
+  (data, ctx) => {
     refineEmployeeDatesAndExit(data, ctx, { requireExitDateWhenInactive: false })
-  )
+    refineContributorVsEmploymentType(data, ctx)
+  }
+)
 
 export type EditEmployeeFormValues = z.infer<typeof editEmployeeFormSchema>
 
@@ -157,6 +174,7 @@ export const editEmployeeEmptyValues: EditEmployeeFormValues = {
   dateOfBirth: '',
   startDate: '',
   role: 'EMPLOYEE',
+  employmentType: 'FULL_TIME',
   isActive: true,
   isContributor: true,
   exitDate: '',
@@ -173,6 +191,7 @@ export const addEmployeeDefaultValues: AddEmployeeFormValues = {
   dateOfBirth: '',
   startDate: '',
   role: 'EMPLOYEE',
+  employmentType: 'FULL_TIME',
   isActive: true,
   isContributor: true,
   exitDate: '',
@@ -211,6 +230,7 @@ export type UserValues = Omit<z.infer<typeof UserSchema>, 'password' | "departme
   totalContributionMonths: number,
   isActive?: boolean
   isContributor?: boolean
+  employmentType?: 'FULL_TIME' | 'CONTRACT'
   canApproveBookings?: boolean
   dateOfBirth?: Date | null
   startDate?: Date | null

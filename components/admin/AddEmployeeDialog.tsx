@@ -126,6 +126,7 @@ export function AddEmployeeDialog() {
           ? new Date(values.startDate)
           : undefined,
         role: values.role,
+        employmentType: values.employmentType,
         isActive: values.isActive,
         isContributor: values.isContributor,
         exitDate: values.exitDate?.trim()
@@ -438,6 +439,44 @@ export function AddEmployeeDialog() {
 
                   <FormField
                     control={form.control}
+                    name="employmentType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="inline-flex items-center gap-1">
+                          Employment type
+                          <RequiredMark />
+                        </FormLabel>
+                        <Select
+                          onValueChange={(v) => {
+                            field.onChange(v)
+                            if (v === "CONTRACT") {
+                              form.setValue("isContributor", false, {
+                                shouldValidate: true,
+                              })
+                            }
+                          }}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-11 rounded-lg">
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="FULL_TIME">Full time</SelectItem>
+                            <SelectItem value="CONTRACT">Contract</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Contract employees are not eligible for welfare fund contributions.
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="isActive"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
@@ -454,9 +493,26 @@ export function AddEmployeeDialog() {
                     name="isContributor"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                        <FormLabel className="!mt-0">Contributing to Welfare Fund</FormLabel>
+                        <div className="space-y-1 pr-4">
+                          <FormLabel className="!mt-0">
+                            Contributing to Welfare Fund
+                          </FormLabel>
+                          {form.watch("employmentType") === "CONTRACT" ? (
+                            <p className="text-xs text-muted-foreground">
+                              Not applicable for contract staff.
+                            </p>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">
+                              Full-time employees may opt out of contributions.
+                            </p>
+                          )}
+                        </div>
                         <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={form.watch("employmentType") === "CONTRACT"}
+                          />
                         </FormControl>
                       </FormItem>
                     )}

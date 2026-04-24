@@ -19,6 +19,11 @@ enum UserRole {
   FOOD_COMMITTEE // Food committee: can only manage food vendors, menus, and orders
 }
 
+enum EmploymentType {
+  FULL_TIME
+  CONTRACT
+}
+
 enum ContributionStatus {
   PENDING
   COMPLETED
@@ -154,6 +159,7 @@ model User {
   client                 Client                  @relation(fields: [clientId], references: [id], onDelete: Restrict)
   department             String?
   role                   UserRole                @default(EMPLOYEE)
+  employmentType         EmploymentType         @default(FULL_TIME)
   isActive               Boolean                 @default(true) // Track if employee is active or has resigned
   isContributor          Boolean                 @default(true) // Track if employee contributes to the welfare fund
   canApproveBookings     Boolean                 @default(false) // Permission to approve/reject conference room bookings

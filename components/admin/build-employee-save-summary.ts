@@ -1,5 +1,11 @@
 import type { EmployeeSaveSummary } from "@/components/admin/EmployeeSaveSuccessDialog"
 
+function formatEmploymentType(t: string) {
+  if (t === "CONTRACT") return "Contract"
+  if (t === "FULL_TIME") return "Full time"
+  return t
+}
+
 export function buildEmployeeSaveSummary(
   values: {
     firstName: string
@@ -8,6 +14,7 @@ export function buildEmployeeSaveSummary(
     phoneNumber: string
     role: string
     department: string
+    employmentType: string
     isActive: boolean
     isContributor: boolean
     dateOfBirth: string
@@ -22,6 +29,7 @@ export function buildEmployeeSaveSummary(
     role: values.role,
     clientName: clientName || "—",
     department: values.department?.trim() || "none",
+    employmentType: formatEmploymentType(values.employmentType),
     isActive: values.isActive,
     isContributor: values.isContributor,
     dateOfBirth: values.dateOfBirth?.trim() || "—",

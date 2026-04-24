@@ -17,6 +17,7 @@ export type EmployeeSaveSummary = {
   role: string
   clientName: string
   department: string
+  employmentType: string
   isActive: boolean
   isContributor: boolean
   startDate: string
@@ -98,6 +99,10 @@ export function EmployeeSaveSuccessDialog({
                 ? "Active"
                 : "Inactive"
             }
+          />
+          <SummaryRow
+            label="Employment type"
+            value={summary.employmentType}
           />
           <SummaryRow
             label="Welfare contributor"

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import prisma from '../prisma'
-import { ContributionStatus, UserRole } from '@prisma/client';
+import { ContributionStatus, EmploymentType, UserRole } from '@prisma/client';
 import { allowedWorkEmailMessage, isAllowedWorkEmail } from '@/lib/allowed-email-domains';
 import { auth } from '@/lib/auth'
 import { getAuthAppOrigin } from '@/lib/auth-app-url';
@@ -231,6 +231,7 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
         role: true,
         isActive: true,
         isContributor: true,
+        employmentType: true,
         emailVerified: true,
         createdAt: true,
         dateOfBirth: true,
@@ -451,6 +452,17 @@ export async function updateContributorStatus(userId: string, isContributor: boo
       return { success: false, error: 'Unauthorized: Only admins can update contributor status' }
     }
 
+    const target = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { employmentType: true },
+    })
+    if (target?.employmentType === 'CONTRACT' && isContributor) {
+      return {
+        success: false,
+        error: 'Contract employees cannot be marked as welfare contributors',
+      }
+    }
+
     await prisma.user.update({
       where: { id: userId },
       data: { isContributor }
@@ -573,6 +585,7 @@ export async function createEmployee(data: {
   dateOfBirth?: Date
   startDate?: Date
   role?: string
+  employmentType?: EmploymentType | 'FULL_TIME' | 'CONTRACT'
   isActive?: boolean
   isContributor?: boolean
   exitDate?: Date
@@ -629,6 +642,11 @@ export async function createEmployee(data: {
     const lastName = data.lastName.trim()
     const displayName = `${firstName} ${lastName}`.trim() || email
 
+    const employmentType: EmploymentType =
+      data.employmentType === 'CONTRACT' ? 'CONTRACT' : 'FULL_TIME'
+    const isContributor =
+      employmentType === 'CONTRACT' ? false : data.isContributor ?? true
+
     const user = await prisma.user.create({
       data: {
         firstName,
@@ -641,8 +659,9 @@ export async function createEmployee(data: {
         dateOfBirth: data.dateOfBirth,
         startDate: data.startDate,
         role: (data.role as UserRole) || 'EMPLOYEE',
+        employmentType,
         isActive: data.isActive ?? true,
-        isContributor: data.isContributor ?? true,
+        isContributor,
         exitDate: data.exitDate,
         welfareContributionsBeforeExit: data.welfareContributionsBeforeExit,
         emailVerified: false,
@@ -682,6 +701,7 @@ export async function updateEmployeeProfile(
     dateOfBirth?: Date
     startDate?: Date
     role?: string
+    employmentType?: EmploymentType | 'FULL_TIME' | 'CONTRACT'
     isActive?: boolean
     isContributor?: boolean
     exitDate?: Date | null
@@ -767,6 +787,11 @@ export async function updateEmployeeProfile(
 
     const active = data.isActive ?? true
 
+    const employmentType: EmploymentType =
+      data.employmentType === 'CONTRACT' ? 'CONTRACT' : 'FULL_TIME'
+    const isContributor =
+      employmentType === 'CONTRACT' ? false : data.isContributor ?? true
+
     const userUpdate = {
       email: newEmail,
       firstName,
@@ -778,8 +803,9 @@ export async function updateEmployeeProfile(
       dateOfBirth: data.dateOfBirth,
       startDate: data.startDate,
       role: (data.role as UserRole) || 'EMPLOYEE',
+      employmentType,
       isActive: active,
-      isContributor: data.isContributor ?? true,
+      isContributor,
       ...(active
         ? {
             exitDate: null,
