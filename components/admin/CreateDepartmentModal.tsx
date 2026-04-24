@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Search, Trash2, User, PlusCircle, Loader2 } from "lucide-react";
+import { Search, User, PlusCircle, Loader2, X, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,127 +15,201 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { fetchUsersIdAndName } from "@/lib/actions/users.action";
 import { createDepartment } from "@/lib/actions/department.actions";
+import { fetchClients } from "@/lib/actions/clients.actions";
 
-type Employee = {
+type EmployeeRow = {
   id: string;
   name: string;
   email: string;
-  title?: string;
+  clientId: string;
 };
 
 export default function CreateDepartmentModal() {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [departmentName, setDepartmentName] = useState("");
-  const [search, setSearch] = useState("");
-  
-  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
-  const [selected, setSelected] = useState<Employee[]>([]);
+  const [clientId, setClientId] = useState("");
+  const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
+  const [clientsLoading, setClientsLoading] = useState(false);
+
+  const [allEmployees, setAllEmployees] = useState<EmployeeRow[]>([]);
+  const [employeesLoading, setEmployeesLoading] = useState(false);
+  const [managerSearch, setManagerSearch] = useState("");
   const [managerId, setManagerId] = useState<string>("");
+  const [memberSearch, setMemberSearch] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState<EmployeeRow[]>([]);
 
   useEffect(() => {
-    if (open && allEmployees.length === 0) {
-      setIsLoading(true);
-      fetchUsersIdAndName().then((res) => {
-        if (res.success && res.users) {
-          const formatted = res.users
-            .filter(u => u.isActive)
+    if (!open) return;
+    setClientsLoading(true);
+    void fetchClients().then((res) => {
+      if (res.success && res.clients) {
+        setClients([...res.clients]);
+      } else {
+        setClients([]);
+      }
+      setClientsLoading(false);
+    });
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    setEmployeesLoading(true);
+    void fetchUsersIdAndName().then((res) => {
+      if (res.success && res.users) {
+        setAllEmployees(
+          res.users
+            .filter((u) => u.isActive && u.clientId)
             .map((u) => ({
               id: u.id,
               name: u.name || "Unnamed",
               email: u.email,
-              title: "Employee" // Placeholder as title isn't tracked in User
-            }));
-          setAllEmployees(formatted);
-        }
-        setIsLoading(false);
-      });
-    }
-  }, [open, allEmployees.length]);
-
-  const selectedCount = selected.length;
-
-  const filteredEmployees = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    
-    // Show unselected employees filtering by search
-    if (query) {
-      return allEmployees.filter((emp) => {
-        return (
-          emp.name.toLowerCase().includes(query) ||
-          emp.email.toLowerCase().includes(query)
+              clientId: u.clientId as string,
+            }))
         );
-      }).slice(0, 10); // Show max 10 results
-    }
-    return [];
-  }, [search, allEmployees]);
-
-  const toggleEmployee = (emp: Employee) => {
-    setSelected((prev) => {
-      const exists = prev.find((p) => p.id === emp.id);
-      if (exists) {
-        const next = prev.filter((p) => p.id !== emp.id);
-        if (managerId === emp.id) setManagerId(next[0]?.id ?? "");
-        return next;
       } else {
-        const next = [...prev, emp];
-        if (!managerId) setManagerId(emp.id);
-        return next;
+        setAllEmployees([]);
       }
+      setEmployeesLoading(false);
     });
-    setSearch(""); // clear search on selection
+  }, [open]);
+
+  const eligibleManagers = useMemo(
+    () =>
+      clientId
+        ? allEmployees.filter((u) => u.clientId === clientId)
+        : [],
+    [allEmployees, clientId]
+  );
+
+  const pickedManager = useMemo(
+    () => eligibleManagers.find((u) => u.id === managerId),
+    [eligibleManagers, managerId]
+  );
+
+  useEffect(() => {
+    if (!managerId || !clientId) return;
+    const stillOk = eligibleManagers.some((u) => u.id === managerId);
+    if (!stillOk) setManagerId("");
+  }, [clientId, eligibleManagers, managerId]);
+
+  const filteredManagerSearch = useMemo(() => {
+    const q = managerSearch.trim().toLowerCase();
+    if (!q || !clientId) return [];
+    return eligibleManagers
+      .filter(
+        (u) =>
+          u.id !== managerId &&
+          (u.name.toLowerCase().includes(q) ||
+            u.email.toLowerCase().includes(q))
+      )
+      .slice(0, 8);
+  }, [managerSearch, eligibleManagers, clientId, managerId]);
+
+  const selectedMemberIds = useMemo(
+    () => new Set(selectedMembers.map((m) => m.id)),
+    [selectedMembers]
+  );
+
+  const filteredMemberSearch = useMemo(() => {
+    const q = memberSearch.trim().toLowerCase();
+    if (!q || !clientId) return [];
+    return eligibleManagers
+      .filter(
+        (u) =>
+          !selectedMemberIds.has(u.id) &&
+          (u.name.toLowerCase().includes(q) ||
+            u.email.toLowerCase().includes(q))
+      )
+      .slice(0, 8);
+  }, [memberSearch, eligibleManagers, clientId, selectedMemberIds]);
+
+  const toggleMember = (emp: EmployeeRow) => {
+    setSelectedMembers((prev) => {
+      if (prev.some((p) => p.id === emp.id)) {
+        return prev.filter((p) => p.id !== emp.id);
+      }
+      return [...prev, emp];
+    });
+    setMemberSearch("");
   };
 
-  const removeEmployee = (id: string) => {
-    setSelected((prev) => {
-      const next = prev.filter((emp) => emp.id !== id);
-      if (managerId === id) setManagerId(next[0]?.id ?? "");
-      return next;
-    });
+  const removeMember = (id: string) => {
+    setSelectedMembers((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const resetForm = () => {
+    setDepartmentName("");
+    setClientId("");
+    setManagerId("");
+    setManagerSearch("");
+    setMemberSearch("");
+    setSelectedMembers([]);
   };
 
   const handleCreate = async () => {
     if (!departmentName.trim()) {
-      toast({ title: "Error", description: "Department name is required", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Department name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!clientId) {
+      toast({
+        title: "Error",
+        description: "Client is required",
+        variant: "destructive",
+      });
       return;
     }
 
     setIsSubmitting(true);
-    
     try {
-      const deptRes = await createDepartment({ 
-        name: departmentName.trim(), 
+      const deptRes = await createDepartment({
+        name: departmentName.trim(),
+        clientId,
         managerId: managerId || null,
-        employeeIds: selected.map(e => e.id)
+        employeeIds: selectedMembers.map((m) => m.id),
       });
 
       if (!deptRes.success) {
         throw new Error(deptRes.error || "Failed to create department");
       }
 
+      const assigned =
+        selectedMembers.length + (managerId && !selectedMemberIds.has(managerId) ? 1 : 0);
+      const assignNote =
+        assigned > 0
+          ? ` ${assigned} employee(s) linked to this department.`
+          : "";
+
       toast({
         title: "Department created",
-        description: `${departmentName.trim()} with ${selectedCount} employee(s)`,
+        description: `${departmentName.trim()} has been added.${assignNote}`,
       });
-      
+
       setOpen(false);
-      // Reset form
-      setDepartmentName("");
-      setSelected([]);
-      setManagerId("");
-      setSearch("");
+      resetForm();
     } catch (error: unknown) {
       toast({
         title: "Creation failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive"
+        description:
+          error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -143,7 +217,13 @@ export default function CreateDepartmentModal() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        setOpen(v);
+        if (!v) resetForm();
+      }}
+    >
       <DialogTrigger asChild>
         <Button className="gap-2 shadow-sm">
           <PlusCircle className="h-4 w-4" />
@@ -158,11 +238,39 @@ export default function CreateDepartmentModal() {
         <DialogHeader className="border-b border-border/60 px-6 py-4 text-left">
           <DialogTitle>Create new department</DialogTitle>
           <DialogDescription>
-            Name the unit, add employees, and appoint a manager from your team.
+            Link the unit to a client, name it, optionally assign a manager, and add
+            employees from that client to the department.
           </DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-6">
+          <div className="space-y-2">
+            <Label htmlFor="dept-client">
+              Client <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={clientId}
+              onValueChange={(v) => {
+                setClientId(v);
+                setManagerSearch("");
+                setMemberSearch("");
+                setSelectedMembers([]);
+              }}
+              disabled={isSubmitting || clientsLoading}
+            >
+              <SelectTrigger id="dept-client" className="h-11 rounded-lg">
+                <SelectValue placeholder="Select client" />
+              </SelectTrigger>
+              <SelectContent>
+                {clients.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="dept-name">Department name</Label>
             <Input
@@ -175,117 +283,110 @@ export default function CreateDepartmentModal() {
             />
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Assign employees</Label>
+          <div className="space-y-3">
+            <Label>Assign manager</Label>
+            <p className="text-xs text-muted-foreground">
+              Optional. Only active employees assigned to the selected client are
+              listed.
+            </p>
+
+            {pickedManager ? (
+              <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/30 p-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <User className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">
+                    {pickedManager.name}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {pickedManager.email}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={() => {
+                    setManagerId("");
+                    setManagerSearch("");
+                  }}
+                  disabled={isSubmitting}
+                  aria-label="Clear manager"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
               <div className="relative">
                 <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  value={managerSearch}
+                  onChange={(e) => setManagerSearch(e.target.value)}
                   className="h-11 rounded-lg"
-                  placeholder="Find employees to add…"
+                  placeholder={
+                    clientId
+                      ? "Search employees to set as manager…"
+                      : "Select a client first"
+                  }
                   leftIcon={<Search className="h-4 w-4" />}
-                  type="search"
-                  disabled={isSubmitting || isLoading}
+                  disabled={isSubmitting || !clientId || employeesLoading}
                 />
-                {isLoading && (
+                {employeesLoading && (
                   <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
                 )}
               </div>
-              
-              {/* Dropdown for search results */}
-              {search.trim() && filteredEmployees.length > 0 && (
-                <div className="border border-border rounded-lg bg-background shadow-sm overflow-hidden mt-1">
-                  {filteredEmployees.map(emp => (
-                    <button
-                      key={emp.id}
-                      type="button"
-                      onClick={() => toggleEmployee(emp)}
-                      className="w-full text-left px-4 py-3 text-sm hover:bg-muted/50 border-b last:border-b-0 flex flex-col transition-colors"
-                    >
-                      <span className="font-semibold">{emp.name}</span>
-                      <span className="text-xs text-muted-foreground">{emp.email}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            )}
 
-            <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Selected ({selectedCount})
-              </p>
-
-              {selected.map((emp) => {
-                const primary = managerId === emp.id;
-                return (
-                  <div
+            {managerSearch.trim() && filteredManagerSearch.length > 0 && (
+              <div className="mt-1 overflow-hidden rounded-lg border border-border bg-background shadow-sm">
+                {filteredManagerSearch.map((emp) => (
+                  <button
                     key={emp.id}
-                    className={cn(
-                      "flex flex-wrap items-center gap-3 rounded-lg border p-3",
-                      primary
-                        ? "border-primary/25 bg-primary/5"
-                        : "border-border/60 bg-muted/30"
-                    )}
+                    type="button"
+                    onClick={() => {
+                      setManagerId(emp.id);
+                      setManagerSearch("");
+                    }}
+                    className="flex w-full flex-col border-b px-4 py-3 text-left text-sm transition-colors last:border-b-0 hover:bg-muted/50"
                   >
-                    <div
-                      className={cn(
-                        "flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full",
-                        primary
-                          ? "bg-primary/15 text-primary"
-                          : "bg-muted text-muted-foreground"
-                      )}
-                    >
-                      <User className="h-5 w-5" />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">{emp.name}</p>
-                      <p className="truncate text-xs text-muted-foreground">{emp.email}</p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-4">
-                      <label className="flex cursor-pointer items-center gap-2">
-                        <Checkbox
-                          checked={managerId === emp.id}
-                          onCheckedChange={(checked) => {
-                            if (checked) setManagerId(emp.id);
-                            else if (managerId === emp.id)
-                              setManagerId(selected[0]?.id ?? "");
-                          }}
-                          disabled={isSubmitting}
-                          aria-label={`Set ${emp.name} as manager`}
-                        />
-                        <span className="text-xs font-medium">Manager</span>
-                      </label>
-
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => removeEmployee(emp.id)}
-                        disabled={isSubmitting}
-                        aria-label={`Remove ${emp.name}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    <span className="font-semibold">{emp.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {emp.email}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
         <DialogFooter className="border-t border-border/60 bg-muted/30 px-6 py-4 sm:justify-end">
-          <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
-          <Button type="button" onClick={handleCreate} disabled={isSubmitting || !departmentName.trim()}>
+          <Button
+            type="button"
+            onClick={handleCreate}
+            disabled={
+              isSubmitting ||
+              !departmentName.trim() ||
+              !clientId ||
+              clientsLoading
+            }
+          >
             {isSubmitting ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating...</>
-            ) : "Create Department"}
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating...
+              </>
+            ) : (
+              "Create Department"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

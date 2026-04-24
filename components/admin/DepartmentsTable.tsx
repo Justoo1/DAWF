@@ -67,18 +67,21 @@ import {
   adminToolbarDividerClass,
   adminToolbarFilterRowClass,
 } from "@/lib/admin-ui";
-import { 
-  fetchDepartments, 
-  deleteDepartment, 
-  toggleDepartmentStatus, 
+import {
+  fetchDepartments,
+  deleteDepartment,
+  toggleDepartmentStatus,
   updateDepartment,
-  fetchDepartmentMembers
+  fetchDepartmentMembers,
 } from "@/lib/actions/department.actions";
 import { fetchUsersIdAndName } from "@/lib/actions/users.action";
+import { fetchClients } from "@/lib/actions/clients.actions";
 
 export type DepartmentRow = {
   id: string;
   name: string;
+  clientId: string;
+  clientName: string | null;
   managerId: string | null;
   managerName: string | null;
   employeesCount: number;
@@ -89,6 +92,7 @@ type Employee = {
   id: string;
   name: string;
   email: string;
+  clientId: string;
 };
 
 const PAGE_SIZE = 5;
@@ -129,6 +133,10 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
   
   // Edit form state
   const [editName, setEditName] = useState("");
+  const [editClientId, setEditClientId] = useState("");
+  const [editClients, setEditClients] = useState<{ id: string; name: string }[]>(
+    []
+  );
   const [editManagerId, setEditManagerId] = useState("");
   const [editSearch, setEditSearch] = useState("");
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
@@ -144,40 +152,65 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
   };
 
   useEffect(() => {
-    fetchUsersIdAndName().then(res => {
+    fetchUsersIdAndName().then((res) => {
       if (res.success && res.users) {
-        setAllEmployees(res.users
-          .filter(u => u.isActive)
-          .map(u => ({ id: u.id, name: u.name || "Unnamed", email: u.email }))
+        setAllEmployees(
+          res.users
+            .filter((u) => u.isActive && u.clientId)
+            .map((u) => ({
+              id: u.id,
+              name: u.name || "Unnamed",
+              email: u.email,
+              clientId: u.clientId as string,
+            }))
         );
+      }
+    });
+    void fetchClients().then((res) => {
+      if (res.success && res.clients) {
+        setEditClients([...res.clients]);
       }
     });
   }, []);
 
   // Fetch current members when opening edit dialog
   useEffect(() => {
-    if (editDept) {
-      setIsFetchingMembers(true);
-      fetchDepartmentMembers(editDept.name).then(res => {
-        if (res.success && res.users) {
-          setSelectedEmployees(res.users as Employee[]);
-        }
-        setIsFetchingMembers(false);
-      });
-    } else {
-      setSelectedEmployees([]);
-      setEditSearch("");
+    if (!editDept || !editClientId) {
+      if (!editDept) {
+        setSelectedEmployees([]);
+        setEditSearch("");
+      }
+      return;
     }
-  }, [editDept]);
+    setIsFetchingMembers(true);
+    void fetchDepartmentMembers(editDept.name, editClientId).then((res) => {
+      if (res.success && res.users) {
+        setSelectedEmployees(
+          res.users.map((u) => ({
+            id: u.id,
+            name: u.name || "Unnamed",
+            email: u.email,
+            clientId: u.clientId,
+          }))
+        );
+      }
+      setIsFetchingMembers(false);
+    });
+  }, [editDept, editClientId]);
 
   const filteredSearchEmployees = useMemo(() => {
     const query = editSearch.trim().toLowerCase();
-    if (!query) return [];
-    return allEmployees.filter(emp => 
-      !selectedEmployees.some(s => s.id === emp.id) && 
-      (emp.name.toLowerCase().includes(query) || emp.email.toLowerCase().includes(query))
-    ).slice(0, 5);
-  }, [editSearch, allEmployees, selectedEmployees]);
+    if (!query || !editClientId) return [];
+    return allEmployees
+      .filter(
+        (emp) =>
+          emp.clientId === editClientId &&
+          !selectedEmployees.some((s) => s.id === emp.id) &&
+          (emp.name.toLowerCase().includes(query) ||
+            emp.email.toLowerCase().includes(query))
+      )
+      .slice(0, 5);
+  }, [editSearch, allEmployees, selectedEmployees, editClientId]);
 
   const toggleEmployee = (emp: Employee) => {
     setSelectedEmployees(prev => {
@@ -235,10 +268,21 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
     }
 
     setIsActionLoading(true);
-    const res = await updateDepartment(editDept.id, { 
-      name: editName.trim(), 
+    if (!editClientId) {
+      toast({
+        title: "Error",
+        description: "Client is required",
+        variant: "destructive",
+      });
+      setIsActionLoading(false);
+      return;
+    }
+
+    const res = await updateDepartment(editDept.id, {
+      name: editName.trim(),
+      clientId: editClientId,
       managerId: editManagerId || null,
-      employeeIds: selectedEmployees.map(e => e.id)
+      employeeIds: selectedEmployees.map((e) => e.id),
     });
 
     if (res.success) {
@@ -261,6 +305,7 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
   const openDepartmentEdit = (dept: DepartmentRow) => {
     setEditDept(dept);
     setEditName(dept.name);
+    setEditClientId(dept.clientId);
     setEditManagerId(dept.managerId || "");
   };
 
@@ -273,6 +318,7 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
       result = result.filter(
         (d) =>
           d.name.toLowerCase().includes(q) ||
+          (d.clientName && d.clientName.toLowerCase().includes(q)) ||
           (d.managerName && d.managerName.toLowerCase().includes(q))
       );
     }
@@ -345,7 +391,7 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
         <div className={cn("p-6 px-8 flex items-center gap-4", adminToolbarDividerClass)}>
           <div className="flex-1">
             <AdminSearchField
-              placeholder="Search departments by name or manager…"
+              placeholder="Search by department, client, or manager…"
               value={search}
               onChange={setSearch}
             />
@@ -417,6 +463,9 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
                   <SortIcon field="name" activeField={sortConfig.key} direction={sortConfig.direction} />
                 </div>
               </th>
+              <th className={adminThClass}>
+                Client
+              </th>
               <th
                 className={cn(adminThClass, adminThSortableClass)}
                 onClick={() => handleSort("managerName")}
@@ -450,7 +499,7 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="py-12 text-center text-muted-foreground">
+                <td colSpan={6} className="py-12 text-center text-muted-foreground">
                   <div className="flex flex-col items-center gap-2">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     <span className="text-sm">Loading departments...</span>
@@ -459,7 +508,7 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
               </tr>
             ) : slice.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-12 text-center text-muted-foreground">
+                <td colSpan={6} className="py-12 text-center text-muted-foreground">
                   No departments found.
                 </td>
               </tr>
@@ -494,6 +543,11 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
                           {dept.name}
                         </span>
                       </div>
+                    </td>
+                    <td className={adminTdClass}>
+                      <span className="text-sm text-foreground">
+                        {dept.clientName ?? "—"}
+                      </span>
                     </td>
                     <td className={adminTdClass}>
                       <div className="flex items-center gap-3">
@@ -596,6 +650,27 @@ export function DepartmentsTable({ initialDepartments = [] }: { initialDepartmen
                 placeholder="Department name"
                 className="h-11 rounded-lg"
               />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="edit-client">
+                Client <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                value={editClientId}
+                onValueChange={setEditClientId}
+              >
+                <SelectTrigger id="edit-client" className="h-11 rounded-lg">
+                  <SelectValue placeholder="Select client" />
+                </SelectTrigger>
+                <SelectContent className={adminSelectContentSurfaceClass}>
+                  {editClients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-4 pt-2">

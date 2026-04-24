@@ -64,7 +64,9 @@ export function AddEmployeeDialog() {
     null
   )
   const [loading, setLoading] = useState(false)
-  const [departments, setDepartments] = useState<{ id: string; name: string }[]>([])
+  const [departments, setDepartments] = useState<
+    { id: string; name: string; clientId: string; clientName: string | null }[]
+  >([])
   const [clients, setClients] = useState<{ id: string; name: string }[]>([])
   const [clientsReady, setClientsReady] = useState(false)
   const { toast } = useToast()
@@ -84,7 +86,14 @@ export function AddEmployeeDialog() {
     setClientsReady(false)
     void fetchDepartments().then((res) => {
       if (res.success && res.departments) {
-        setDepartments(res.departments.map((d) => ({ id: d.id, name: d.name })))
+        setDepartments(
+          res.departments.map((d) => ({
+            id: d.id,
+            name: d.name,
+            clientId: d.clientId,
+            clientName: d.clientName,
+          }))
+        )
       } else {
         setDepartments([])
       }
@@ -315,39 +324,28 @@ export function AddEmployeeDialog() {
 
                   <FormField
                     control={form.control}
-                    name="clientId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="inline-flex items-center gap-1">
-                          Client
-                          <RequiredMark />
-                        </FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="h-11 rounded-lg">
-                              <SelectValue placeholder="Select client" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {clients.map((c) => (
-                              <SelectItem key={c.id} value={c.id}>
-                                {c.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
                     name="department"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Department</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || ''}>
+                        <Select
+                          onValueChange={(v) => {
+                            field.onChange(v)
+                            if (v === "none" || !v) {
+                              form.setValue("clientId", "", {
+                                shouldValidate: true,
+                              })
+                            } else {
+                              const d = departments.find((x) => x.name === v)
+                              if (d) {
+                                form.setValue("clientId", d.clientId, {
+                                  shouldValidate: true,
+                                })
+                              }
+                            }
+                          }}
+                          value={field.value || ""}
+                        >
                           <FormControl>
                             <SelectTrigger className="h-11 rounded-lg">
                               <SelectValue placeholder="Select department" />
@@ -357,14 +355,79 @@ export function AddEmployeeDialog() {
                             <SelectItem value="none">None</SelectItem>
                             {departments.map((dept) => (
                               <SelectItem key={dept.id} value={dept.name}>
-                                {dept.name}
+                                {dept.clientName
+                                  ? `${dept.name} (${dept.clientName})`
+                                  : dept.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Choosing a department sets the client automatically.
+                        </p>
                         <FormMessage />
                       </FormItem>
                     )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="clientId"
+                    render={({ field }) => {
+                      const deptName = form.watch("department")
+                      const fromDept =
+                        deptName && deptName !== "none"
+                          ? departments.find((d) => d.name === deptName)
+                          : undefined
+                      const displayName =
+                        clients.find((c) => c.id === field.value)?.name ??
+                        fromDept?.clientName ??
+                        ""
+
+                      return (
+                        <FormItem>
+                          <FormLabel className="inline-flex items-center gap-1">
+                            Client
+                            <RequiredMark />
+                          </FormLabel>
+                          {fromDept ? (
+                            <FormControl>
+                              <Input
+                                readOnly
+                                disabled
+                                value={displayName}
+                                className="h-11 cursor-not-allowed rounded-lg bg-muted text-muted-foreground"
+                                aria-readonly
+                              />
+                            </FormControl>
+                          ) : (
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="h-11 rounded-lg">
+                                  <SelectValue placeholder="Select client" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {clients.map((c) => (
+                                  <SelectItem key={c.id} value={c.id}>
+                                    {c.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                          {fromDept ? (
+                            <p className="text-xs text-muted-foreground">
+                              Client is determined by the department you selected.
+                            </p>
+                          ) : null}
+                          <FormMessage />
+                        </FormItem>
+                      )
+                    }}
                   />
 
                   <FormField

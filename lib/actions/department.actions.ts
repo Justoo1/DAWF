@@ -12,6 +12,9 @@ export async function fetchDepartments() {
         manager: {
           select: { name: true, email: true },
         },
+        client: {
+          select: { id: true, name: true },
+        },
       },
     });
 
@@ -29,6 +32,8 @@ export async function fetchDepartments() {
       departments: departments.map((d) => ({
         id: d.id,
         name: d.name,
+        clientId: d.clientId,
+        clientName: d.client?.name ?? null,
         managerId: d.managerId,
         managerName: d.manager?.name || null,
         employeesCount: countMap.get(d.name) || 0,
@@ -41,11 +46,18 @@ export async function fetchDepartments() {
   }
 }
 
-export async function fetchDepartmentMembers(deptName: string) {
+export async function fetchDepartmentMembers(
+  deptName: string,
+  clientId?: string
+) {
   try {
     const users = await prisma.user.findMany({
-      where: { department: deptName, isActive: true },
-      select: { id: true, name: true, email: true }
+      where: {
+        department: deptName,
+        isActive: true,
+        ...(clientId ? { clientId } : {}),
+      },
+      select: { id: true, name: true, email: true, clientId: true },
     });
     return { success: true, users };
   } catch (error) {
@@ -54,24 +66,62 @@ export async function fetchDepartmentMembers(deptName: string) {
   }
 }
 
-export async function createDepartment(data: { name: string; managerId?: string | null; employeeIds?: string[] }) {
+export async function createDepartment(data: {
+  name: string;
+  clientId: string;
+  managerId?: string | null;
+  employeeIds?: string[];
+}) {
   try {
     if (!data.name?.trim()) {
       return { success: false, error: "Department name is required" };
     }
+    if (!data.clientId?.trim()) {
+      return { success: false, error: "Client is required" };
+    }
+
+    const trimmedClientId = data.clientId.trim();
+    const trimmedName = data.name.trim();
+
+    const client = await prisma.client.findFirst({
+      where: { id: trimmedClientId, isActive: true },
+      select: { id: true },
+    });
+    if (!client) {
+      return { success: false, error: "Client not found or inactive" };
+    }
 
     const dept = await prisma.department.create({
       data: {
-        name: data.name,
+        name: trimmedName,
+        clientId: trimmedClientId,
         managerId: data.managerId || null,
       },
     });
 
-    if (data.employeeIds && data.employeeIds.length > 0) {
-      await prisma.user.updateMany({
-        where: { id: { in: data.employeeIds } },
-        data: { department: data.name.trim() }
+    const idSet = new Set<string>();
+    for (const id of data.employeeIds ?? []) {
+      if (id?.trim()) idSet.add(id.trim());
+    }
+    if (data.managerId?.trim()) idSet.add(data.managerId.trim());
+
+    if (idSet.size > 0) {
+      const ids = [...idSet];
+      const allowed = await prisma.user.findMany({
+        where: {
+          id: { in: ids },
+          clientId: trimmedClientId,
+          isActive: true,
+        },
+        select: { id: true },
       });
+      const allowedIds = allowed.map((u) => u.id);
+      if (allowedIds.length > 0) {
+        await prisma.user.updateMany({
+          where: { id: { in: allowedIds } },
+          data: { department: trimmedName },
+        });
+      }
     }
 
     revalidatePath("/admin/leave-management/departments");
@@ -90,11 +140,31 @@ export async function createDepartment(data: { name: string; managerId?: string 
   }
 }
 
-export async function updateDepartment(id: string, data: { name: string; managerId?: string | null; employeeIds?: string[] }) {
+export async function updateDepartment(
+  id: string,
+  data: {
+    name: string;
+    clientId: string;
+    managerId?: string | null;
+    employeeIds?: string[];
+  }
+) {
   try {
     // 1. Get the current department state
     const currentDept = await prisma.department.findUnique({ where: { id } });
     if (!currentDept) return { success: false, error: "Department not found" };
+
+    if (!data.clientId?.trim()) {
+      return { success: false, error: "Client is required" };
+    }
+
+    const client = await prisma.client.findFirst({
+      where: { id: data.clientId.trim(), isActive: true },
+      select: { id: true },
+    });
+    if (!client) {
+      return { success: false, error: "Client not found or inactive" };
+    }
 
     const oldName = currentDept.name;
     const newName = data.name.trim();
@@ -104,6 +174,7 @@ export async function updateDepartment(id: string, data: { name: string; manager
       where: { id },
       data: {
         name: newName,
+        clientId: data.clientId.trim(),
         managerId: data.managerId || null,
       },
     });

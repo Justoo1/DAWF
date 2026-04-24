@@ -303,7 +303,8 @@ export async function fetchUsersIdAndName() {
           name: true,
           email: true,
           isActive: true,
-          isContributor: true
+          isContributor: true,
+          clientId: true,
         },
         orderBy: {
           name: 'asc'

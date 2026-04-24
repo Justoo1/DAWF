@@ -138,12 +138,13 @@ enum AccrualType {
 // ============================================
 
 model Client {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  users     User[]
+  id           String       @id @default(cuid())
+  name         String       @unique
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  users        User[]
+  departments  Department[]
 
   @@map("clients")
 }
@@ -499,14 +500,17 @@ model FoodSelection {
 // ============================================
 
 model Department {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  managerId   String?  // Reference to User who manages the dept
-  manager     User?    @relation("DepartmentManager", fields: [managerId], references: [id])
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  name      String   @unique
+  managerId String? // Reference to User who manages the dept
+  manager   User?    @relation("DepartmentManager", fields: [managerId], references: [id])
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  @@index([clientId])
   @@map("departments")
 }
 
