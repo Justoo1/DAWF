@@ -355,9 +355,7 @@ export function AddEmployeeDialog() {
                             <SelectItem value="none">None</SelectItem>
                             {departments.map((dept) => (
                               <SelectItem key={dept.id} value={dept.name}>
-                                {dept.clientName
-                                  ? `${dept.name} (${dept.clientName})`
-                                  : dept.name}
+                                {dept.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
