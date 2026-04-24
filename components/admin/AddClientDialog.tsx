@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Form,
   FormControl,
@@ -47,7 +48,10 @@ export function AddClientDialog() {
 
   const onSubmit = async (values: AddClientFormValues) => {
     try {
-      const res = await createClient({ name: values.name })
+      const res = await createClient({
+        name: values.name,
+        address: values.address,
+      })
       if (res.success) {
         toast({
           title: "Client created",
@@ -85,7 +89,7 @@ export function AddClientDialog() {
           Add Client
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
@@ -111,6 +115,24 @@ export function AddClientDialog() {
                         leftIcon={<Building2 className="h-4 w-4" />}
                         placeholder="Acme Corp"
                         autoComplete="organization"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        className="min-h-[100px] resize-y rounded-lg"
+                        placeholder="Street, city, region (optional)"
+                        autoComplete="street-address"
                         {...field}
                       />
                     </FormControl>

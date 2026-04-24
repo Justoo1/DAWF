@@ -74,6 +74,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
           <thead>
             <tr className={adminTheadRowClass}>
               <th className={adminThClass}>Client</th>
+              <th className={adminThClass}>Address</th>
               <th className={adminThClass}>Employees</th>
               <th className={adminThClass}>Status</th>
               <th className={cn(adminThClass, "text-right")}>Actions</th>
@@ -101,6 +102,20 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                   <span className="font-semibold text-slate-900 dark:text-slate-50 underline-offset-2 group-hover:text-primary group-hover:underline dark:group-hover:text-emerald-400">
                     {c.name}
                   </span>
+                </td>
+                <td className={cn(adminTdClass, "max-w-[220px]")}>
+                  {c.address ? (
+                    <span
+                      className="line-clamp-2 text-sm text-slate-600 dark:text-slate-400"
+                      title={c.address}
+                    >
+                      {c.address}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-slate-400 dark:text-slate-500">
+                      —
+                    </span>
+                  )}
                 </td>
                 <td className={adminTdClass}>{c.employeeCount}</td>
                 <td className={adminTdClass}>

@@ -45,6 +45,7 @@ export default async function AdminClientsPage() {
   const rows = clients.map((c) => ({
     id: c.id,
     name: c.name,
+    address: c.address,
     isActive: c.isActive,
     employeeCount: c._count.users,
   }))

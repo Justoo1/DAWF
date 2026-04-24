@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Form,
   FormControl,
@@ -47,7 +48,7 @@ export function EditClientDialog({
 
   const form = useForm<EditClientFormValues>({
     resolver: zodResolver(editClientFormSchema),
-    defaultValues: { name: "", isActive: true },
+    defaultValues: { name: "", address: "", isActive: true },
     mode: "onChange",
     reValidateMode: "onChange",
   })
@@ -56,6 +57,7 @@ export function EditClientDialog({
     if (client && open) {
       form.reset({
         name: client.name,
+        address: client.address ?? "",
         isActive: client.isActive,
       })
     }
@@ -69,6 +71,7 @@ export function EditClientDialog({
       const res = await updateClient({
         id: client.id,
         name: values.name,
+        address: values.address,
         isActive: values.isActive,
       })
       if (res.success) {
@@ -98,10 +101,10 @@ export function EditClientDialog({
       open={open}
       onOpenChange={(v) => {
         onOpenChange(v)
-        if (!v) form.reset({ name: "", isActive: true })
+        if (!v) form.reset({ name: "", address: "", isActive: true })
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
@@ -134,6 +137,24 @@ export function EditClientDialog({
                         leftIcon={<Building2 className="h-4 w-4" />}
                         placeholder="Acme Corp"
                         autoComplete="organization"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        className="min-h-[100px] resize-y rounded-lg"
+                        placeholder="Street, city, region (optional)"
+                        autoComplete="street-address"
                         {...field}
                       />
                     </FormControl>

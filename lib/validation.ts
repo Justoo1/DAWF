@@ -13,9 +13,16 @@ export const addClientFormSchema = z.object({
     .trim()
     .min(1, { message: "Client name is required" })
     .max(200, { message: "Name is too long" }),
+  address: z
+    .string()
+    .trim()
+    .max(500, { message: "Address is too long" }),
 })
 export type AddClientFormValues = z.infer<typeof addClientFormSchema>
-export const addClientFormDefaultValues: AddClientFormValues = { name: "" }
+export const addClientFormDefaultValues: AddClientFormValues = {
+  name: "",
+  address: "",
+}
 
 /** Admin clients — edit client (name + active flag). */
 export const editClientFormSchema = addClientFormSchema.extend({

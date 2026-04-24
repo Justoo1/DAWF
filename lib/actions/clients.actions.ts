@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import prisma from "../prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { sanitizeText } from "@/lib/utils/validators";
 
 /** Active clients only — used for employee create/edit pickers so inactive orgs cannot be assigned. */
 export async function fetchClients() {
@@ -38,7 +39,7 @@ export async function fetchClients() {
   }
 }
 
-export async function createClient(data: { name: string }) {
+export async function createClient(data: { name: string; address?: string }) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -59,13 +60,16 @@ export async function createClient(data: { name: string }) {
       return { success: false, error: "Client name is required" };
     }
 
+    const addressRaw = data.address?.trim() ?? "";
+    const address = addressRaw ? sanitizeText(addressRaw) : null;
+
     const existing = await prisma.client.findUnique({ where: { name } });
     if (existing) {
       return { success: false, error: "A client with this name already exists" };
     }
 
     await prisma.client.create({
-      data: { name, isActive: true },
+      data: { name, address, isActive: true },
     });
     revalidatePath("/admin/clients");
     return { success: true };
@@ -81,6 +85,7 @@ export async function createClient(data: { name: string }) {
 export async function updateClient(data: {
   id: string;
   name: string;
+  address?: string;
   isActive: boolean;
 }) {
   try {
@@ -103,6 +108,9 @@ export async function updateClient(data: {
       return { success: false, error: "Client name is required" };
     }
 
+    const addressRaw = data.address?.trim() ?? "";
+    const address = addressRaw ? sanitizeText(addressRaw) : null;
+
     const duplicate = await prisma.client.findFirst({
       where: { name, NOT: { id: data.id } },
     });
@@ -115,7 +123,7 @@ export async function updateClient(data: {
 
     await prisma.client.update({
       where: { id: data.id },
-      data: { name, isActive: data.isActive },
+      data: { name, address, isActive: data.isActive },
     });
     revalidatePath("/admin/clients");
     return { success: true };
