@@ -3,11 +3,14 @@
 import Header from '@/components/admin/Header'
 import { Sidebar } from '@/components/admin/Sidebar'
 import { useState, useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { authClient } from '@/lib/auth-client'
 import { fetchAdminShellUser } from '@/lib/actions/users.action'
 import { UserRole } from '@/lib/permissions'
 import { AdminShellUser } from '@/lib/validation'
 import { cn } from '@/lib/utils'
+
+const FOOD_COMMITTEE_ADMIN_HOME = '/admin/food-management/vendors'
 
 const SIDEBAR_COLLAPSED_KEY = 'devops-africa-admin-sidebar-collapsed'
 
@@ -21,6 +24,8 @@ export default function RootLayout({
   const [adminUser, setAdminUser] = useState<AdminShellUser | null>(null)
   const [shellUserFetchFailed, setShellUserFetchFailed] = useState(false)
   const { data: session, isPending: sessionPending } = authClient.useSession()
+  const pathname = usePathname()
+  const router = useRouter()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userRole = ((session?.user as any)?.role as UserRole | undefined) ?? (adminUser?.role as UserRole | undefined) ?? 'EMPLOYEE'
   const profilePending =
@@ -69,6 +74,14 @@ export default function RootLayout({
       cancelled = true
     }
   }, [session?.user?.email])
+
+  useEffect(() => {
+    if (userRole !== 'FOOD_COMMITTEE') return
+    if (!pathname?.startsWith('/admin')) return
+    if (pathname === '/admin') return
+    if (pathname.startsWith('/admin/food-management')) return
+    router.replace(FOOD_COMMITTEE_ADMIN_HOME)
+  }, [userRole, pathname, router])
 
   const collapsed = sidebarCollapsed ?? false
 
