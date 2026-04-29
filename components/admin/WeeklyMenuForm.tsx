@@ -59,6 +59,10 @@ interface WeeklyMenuFormProps {
 }
 
 const DAYS_OF_WEEK = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'] as const
+const baseInputClasses =
+  "h-11 rounded-lg border-zinc-200 bg-white text-zinc-900 placeholder:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+const readonlyInputClasses =
+  "h-11 rounded-lg border-zinc-200 bg-zinc-50 text-zinc-900 placeholder:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-100 dark:placeholder:text-zinc-500"
 
 const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: WeeklyMenuFormProps) => {
   const { toast } = useToast()
@@ -210,7 +214,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger className="h-11 rounded-lg">
+                    <SelectTrigger className={baseInputClasses}>
                       <SelectValue placeholder="Select a vendor" />
                     </SelectTrigger>
                   </FormControl>
@@ -243,7 +247,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                   <FormControl>
                     <Input
                       type="date"
-                      className="h-11 rounded-lg"
+                      className={baseInputClasses}
                       {...field}
                     />
                   </FormControl>
@@ -264,7 +268,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                   <FormControl>
                     <Input
                       type="date"
-                      className="h-11 rounded-lg"
+                      className={baseInputClasses}
                       {...field}
                     />
                   </FormControl>
@@ -287,7 +291,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                   <FormControl>
                     <Input
                       type="datetime-local"
-                      className="h-11 rounded-lg"
+                      className={baseInputClasses}
                       {...field}
                     />
                   </FormControl>
@@ -311,7 +315,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                   <FormControl>
                     <Input
                       type="datetime-local"
-                      className="h-11 rounded-lg"
+                      className={baseInputClasses}
                       {...field}
                     />
                   </FormControl>
@@ -387,7 +391,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                           disabled={!selectedVendorId}
                         >
                           <FormControl>
-                            <SelectTrigger className="h-11 rounded-lg">
+                            <SelectTrigger className={baseInputClasses}>
                               <SelectValue placeholder={selectedVendorId ? "Select a food item" : "Select vendor first"} />
                             </SelectTrigger>
                           </FormControl>
@@ -423,7 +427,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                               {...field}
                               placeholder="Select a food above"
                               readOnly
-                              className="bg-gray-50 h-11 rounded-lg"
+                              className={readonlyInputClasses}
                             />
                           </FormControl>
                           <FormMessage />
@@ -446,7 +450,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                               onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                               placeholder="0.00"
                               readOnly
-                              className="bg-gray-50 h-11 rounded-lg"
+                              className={readonlyInputClasses}
                             />
                           </FormControl>
                           <FormMessage />
@@ -465,7 +469,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                           <Textarea
                             {...field}
                             placeholder="Select a food to see description..."
-                            className="resize-none bg-gray-50 rounded-lg min-h-[44px]"
+                            className="resize-none rounded-lg min-h-[44px] border-zinc-200 bg-zinc-50 text-zinc-900 placeholder:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                             rows={2}
                             readOnly
                           />
