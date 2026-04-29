@@ -500,13 +500,17 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
 
         {/* Summary */}
         {fields.length > 0 && (
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium mb-2">Menu Summary</h4>
+          <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+            <h4 className="mb-2 font-semibold text-zinc-900 dark:text-zinc-100">
+              Menu Summary
+            </h4>
             <div className="grid grid-cols-5 gap-2 text-sm">
               {DAYS_OF_WEEK.map((day) => (
                 <div key={day}>
-                  <p className="font-medium">{day}</p>
-                  <p className="text-gray-600">{getItemsForDay(day).length} items</p>
+                  <p className="font-medium text-zinc-900 dark:text-zinc-100">{day}</p>
+                  <p className="text-zinc-600 dark:text-zinc-400">
+                    {getItemsForDay(day).length} items
+                  </p>
                 </div>
               ))}
             </div>
