@@ -133,10 +133,10 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
   const handleFoodSelect = (index: number, foodId: string) => {
     const selectedFood = foods.find(f => f.id === foodId)
     if (selectedFood) {
-      form.setValue(`menuItems.${index}.foodId`, foodId)
-      form.setValue(`menuItems.${index}.itemName`, selectedFood.name)
-      form.setValue(`menuItems.${index}.description`, selectedFood.description || "")
-      form.setValue(`menuItems.${index}.price`, selectedFood.price || undefined)
+      form.setValue(`menuItems.${index}.foodId`, foodId, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
+      form.setValue(`menuItems.${index}.itemName`, selectedFood.name, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
+      form.setValue(`menuItems.${index}.description`, selectedFood.description || "", { shouldDirty: true, shouldTouch: true, shouldValidate: true })
+      form.setValue(`menuItems.${index}.price`, selectedFood.price ?? undefined, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
     }
   }
 
@@ -356,7 +356,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
           <div className="space-y-4">
             {getItemsForDay(selectedDay).length > 0 ? (
               getItemsForDay(selectedDay).map((item, idx) => (
-                <div key={item.index} className="border rounded-lg p-4 space-y-3">
+                <div key={item.id} className="border rounded-lg p-4 space-y-3">
                   <div className="flex justify-between items-start">
                     <h4 className="font-medium">Item {idx + 1}</h4>
                     <Button
@@ -422,7 +422,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                             <Input
                               {...field}
                               placeholder="Select a food above"
-                              disabled
+                              readOnly
                               className="bg-gray-50 h-11 rounded-lg"
                             />
                           </FormControl>
@@ -445,7 +445,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                               value={field.value || ''}
                               onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                               placeholder="0.00"
-                              disabled
+                              readOnly
                               className="bg-gray-50 h-11 rounded-lg"
                             />
                           </FormControl>
@@ -467,7 +467,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                             placeholder="Select a food to see description..."
                             className="resize-none bg-gray-50 rounded-lg min-h-[44px]"
                             rows={2}
-                            disabled
+                            readOnly
                           />
                         </FormControl>
                         <FormMessage />
