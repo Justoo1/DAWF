@@ -133,6 +133,18 @@ enum AccrualType {
   CALENDAR_DAYS
 }
 
+enum LeaveProrationMode {
+  NONE
+  PRO_RATA_LEAVE_YEAR
+  PERIOD_ACCRUAL
+}
+
+enum MidPeriodJoinRule {
+  FULL_PERIOD_IF_ANY_OVERLAP
+  PRORATE_PARTIAL_PERIOD
+  NEXT_FULL_PERIOD_ONLY
+}
+
 // ============================================
 // MODELS
 // ============================================
@@ -525,6 +537,10 @@ model LeavePolicy {
   defaultDays      Int
   isUnlimited      Boolean  @default(false)
   accrualType      AccrualType @default(WORKING_DAYS)
+  prorationMode    LeaveProrationMode @default(NONE)
+  leaveYearStartMonth Int    @default(1)
+  periodsPerYear   Int?
+  midPeriodJoinRule MidPeriodJoinRule?
   isFlexible       Boolean  @default(true)
   isActive         Boolean  @default(true)
   

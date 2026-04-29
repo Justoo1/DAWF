@@ -43,6 +43,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
@@ -52,6 +59,11 @@ type LeavePolicy = {
   name: string
   defaultDays: number
   isUnlimited: boolean
+  accrualType: "WORKING_DAYS" | "CALENDAR_DAYS"
+  prorationMode: "NONE" | "PRO_RATA_LEAVE_YEAR" | "PERIOD_ACCRUAL"
+  leaveYearStartMonth: number
+  periodsPerYear: number | null
+  midPeriodJoinRule: "FULL_PERIOD_IF_ANY_OVERLAP" | "PRORATE_PARTIAL_PERIOD" | "NEXT_FULL_PERIOD_ONLY" | null
   isFlexible: boolean
   isActive: boolean
 }
@@ -67,6 +79,11 @@ export default function CreateLeavePage() {
   const [name, setName] = useState("")
   const [defaultDays, setDefaultDays] = useState(20)
   const [isUnlimited, setIsUnlimited] = useState(true)
+  const [accrualType, setAccrualType] = useState<"WORKING_DAYS" | "CALENDAR_DAYS">("WORKING_DAYS")
+  const [prorationMode, setProrationMode] = useState<"NONE" | "PRO_RATA_LEAVE_YEAR" | "PERIOD_ACCRUAL">("NONE")
+  const [leaveYearStartMonth, setLeaveYearStartMonth] = useState(1)
+  const [periodsPerYear, setPeriodsPerYear] = useState(4)
+  const [midPeriodJoinRule, setMidPeriodJoinRule] = useState<"FULL_PERIOD_IF_ANY_OVERLAP" | "PRORATE_PARTIAL_PERIOD" | "NEXT_FULL_PERIOD_ONLY">("FULL_PERIOD_IF_ANY_OVERLAP")
   const [isFlexible, setIsFlexible] = useState(true)
 
   // Edit/Delete state
@@ -74,6 +91,11 @@ export default function CreateLeavePage() {
   const [editName, setEditName] = useState("")
   const [editDefaultDays, setEditDefaultDays] = useState(0)
   const [editIsUnlimited, setEditIsUnlimited] = useState(false)
+  const [editAccrualType, setEditAccrualType] = useState<"WORKING_DAYS" | "CALENDAR_DAYS">("WORKING_DAYS")
+  const [editProrationMode, setEditProrationMode] = useState<"NONE" | "PRO_RATA_LEAVE_YEAR" | "PERIOD_ACCRUAL">("NONE")
+  const [editLeaveYearStartMonth, setEditLeaveYearStartMonth] = useState(1)
+  const [editPeriodsPerYear, setEditPeriodsPerYear] = useState(4)
+  const [editMidPeriodJoinRule, setEditMidPeriodJoinRule] = useState<"FULL_PERIOD_IF_ANY_OVERLAP" | "PRORATE_PARTIAL_PERIOD" | "NEXT_FULL_PERIOD_ONLY">("FULL_PERIOD_IF_ANY_OVERLAP")
   const [editIsFlexible, setEditIsFlexible] = useState(true)
   const [deletingPolicyId, setDeletingPolicyId] = useState<string | null>(null)
 
@@ -81,7 +103,15 @@ export default function CreateLeavePage() {
     setLoadingPolicies(true)
     const res = await fetchLeavePolicies()
     if (res.success && res.policies) {
-      setPolicies(res.policies as LeavePolicy[])
+      setPolicies(
+        res.policies.map((policy) => ({
+          ...policy,
+          prorationMode: "prorationMode" in policy ? policy.prorationMode : "NONE",
+          leaveYearStartMonth: "leaveYearStartMonth" in policy ? policy.leaveYearStartMonth : 1,
+          periodsPerYear: "periodsPerYear" in policy ? policy.periodsPerYear : null,
+          midPeriodJoinRule: "midPeriodJoinRule" in policy ? policy.midPeriodJoinRule : null,
+        })) as LeavePolicy[]
+      )
     }
     setLoadingPolicies(false)
   }
@@ -108,6 +138,11 @@ export default function CreateLeavePage() {
       name: name.trim(),
       defaultDays,
       isUnlimited,
+      accrualType,
+      prorationMode,
+      leaveYearStartMonth,
+      periodsPerYear: prorationMode === "PERIOD_ACCRUAL" ? periodsPerYear : null,
+      midPeriodJoinRule: prorationMode === "PERIOD_ACCRUAL" ? midPeriodJoinRule : null,
       isFlexible
     })
 
@@ -116,6 +151,11 @@ export default function CreateLeavePage() {
       setName("")
       setDefaultDays(20)
       setIsUnlimited(true)
+      setAccrualType("WORKING_DAYS")
+      setProrationMode("NONE")
+      setLeaveYearStartMonth(1)
+      setPeriodsPerYear(4)
+      setMidPeriodJoinRule("FULL_PERIOD_IF_ANY_OVERLAP")
       setIsFlexible(true)
       loadPolicies()
     } else {
@@ -140,6 +180,11 @@ export default function CreateLeavePage() {
       name: editName.trim(),
       defaultDays: editDefaultDays,
       isUnlimited: editIsUnlimited,
+      accrualType: editAccrualType,
+      prorationMode: editProrationMode,
+      leaveYearStartMonth: editLeaveYearStartMonth,
+      periodsPerYear: editProrationMode === "PERIOD_ACCRUAL" ? editPeriodsPerYear : null,
+      midPeriodJoinRule: editProrationMode === "PERIOD_ACCRUAL" ? editMidPeriodJoinRule : null,
       isFlexible: editIsFlexible
     })
 
@@ -240,6 +285,75 @@ export default function CreateLeavePage() {
                     disabled={isSubmitting}
                   />
                 </div>
+              )}
+              {!isUnlimited && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Accrual Type</Label>
+                      <Select value={accrualType} onValueChange={(value: "WORKING_DAYS" | "CALENDAR_DAYS") => setAccrualType(value)}>
+                        <SelectTrigger className="h-12 rounded-[12px] bg-[#F9FAFB] dark:bg-zinc-800 border-[#E5E7EB] dark:border-zinc-700">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="WORKING_DAYS">Working Days</SelectItem>
+                          <SelectItem value="CALENDAR_DAYS">Calendar Days</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Leave Year Start Month</Label>
+                      <input
+                        value={leaveYearStartMonth}
+                        onChange={(e) => setLeaveYearStartMonth(Math.max(1, Math.min(12, Number(e.target.value) || 1)))}
+                        className="w-full h-12 bg-[#F9FAFB] dark:bg-zinc-800 border border-[#E5E7EB] dark:border-zinc-700 rounded-[12px] px-4"
+                        type="number"
+                        min="1"
+                        max="12"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Proration Mode</Label>
+                    <Select value={prorationMode} onValueChange={(value: "NONE" | "PRO_RATA_LEAVE_YEAR" | "PERIOD_ACCRUAL") => setProrationMode(value)}>
+                      <SelectTrigger className="h-12 rounded-[12px] bg-[#F9FAFB] dark:bg-zinc-800 border-[#E5E7EB] dark:border-zinc-700">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NONE">No Proration</SelectItem>
+                        <SelectItem value="PRO_RATA_LEAVE_YEAR">Pro-rate Leave Year</SelectItem>
+                        <SelectItem value="PERIOD_ACCRUAL">Period Accrual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {prorationMode === "PERIOD_ACCRUAL" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Periods Per Year</Label>
+                        <input
+                          value={periodsPerYear}
+                          onChange={(e) => setPeriodsPerYear(Math.max(1, Number(e.target.value) || 1))}
+                          className="w-full h-12 bg-[#F9FAFB] dark:bg-zinc-800 border border-[#E5E7EB] dark:border-zinc-700 rounded-[12px] px-4"
+                          type="number"
+                          min="1"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Mid-Period Join Rule</Label>
+                        <Select value={midPeriodJoinRule} onValueChange={(value: "FULL_PERIOD_IF_ANY_OVERLAP" | "PRORATE_PARTIAL_PERIOD" | "NEXT_FULL_PERIOD_ONLY") => setMidPeriodJoinRule(value)}>
+                          <SelectTrigger className="h-12 rounded-[12px] bg-[#F9FAFB] dark:bg-zinc-800 border-[#E5E7EB] dark:border-zinc-700">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="FULL_PERIOD_IF_ANY_OVERLAP">Full Period If Any Overlap</SelectItem>
+                            <SelectItem value="PRORATE_PARTIAL_PERIOD">Prorate Partial Period</SelectItem>
+                            <SelectItem value="NEXT_FULL_PERIOD_ONLY">Next Full Period Only</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
               <div className="bg-[#F6FBFA] dark:bg-emerald-950/20 p-5 rounded-[12px] border border-[#E8F5F2] dark:border-emerald-900/40 flex items-center justify-between">
@@ -348,6 +462,11 @@ export default function CreateLeavePage() {
                               setEditName(policy.name)
                               setEditDefaultDays(policy.defaultDays)
                               setEditIsUnlimited(policy.isUnlimited)
+                              setEditAccrualType(policy.accrualType)
+                              setEditProrationMode(policy.prorationMode)
+                              setEditLeaveYearStartMonth(policy.leaveYearStartMonth)
+                              setEditPeriodsPerYear(policy.periodsPerYear ?? 4)
+                              setEditMidPeriodJoinRule(policy.midPeriodJoinRule ?? "FULL_PERIOD_IF_ANY_OVERLAP")
                               setEditIsFlexible(policy.isFlexible)
                             }}
                           >
@@ -420,15 +539,76 @@ export default function CreateLeavePage() {
               </label>
             </div>
             {!editIsUnlimited && (
-              <div className="space-y-2">
-                <Label>Default Days</Label>
-                <input
-                    value={editDefaultDays}
-                    onChange={(e) => setEditDefaultDays(parseInt(e.target.value) || 0)}
-                    className="w-full h-11 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
-                    type="number"
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label>Default Days</Label>
+                  <input
+                      value={editDefaultDays}
+                      onChange={(e) => setEditDefaultDays(parseInt(e.target.value) || 0)}
+                      className="w-full h-11 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+                      type="number"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Accrual Type</Label>
+                    <Select value={editAccrualType} onValueChange={(value: "WORKING_DAYS" | "CALENDAR_DAYS") => setEditAccrualType(value)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="WORKING_DAYS">Working Days</SelectItem>
+                        <SelectItem value="CALENDAR_DAYS">Calendar Days</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Leave Year Start Month</Label>
+                    <input
+                      value={editLeaveYearStartMonth}
+                      onChange={(e) => setEditLeaveYearStartMonth(Math.max(1, Math.min(12, Number(e.target.value) || 1)))}
+                      className="w-full h-11 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 text-sm"
+                      type="number"
+                      min="1"
+                      max="12"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Proration Mode</Label>
+                  <Select value={editProrationMode} onValueChange={(value: "NONE" | "PRO_RATA_LEAVE_YEAR" | "PERIOD_ACCRUAL") => setEditProrationMode(value)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NONE">No Proration</SelectItem>
+                      <SelectItem value="PRO_RATA_LEAVE_YEAR">Pro-rate Leave Year</SelectItem>
+                      <SelectItem value="PERIOD_ACCRUAL">Period Accrual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {editProrationMode === "PERIOD_ACCRUAL" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Periods Per Year</Label>
+                      <input
+                        value={editPeriodsPerYear}
+                        onChange={(e) => setEditPeriodsPerYear(Math.max(1, Number(e.target.value) || 1))}
+                        className="w-full h-11 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 text-sm"
+                        type="number"
+                        min="1"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Mid-Period Join Rule</Label>
+                      <Select value={editMidPeriodJoinRule} onValueChange={(value: "FULL_PERIOD_IF_ANY_OVERLAP" | "PRORATE_PARTIAL_PERIOD" | "NEXT_FULL_PERIOD_ONLY") => setEditMidPeriodJoinRule(value)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="FULL_PERIOD_IF_ANY_OVERLAP">Full Period If Any Overlap</SelectItem>
+                          <SelectItem value="PRORATE_PARTIAL_PERIOD">Prorate Partial Period</SelectItem>
+                          <SelectItem value="NEXT_FULL_PERIOD_ONLY">Next Full Period Only</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700">
                <div className="flex flex-col gap-0.5">

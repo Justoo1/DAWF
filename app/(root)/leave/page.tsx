@@ -41,7 +41,7 @@ import {
 import Link from 'next/link'
 import {
   fetchLeavePolicies,
-  fetchUserLeaveBalances,
+  getEffectiveLeaveEntitlements,
   fetchLeaveRequests,
   fetchPublicHolidays,
   submitLeaveRequest,
@@ -61,13 +61,13 @@ interface LeavePolicy {
     isUnlimited: boolean;
 }
 
-interface LeaveBalance {
-    id: string;
+interface LeaveEntitlement {
     policyId: string;
-    userId: string;
-    year: number;
-    daysAllocated: number;
-    policy: LeavePolicy;
+    computedTotal: number | null;
+    overrideTotal: number | null;
+    effectiveTotal: number | null;
+    approvedUsed: number;
+    remaining: number | null;
 }
 
 interface LeaveRequest {
@@ -111,7 +111,7 @@ const LeaveRequestPage = () => {
     const { toast } = useToast()
 
     const [policies, setPolicies] = useState<LeavePolicy[]>([])
-    const [balances, setBalances] = useState<LeaveBalance[]>([])
+    const [entitlements, setEntitlements] = useState<LeaveEntitlement[]>([])
     const [requests, setRequests] = useState<LeaveRequest[]>([])
     const [publicHolidays, setPublicHolidays] = useState<HolidayRow[]>([])
     
@@ -154,15 +154,16 @@ const LeaveRequestPage = () => {
             if (!session?.user?.id) return
             
             setIsLoading(true)
-            const [policiesRes, balancesRes, requestsRes, holidaysRes] = await Promise.all([
+            const year = new Date().getFullYear()
+            const [policiesRes, entitlementsRes, requestsRes, holidaysRes] = await Promise.all([
                 fetchLeavePolicies(),
-                fetchUserLeaveBalances(session.user.id, new Date().getFullYear()),
+                getEffectiveLeaveEntitlements(session.user.id, year),
                 fetchLeaveRequests(session.user.id, { scope: "self" }),
                 fetchPublicHolidays(),
             ])
 
             if (policiesRes.success) setPolicies(policiesRes.policies || [])
-            if (balancesRes.success) setBalances(balancesRes.balances || [])
+            if (entitlementsRes.success) setEntitlements(entitlementsRes.entitlements || [])
             if (requestsRes.success) setRequests(requestsRes.requests || [])
             if (holidaysRes.success && holidaysRes.holidays) {
                 setPublicHolidays(
@@ -187,23 +188,14 @@ const LeaveRequestPage = () => {
                 setMaxDays(null)
                 return
             }
-            const balance = balances.find((b: LeaveBalance) => b.policyId === selectedPolicy)
-
-            // Calculate approved days used
-            const approvedRequests = requests.filter((r: LeaveRequest) =>
-                r.policyId === selectedPolicy && r.status === 'APPROVED'
-            )
-            const approvedDaysUsed = approvedRequests.reduce((sum: number, r: LeaveRequest) => sum + r.days, 0)
-
-            // Use balance allocation if exists, otherwise use policy defaultDays
-            const totalDays = balance ? balance.daysAllocated : (policy?.defaultDays || 0)
-            const remainingDays = totalDays - approvedDaysUsed
+            const entitlement = entitlements.find((item) => item.policyId === selectedPolicy)
+            const remainingDays = entitlement?.remaining ?? 0
 
             setMaxDays(remainingDays > 0 ? remainingDays : 0)
         } else {
             setMaxDays(null)
         }
-    }, [selectedPolicy, policies, balances, requests])
+    }, [selectedPolicy, policies, entitlements])
 
     useEffect(() => {
         if (!editPolicy) {
@@ -215,18 +207,10 @@ const LeaveRequestPage = () => {
             setEditMaxDays(null)
             return
         }
-        const balance = balances.find((b: LeaveBalance) => b.policyId === editPolicy)
-        const approvedRequests = requests.filter(
-            (r: LeaveRequest) => r.policyId === editPolicy && r.status === 'APPROVED'
-        )
-        const approvedDaysUsed = approvedRequests.reduce(
-            (sum: number, r: LeaveRequest) => sum + r.days,
-            0
-        )
-        const totalDays = balance ? balance.daysAllocated : policy?.defaultDays || 0
-        const remainingDays = totalDays - approvedDaysUsed
+        const entitlement = entitlements.find((item) => item.policyId === editPolicy)
+        const remainingDays = entitlement?.remaining ?? 0
         setEditMaxDays(remainingDays > 0 ? remainingDays : 0)
-    }, [editPolicy, policies, balances, requests])
+    }, [editPolicy, policies, entitlements])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -691,19 +675,11 @@ const LeaveRequestPage = () => {
                         {/* Balances: leave type cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                             {policies.filter((p: LeavePolicy) => p.isActive).length > 0 ? policies.filter((p: LeavePolicy) => p.isActive).map((policy: LeavePolicy) => {
-                                const balance = balances.find((b: LeaveBalance) => b.policyId === policy.id)
-                                const hasBalance = balance !== undefined
-                                
-                                // Calculate approved days used for this policy
-                                const approvedRequests = requests.filter((r: LeaveRequest) => 
-                                    r.policyId === policy.id && r.status === 'APPROVED'
-                                )
-                                const approvedDaysUsed = approvedRequests.reduce((sum: number, r: LeaveRequest) => sum + r.days, 0)
-                                
-                                // Use policy defaultDays if no balance, otherwise use balance allocation
-                                const totalDays = hasBalance ? balance.daysAllocated : policy.defaultDays || 0
-                                const daysUsed = hasBalance ? approvedDaysUsed : approvedDaysUsed
-                                const daysRemaining = totalDays - daysUsed
+                                const entitlement = entitlements.find((item) => item.policyId === policy.id)
+                                const hasComputedEntitlement = entitlement !== undefined
+                                const totalDays = entitlement?.effectiveTotal ?? (policy.isUnlimited ? null : policy.defaultDays || 0)
+                                const daysUsed = entitlement?.approvedUsed ?? 0
+                                const daysRemaining = entitlement?.remaining ?? 0
 
                                 return (
                                     <div
@@ -711,8 +687,8 @@ const LeaveRequestPage = () => {
                                         className="group rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:border-emerald-500/30 hover:shadow-sm dark:bg-card/50"
                                     >
                                         <div className="flex items-start justify-between mb-3">
-                                            <div className={`p-2.5 rounded-lg ${hasBalance ? 'bg-emerald-500/10 dark:bg-emerald-500/15' : 'bg-muted'}`}>
-                                                <FileText className={`w-4 h-4 ${hasBalance ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`} />
+                                            <div className={`p-2.5 rounded-lg ${hasComputedEntitlement ? 'bg-emerald-500/10 dark:bg-emerald-500/15' : 'bg-muted'}`}>
+                                                <FileText className={`w-4 h-4 ${hasComputedEntitlement ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`} />
                                             </div>
                                             <span className="text-[9px] font-bold text-muted-foreground uppercase">
                                                 {new Date().getFullYear()}
@@ -727,7 +703,7 @@ const LeaveRequestPage = () => {
                                                     Unlimited
                                                 </span>
                                             </div>
-                                        ) : totalDays > 0 ? (
+                                        ) : (totalDays ?? 0) > 0 ? (
                                             <div className="space-y-2">
                                                 <div className="flex items-baseline gap-1">
                                                     <span className="text-2xl font-bold text-foreground">
@@ -741,12 +717,12 @@ const LeaveRequestPage = () => {
                                                     <span>
                                                         <span className="font-semibold text-foreground">{daysUsed}</span> used
                                                     </span>
-                                                    <span>of {totalDays} total</span>
+                                                    <span>of {totalDays ?? 0} total</span>
                                                 </div>
                                                 <div className="h-1.5 w-full rounded-full bg-muted">
                                                     <div 
                                                         className="h-full rounded-full bg-emerald-500 transition-all duration-500" 
-                                                        style={{ width: `${totalDays > 0 ? (daysUsed / totalDays) * 100 : 0}%` }}
+                                                        style={{ width: `${(totalDays ?? 0) > 0 ? (daysUsed / (totalDays ?? 0)) * 100 : 0}%` }}
                                                     />
                                                 </div>
                                             </div>
@@ -762,9 +738,9 @@ const LeaveRequestPage = () => {
                             }) : (
                                 <div className="col-span-full rounded-xl border border-dashed border-border bg-card/50 p-8 text-center">
                                     <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-                                    <p className="text-sm font-semibold text-muted-foreground mb-1">No Leave Balances Found</p>
+                                    <p className="text-sm font-semibold text-muted-foreground mb-1">No Leave Policies Found</p>
                                     <p className="text-xs text-muted-foreground">
-                                        Leave balances need to be assigned by your administrator.
+                                        Leave policies need to be configured by your administrator.
                                     </p>
                                 </div>
                             )}

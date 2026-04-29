@@ -26,7 +26,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
 import { fetchUsersIdAndName } from "@/lib/actions/users.action"
-import { fetchLeavePolicies, submitLeaveRequest } from "@/lib/actions/leave.actions"
+import { fetchLeavePolicies, getEffectiveLeaveEntitlements, submitLeaveRequest } from "@/lib/actions/leave.actions"
 
 type UserOption = { id: string; name: string }
 type PolicyOption = { id: string; name: string; defaultDays: number; isUnlimited: boolean }
@@ -58,6 +58,7 @@ export default function RequestLeaveModal() {
   const [endDate, setEndDate] = useState("")
   const [days, setDays] = useState<number>(1)
   const [reason, setReason] = useState("")
+  const [remainingByPolicy, setRemainingByPolicy] = useState<Record<string, number | null>>({})
   const todayIso = format(new Date(), "yyyy-MM-dd")
 
   useEffect(() => {
@@ -90,6 +91,22 @@ export default function RequestLeaveModal() {
     }
   }, [open, users.length])
 
+  useEffect(() => {
+    if (!open || !employeeId) {
+      setRemainingByPolicy({})
+      return
+    }
+
+    getEffectiveLeaveEntitlements(employeeId, new Date().getFullYear()).then((res) => {
+      if (!res.success || !res.entitlements) return
+      const nextMap: Record<string, number | null> = {}
+      for (const entitlement of res.entitlements) {
+        nextMap[entitlement.policyId] = entitlement.remaining
+      }
+      setRemainingByPolicy(nextMap)
+    })
+  }, [open, employeeId])
+
   const handleSubmit = async () => {
     if (!employeeId || !policyId || !startDate || !endDate || days <= 0) {
       toast({ title: "Validation Error", description: "Please fill all required fields correctly.", variant: "destructive" })
@@ -99,6 +116,15 @@ export default function RequestLeaveModal() {
       toast({
         title: "Validation Error",
         description: "Leave request range cannot include weekends. Please select weekdays only.",
+        variant: "destructive",
+      })
+      return
+    }
+    const remaining = remainingByPolicy[policyId]
+    if (remaining !== undefined && remaining !== null && days > remaining) {
+      toast({
+        title: "Validation Error",
+        description: `Requested days exceed remaining entitlement (${remaining} days).`,
         variant: "destructive",
       })
       return
@@ -216,6 +242,11 @@ export default function RequestLeaveModal() {
                     className="h-11 rounded-lg"
                     disabled={isSubmitting}
                   />
+                  {policyId && remainingByPolicy[policyId] !== undefined && remainingByPolicy[policyId] !== null ? (
+                    <p className="text-xs text-muted-foreground">
+                      Remaining entitlement: {remainingByPolicy[policyId]} days
+                    </p>
+                  ) : null}
                 </div>
               </div>
 

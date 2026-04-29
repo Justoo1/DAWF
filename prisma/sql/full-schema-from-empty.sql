@@ -64,6 +64,12 @@ CREATE TYPE "LeaveStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'CANCELLED
 -- CreateEnum
 CREATE TYPE "AccrualType" AS ENUM ('WORKING_DAYS', 'CALENDAR_DAYS');
 
+-- CreateEnum
+CREATE TYPE "LeaveProrationMode" AS ENUM ('NONE', 'PRO_RATA_LEAVE_YEAR', 'PERIOD_ACCRUAL');
+
+-- CreateEnum
+CREATE TYPE "MidPeriodJoinRule" AS ENUM ('FULL_PERIOD_IF_ANY_OVERLAP', 'PRORATE_PARTIAL_PERIOD', 'NEXT_FULL_PERIOD_ONLY');
+
 -- CreateTable
 CREATE TABLE "clients" (
     "id" TEXT NOT NULL,
@@ -381,6 +387,10 @@ CREATE TABLE "leave_policies" (
     "defaultDays" INTEGER NOT NULL,
     "isUnlimited" BOOLEAN NOT NULL DEFAULT false,
     "accrualType" "AccrualType" NOT NULL DEFAULT 'WORKING_DAYS',
+    "prorationMode" "LeaveProrationMode" NOT NULL DEFAULT 'NONE',
+    "leaveYearStartMonth" INTEGER NOT NULL DEFAULT 1,
+    "periodsPerYear" INTEGER,
+    "midPeriodJoinRule" "MidPeriodJoinRule",
     "isFlexible" BOOLEAN NOT NULL DEFAULT true,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

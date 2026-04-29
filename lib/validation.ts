@@ -739,6 +739,13 @@ export const LeavePolicySchema = z.object({
   name: z.string().min(2, { message: "Policy name is required" }),
   defaultDays: z.number().int().positive(),
   accrualType: z.enum(['WORKING_DAYS', 'CALENDAR_DAYS']).default('WORKING_DAYS'),
+  prorationMode: z.enum(['NONE', 'PRO_RATA_LEAVE_YEAR', 'PERIOD_ACCRUAL']).default('NONE'),
+  leaveYearStartMonth: z.number().int().min(1).max(12).default(1),
+  periodsPerYear: z.number().int().positive().nullable().optional(),
+  midPeriodJoinRule: z
+    .enum(['FULL_PERIOD_IF_ANY_OVERLAP', 'PRORATE_PARTIAL_PERIOD', 'NEXT_FULL_PERIOD_ONLY'])
+    .nullable()
+    .optional(),
   isFlexible: z.boolean().default(true),
   isActive: z.boolean().default(true)
 })

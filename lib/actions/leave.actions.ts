@@ -9,6 +9,7 @@ import { headers } from "next/headers";
 import { countLeaveWorkingDays } from "@/lib/leave-working-days";
 import { runAfterResponse } from "@/lib/background-work";
 import { deliverLeaveDecisionNotifications } from "@/lib/jobs/leave-decision-notifications";
+import { computeAnnualEntitlement, getLeaveYearBounds } from "@/lib/leave-entitlement";
 
 async function workingDaysForLeaveRange(startDate: Date, endDate: Date) {
   const holidays = await prisma.publicHoliday.findMany({
@@ -77,6 +78,11 @@ export async function createLeavePolicy(data: {
   name: string;
   defaultDays: number;
   isUnlimited: boolean;
+  accrualType: "WORKING_DAYS" | "CALENDAR_DAYS";
+  prorationMode: "NONE" | "PRO_RATA_LEAVE_YEAR" | "PERIOD_ACCRUAL";
+  leaveYearStartMonth: number;
+  periodsPerYear?: number | null;
+  midPeriodJoinRule?: "FULL_PERIOD_IF_ANY_OVERLAP" | "PRORATE_PARTIAL_PERIOD" | "NEXT_FULL_PERIOD_ONLY" | null;
   isFlexible: boolean;
 }) {
   try {
@@ -84,11 +90,23 @@ export async function createLeavePolicy(data: {
       return { success: false, error: "Default days must be greater than 0 unless policy is unlimited." };
     }
 
+    if (data.leaveYearStartMonth < 1 || data.leaveYearStartMonth > 12) {
+      return { success: false, error: "Leave year start month must be between 1 and 12." };
+    }
+    if (data.prorationMode === "PERIOD_ACCRUAL" && (!data.periodsPerYear || data.periodsPerYear <= 0)) {
+      return { success: false, error: "Periods per year must be set for period accrual policies." };
+    }
+
     const policy = await prisma.leavePolicy.create({
       data: {
         name: data.name,
         defaultDays: data.isUnlimited ? 0 : data.defaultDays,
         isUnlimited: data.isUnlimited,
+        accrualType: data.accrualType,
+        prorationMode: data.prorationMode,
+        leaveYearStartMonth: data.leaveYearStartMonth,
+        periodsPerYear: data.prorationMode === "PERIOD_ACCRUAL" ? data.periodsPerYear ?? null : null,
+        midPeriodJoinRule: data.prorationMode === "PERIOD_ACCRUAL" ? data.midPeriodJoinRule ?? "FULL_PERIOD_IF_ANY_OVERLAP" : null,
         isFlexible: data.isFlexible,
         isActive: true,
       }
@@ -112,11 +130,23 @@ export async function updateLeavePolicy(id: string, data: {
   name: string;
   defaultDays: number;
   isUnlimited: boolean;
+  accrualType: "WORKING_DAYS" | "CALENDAR_DAYS";
+  prorationMode: "NONE" | "PRO_RATA_LEAVE_YEAR" | "PERIOD_ACCRUAL";
+  leaveYearStartMonth: number;
+  periodsPerYear?: number | null;
+  midPeriodJoinRule?: "FULL_PERIOD_IF_ANY_OVERLAP" | "PRORATE_PARTIAL_PERIOD" | "NEXT_FULL_PERIOD_ONLY" | null;
   isFlexible: boolean;
 }) {
   try {
     if (!data.isUnlimited && data.defaultDays <= 0) {
       return { success: false, error: "Default days must be greater than 0 unless policy is unlimited." };
+    }
+
+    if (data.leaveYearStartMonth < 1 || data.leaveYearStartMonth > 12) {
+      return { success: false, error: "Leave year start month must be between 1 and 12." };
+    }
+    if (data.prorationMode === "PERIOD_ACCRUAL" && (!data.periodsPerYear || data.periodsPerYear <= 0)) {
+      return { success: false, error: "Periods per year must be set for period accrual policies." };
     }
 
     const policy = await prisma.leavePolicy.update({
@@ -125,6 +155,11 @@ export async function updateLeavePolicy(id: string, data: {
         name: data.name,
         defaultDays: data.isUnlimited ? 0 : data.defaultDays,
         isUnlimited: data.isUnlimited,
+        accrualType: data.accrualType,
+        prorationMode: data.prorationMode,
+        leaveYearStartMonth: data.leaveYearStartMonth,
+        periodsPerYear: data.prorationMode === "PERIOD_ACCRUAL" ? data.periodsPerYear ?? null : null,
+        midPeriodJoinRule: data.prorationMode === "PERIOD_ACCRUAL" ? data.midPeriodJoinRule ?? "FULL_PERIOD_IF_ANY_OVERLAP" : null,
         isFlexible: data.isFlexible,
       }
     });
@@ -191,6 +226,78 @@ export async function fetchUserLeaveBalances(userId: string, year: number) {
   }
 }
 
+export async function getEffectiveLeaveEntitlements(userId: string, year: number, asOfDate?: Date) {
+  try {
+    const [user, policies, balances, requests] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { startDate: true, exitDate: true },
+      }),
+      prisma.leavePolicy.findMany({
+        where: { isActive: true },
+        orderBy: { name: "asc" },
+      }),
+      prisma.leaveBalance.findMany({
+        where: { userId, year },
+        select: { policyId: true, daysAllocated: true },
+      }),
+      prisma.leaveRequest.findMany({
+        where: { userId, status: "APPROVED" },
+        select: { policyId: true, days: true, startDate: true },
+      }),
+    ]);
+
+    if (!user) return { success: false, error: "User not found" };
+
+    const balanceMap = new Map<string, number>();
+    for (const balance of balances) {
+      balanceMap.set(balance.policyId, balance.daysAllocated);
+    }
+
+    const entitlements = policies.map((policy) => {
+      const computedTotal = computeAnnualEntitlement(
+        {
+          defaultDays: policy.defaultDays,
+          isUnlimited: policy.isUnlimited,
+          accrualType: policy.accrualType,
+          prorationMode: policy.prorationMode,
+          leaveYearStartMonth: policy.leaveYearStartMonth,
+          periodsPerYear: policy.periodsPerYear,
+          midPeriodJoinRule: policy.midPeriodJoinRule,
+        },
+        { startDate: user.startDate, exitDate: user.exitDate },
+        { year, asOfDate }
+      );
+      const overrideTotal = balanceMap.get(policy.id) ?? null;
+      const effectiveTotal = overrideTotal ?? computedTotal;
+      const leaveYear = getLeaveYearBounds(year, policy.leaveYearStartMonth);
+      const approvedUsed = requests
+        .filter(
+          (request) =>
+            request.policyId === policy.id &&
+            request.startDate >= leaveYear.start &&
+            request.startDate <= leaveYear.end
+        )
+        .reduce((sum, request) => sum + request.days, 0);
+      const remaining = effectiveTotal === null ? null : Math.max(0, Number((effectiveTotal - approvedUsed).toFixed(2)));
+
+      return {
+        policyId: policy.id,
+        computedTotal,
+        overrideTotal,
+        effectiveTotal,
+        approvedUsed: Number(approvedUsed.toFixed(2)),
+        remaining,
+      };
+    });
+
+    return { success: true, entitlements };
+  } catch (error) {
+    console.error("Error computing effective leave entitlements:", error);
+    return { success: false, error: "Failed to compute leave entitlements" };
+  }
+}
+
 export async function submitLeaveRequest(data: {
   userId: string;
   policyId: string;
@@ -210,6 +317,25 @@ export async function submitLeaveRequest(data: {
       return {
         success: false,
         error: "The selected range has no working days (check weekends and public holidays).",
+      };
+    }
+
+    const entitlementRes = await getEffectiveLeaveEntitlements(
+      data.userId,
+      data.startDate.getUTCFullYear(),
+      data.startDate
+    );
+    if (!entitlementRes.success) {
+      return { success: false, error: entitlementRes.error || "Failed to resolve leave entitlement." };
+    }
+    const entitlement = entitlementRes.entitlements?.find((item) => item.policyId === data.policyId);
+    if (!entitlement) {
+      return { success: false, error: "Leave policy entitlement not found for this employee." };
+    }
+    if (entitlement.remaining !== null && days > entitlement.remaining) {
+      return {
+        success: false,
+        error: `Requested ${days} days exceeds remaining entitlement (${entitlement.remaining} days).`,
       };
     }
 
