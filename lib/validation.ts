@@ -574,28 +574,51 @@ export type FoodVendorValues = Omit<FoodVendor, 'contactName' | 'phone' | 'email
 }
 
 // Food Schema
+export const FoodVendorItemSchema = z.object({
+  vendorId: z.string().min(1, { message: "Please select a vendor" }),
+  price: z.number().positive().optional(),
+})
+export type FoodVendorItem = z.infer<typeof FoodVendorItemSchema>
+
 export const FoodSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, { message: "Food name must be at least 2 characters" }),
   description: z.string().optional(),
-  price: z.number().positive().optional(),
   category: z.string().optional(),
-  vendorId: z.string().min(1, { message: "Please select a vendor" }),
   isSpecialOrder: z.boolean().default(false),
-  isActive: z.boolean().default(true)
+  isActive: z.boolean().default(true),
+  vendorAssignments: z.array(FoodVendorItemSchema).optional(),
 })
 export type Food = z.infer<typeof FoodSchema>
 
 export const FoodCreateSchema = FoodSchema.omit({ id: true })
 
-export type FoodValues = Omit<Food, 'description' | 'price' | 'category'> & {
-  description: string | null
+export type FoodVendorItemValues = {
+  id: string
+  foodId: string
+  vendorId: string
   price: number | null
+  isActive: boolean
+  createdAt: Date
+  vendor: FoodVendorValues
+}
+
+export type FoodValues = Omit<Food, 'description' | 'category' | 'vendorAssignments'> & {
+  id: string
+  description: string | null
   category: string | null
   createdAt: Date
   updatedAt: Date
-  vendor?: FoodVendorValues
+  vendorItems: FoodVendorItemValues[]
 }
+
+export const BulkFoodRowSchema = z.object({
+  name: z.string().min(2, { message: "Food name must be at least 2 characters" }),
+  description: z.string().optional(),
+  category: z.string().optional(),
+  isSpecialOrder: z.boolean().optional(),
+})
+export type BulkFoodRow = z.infer<typeof BulkFoodRowSchema>
 
 // Food Menu Item Schema
 export const FoodMenuItemSchema = z.object({

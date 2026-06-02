@@ -78,7 +78,7 @@ export function FoodsTable({ initialFoods = [], vendors = [] }: FoodsTableProps)
   const [statusFilter, setStatusFilter] = useState('all')
   const [vendorFilter, setVendorFilter] = useState('all')
   const [sortConfig, setSortConfig] = useState<{
-    key: 'name' | 'category' | 'price' | 'vendorId' | 'isActive'
+    key: 'name' | 'category' | 'vendorId' | 'isActive'
     direction: 'asc' | 'desc'
   }>({ key: 'name', direction: 'asc' })
   const [page, setPage] = useState(1)
@@ -139,7 +139,7 @@ export function FoodsTable({ initialFoods = [], vendors = [] }: FoodsTableProps)
         (f) =>
           f.name.toLowerCase().includes(q) ||
           (f.category?.toLowerCase().includes(q)) ||
-          (f.vendor?.name?.toLowerCase().includes(q))
+          f.vendorItems?.some((vi) => vi.vendor.name.toLowerCase().includes(q))
       )
     }
 
@@ -149,16 +149,19 @@ export function FoodsTable({ initialFoods = [], vendors = [] }: FoodsTableProps)
     }
 
     if (vendorFilter !== 'all') {
-      result = result.filter((f) => f.vendorId === vendorFilter)
+      result = result.filter((f) => f.vendorItems?.some((vi) => vi.vendorId === vendorFilter))
     }
 
     return result.sort((a, b) => {
-      let aValue: string | number | boolean = a[sortConfig.key] ?? ''
-      let bValue: string | number | boolean = b[sortConfig.key] ?? ''
+      let aValue: string | number | boolean = ''
+      let bValue: string | number | boolean = ''
 
       if (sortConfig.key === 'vendorId') {
-        aValue = a.vendor?.name?.toLowerCase() ?? ''
-        bValue = b.vendor?.name?.toLowerCase() ?? ''
+        aValue = a.vendorItems?.[0]?.vendor.name?.toLowerCase() ?? ''
+        bValue = b.vendorItems?.[0]?.vendor.name?.toLowerCase() ?? ''
+      } else {
+        aValue = (a[sortConfig.key as keyof typeof a] ?? '') as string | number | boolean
+        bValue = (b[sortConfig.key as keyof typeof b] ?? '') as string | number | boolean
       }
 
       if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1
@@ -308,17 +311,8 @@ export function FoodsTable({ initialFoods = [], vendors = [] }: FoodsTableProps)
                 onClick={() => handleSort('vendorId')}
               >
                 <div className='flex items-center gap-2'>
-                  Vendor
+                  Vendors
                   <SortIcon field='vendorId' activeField={sortConfig.key} direction={sortConfig.direction} />
-                </div>
-              </th>
-              <th
-                className={cn(adminThClass, adminThSortableClass)}
-                onClick={() => handleSort('price')}
-              >
-                <div className='flex items-center gap-2'>
-                  Price
-                  <SortIcon field='price' activeField={sortConfig.key} direction={sortConfig.direction} />
                 </div>
               </th>
               <th
@@ -388,14 +382,20 @@ export function FoodsTable({ initialFoods = [], vendors = [] }: FoodsTableProps)
                     </span>
                   </td>
                   <td className={adminTdClass}>
-                    <span className='text-sm text-foreground'>
-                      {food.vendor?.name || '-'}
-                    </span>
-                  </td>
-                  <td className={adminTdClass}>
-                    <span className='text-sm font-semibold tabular-nums text-primary'>
-                      {food.price ? `¢${food.price.toFixed(2)}` : '-'}
-                    </span>
+                    {food.vendorItems?.length ? (
+                      <div className="flex flex-wrap gap-1">
+                        {food.vendorItems.map((vi) => (
+                          <Badge key={vi.vendorId} variant="outline" className="rounded-full text-xs font-normal">
+                            {vi.vendor.name}
+                            {vi.price != null && (
+                              <span className="ml-1 text-muted-foreground">¢{vi.price.toFixed(2)}</span>
+                            )}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">-</span>
+                    )}
                   </td>
                   <td className={adminTdClass}>
                     <Badge
@@ -463,13 +463,12 @@ export function FoodsTable({ initialFoods = [], vendors = [] }: FoodsTableProps)
               <FoodForm
                 vendors={vendors}
                 food={{
-                  id: editFood.id!,
+                  id: editFood.id,
                   name: editFood.name,
                   description: editFood.description,
-                  price: editFood.price,
                   category: editFood.category,
-                  vendorId: editFood.vendorId,
                   isSpecialOrder: editFood.isSpecialOrder,
+                  vendorItems: editFood.vendorItems ?? [],
                 }}
                 isEdit={true}
                 onSuccess={handleEditSuccess}

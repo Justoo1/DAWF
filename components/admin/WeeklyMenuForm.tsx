@@ -114,8 +114,10 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
     reValidateMode: "onChange",
   })
 
-  // Filter foods based on selected vendor
-  const availableFoods = foods.filter(food => food.vendorId === selectedVendorId)
+  // Filter foods based on selected vendor via vendorItems junction
+  const availableFoods = foods.filter(food =>
+    food.vendorItems?.some(vi => vi.vendorId === selectedVendorId && vi.isActive)
+  )
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -140,7 +142,8 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
       form.setValue(`menuItems.${index}.foodId`, foodId, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
       form.setValue(`menuItems.${index}.itemName`, selectedFood.name, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
       form.setValue(`menuItems.${index}.description`, selectedFood.description || "", { shouldDirty: true, shouldTouch: true, shouldValidate: true })
-      form.setValue(`menuItems.${index}.price`, selectedFood.price ?? undefined, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
+      const vendorPrice = selectedFood.vendorItems?.find(vi => vi.vendorId === selectedVendorId)?.price
+      form.setValue(`menuItems.${index}.price`, vendorPrice ?? undefined, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
     }
   }
 
@@ -399,7 +402,9 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                             {availableFoods.length > 0 ? (
                               availableFoods.map((food) => (
                                 <SelectItem key={food.id} value={food.id!}>
-                                  {food.name} {food.price ? `- $${food.price.toFixed(2)}` : ''}
+                                  {food.name} {food.vendorItems?.find(vi => vi.vendorId === selectedVendorId)?.price != null
+                                    ? `- ¢${food.vendorItems.find(vi => vi.vendorId === selectedVendorId)!.price!.toFixed(2)}`
+                                    : ''}
                                 </SelectItem>
                               ))
                             ) : (

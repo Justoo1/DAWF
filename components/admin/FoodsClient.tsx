@@ -10,9 +10,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Plus } from 'lucide-react'
+import { Plus, Upload } from 'lucide-react'
 import FoodForm from './FoodForm'
 import { FoodsTable } from './FoodsTable'
+import { FoodBulkUploadDialog } from './FoodBulkUploadDialog'
 import { FoodValues, FoodVendorValues } from '@/lib/validation'
 import { useRouter } from 'next/navigation'
 
@@ -22,22 +23,24 @@ interface FoodsClientProps {
 }
 
 export function FoodsClient({ vendors, foods }: FoodsClientProps) {
-  const [open, setOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [uploadOpen, setUploadOpen] = useState(false)
   const router = useRouter()
 
   const handleSuccess = () => {
-    setOpen(false)
+    setCreateOpen(false)
     router.refresh()
-  }
-
-  const handleCancel = () => {
-    setOpen(false)
   }
 
   return (
     <>
-      <div className="flex items-center justify-end mb-6">
-        <Dialog open={open} onOpenChange={setOpen}>
+      <div className="flex items-center justify-end gap-2 mb-6">
+        <Button variant="outline" onClick={() => setUploadOpen(true)}>
+          <Upload className="h-4 w-4 mr-2" />
+          Upload from Excel
+        </Button>
+
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -48,19 +51,21 @@ export function FoodsClient({ vendors, foods }: FoodsClientProps) {
             <DialogHeader>
               <DialogTitle>Create New Food Item</DialogTitle>
               <DialogDescription>
-                Add a new food item to the system
+                Add a new food item to the catalog. Optionally assign it to one or more vendors.
               </DialogDescription>
             </DialogHeader>
             <FoodForm
               vendors={vendors}
               onSuccess={handleSuccess}
-              onCancel={handleCancel}
+              onCancel={() => setCreateOpen(false)}
             />
           </DialogContent>
         </Dialog>
       </div>
 
       <FoodsTable initialFoods={foods} vendors={vendors} />
+
+      <FoodBulkUploadDialog open={uploadOpen} onOpenChange={setUploadOpen} />
     </>
   )
 }

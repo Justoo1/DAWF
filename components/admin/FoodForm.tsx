@@ -1,18 +1,18 @@
 "use client"
 
-import { FoodCreateSchema } from '@/lib/validation'
-import { useForm } from "react-hook-form"
+import { useFieldArray, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription
 } from "@/components/ui/form"
 import { RequiredMark } from "@/components/ui/required-mark"
 import { Input } from "@/components/ui/input"
@@ -25,145 +25,112 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useToast } from '@/hooks/use-toast'
-import { createFood, updateFood } from '@/lib/actions/food.actions'
-import { useRouter } from 'next/navigation'
-import { FoodVendorValues } from '@/lib/validation'
-
-interface FoodData {
-  id: string
-  name: string
-  description: string | null
-  price: number | null
-  category: string | null
-  vendorId: string
-  isSpecialOrder: boolean
-}
+import { useToast } from "@/hooks/use-toast"
+import { createFood, updateFood } from "@/lib/actions/food.actions"
+import { useRouter } from "next/navigation"
+import { FoodCreateSchema, FoodVendorValues, FoodVendorItemValues } from "@/lib/validation"
 
 interface FoodFormProps {
   vendors: FoodVendorValues[]
-  food?: FoodData
+  food?: {
+    id: string
+    name: string
+    description: string | null
+    category: string | null
+    isSpecialOrder: boolean
+    vendorItems: FoodVendorItemValues[]
+  }
   isEdit?: boolean
   onSuccess?: () => void
   onCancel?: () => void
 }
 
+type FormValues = z.infer<typeof FoodCreateSchema>
+
 const FoodForm = ({ vendors, food, isEdit, onSuccess, onCancel }: FoodFormProps) => {
   const { toast } = useToast()
   const router = useRouter()
 
-  const form = useForm<z.infer<typeof FoodCreateSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(FoodCreateSchema),
-    defaultValues: food ? {
-      name: food.name,
-      description: food.description || "",
-      price: food.price || undefined,
-      category: food.category || "",
-      vendorId: food.vendorId,
-      isSpecialOrder: food.isSpecialOrder || false,
-      isActive: true
-    } : {
-      name: "",
-      description: "",
-      price: undefined,
-      category: "",
-      vendorId: "",
-      isSpecialOrder: false,
-      isActive: true
-    },
+    defaultValues: food
+      ? {
+          name: food.name,
+          description: food.description ?? "",
+          category: food.category ?? "",
+          isSpecialOrder: food.isSpecialOrder,
+          isActive: true,
+          vendorAssignments: food.vendorItems.map((vi) => ({
+            vendorId: vi.vendorId,
+            price: vi.price ?? undefined,
+          })),
+        }
+      : {
+          name: "",
+          description: "",
+          category: "",
+          isSpecialOrder: false,
+          isActive: true,
+          vendorAssignments: [],
+        },
     mode: "onChange",
-    reValidateMode: "onChange",
   })
 
-  async function onSubmit(values: z.infer<typeof FoodCreateSchema>) {
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "vendorAssignments",
+  })
+
+  const assignedVendorIds = form.watch("vendorAssignments")?.map((a) => a.vendorId) ?? []
+  const availableVendors = vendors.filter((v) => !assignedVendorIds.includes(v.id!))
+
+  async function onSubmit(values: FormValues) {
     try {
-      let result
-      if (isEdit && food?.id) {
-        result = await updateFood(food.id, values)
-      } else {
-        result = await createFood(values)
-      }
+      const result = isEdit && food?.id
+        ? await updateFood(food.id, values)
+        : await createFood(values)
 
       if (result.error) {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: result.error
-        })
+        toast({ variant: "destructive", title: "Error", description: result.error })
       } else {
         toast({
-          title: 'Success',
-          description: `Food item ${isEdit ? 'updated' : 'created'} successfully`
+          title: "Success",
+          description: `Food item ${isEdit ? "updated" : "created"} successfully`,
         })
         if (onSuccess) {
           onSuccess()
         } else {
-          router.push('/admin/food-management/foods')
+          router.push("/admin/food-management/foods")
           router.refresh()
         }
       }
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Something went wrong'
-      })
-      console.error(error)
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "Something went wrong" })
     }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="vendorId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="inline-flex items-center gap-1">
-                Vendor
-                <RequiredMark />
-              </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger className="h-11 rounded-lg">
-                    <SelectValue placeholder="Select a vendor" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {vendors.map((vendor) => (
-                    <SelectItem key={vendor.id} value={vendor.id!}>
-                      {vendor.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
+        {/* Food Name */}
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="inline-flex items-center gap-1">
-                Food Name
-                <RequiredMark />
+                Food Name <RequiredMark />
               </FormLabel>
               <FormControl>
-                <Input
-                  {...field}
-                  placeholder="e.g., Jollof Rice with Chicken"
-                  className="h-11 rounded-lg"
-                />
+                <Input {...field} placeholder="e.g., Jollof Rice with Chicken" className="h-11 rounded-lg" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
+        {/* Category */}
         <FormField
           control={form.control}
           name="category"
@@ -171,45 +138,15 @@ const FoodForm = ({ vendors, food, isEdit, onSuccess, onCancel }: FoodFormProps)
             <FormItem>
               <FormLabel>Category (Optional)</FormLabel>
               <FormControl>
-                <Input
-                  {...field}
-                  placeholder="e.g., Main Course, Soup, Side Dish"
-                  className="h-11 rounded-lg"
-                />
+                <Input {...field} placeholder="e.g., Main Course, Soup, Side Dish" className="h-11 rounded-lg" />
               </FormControl>
-              <FormDescription>
-                Group similar foods together
-              </FormDescription>
+              <FormDescription>Group similar foods together</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="price"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Price (Optional)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  {...field}
-                  value={field.value || ''}
-                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                  placeholder="0.00"
-                  className="h-11 rounded-lg"
-                />
-              </FormControl>
-              <FormDescription>
-                Default price for this food item
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
+        {/* Description */}
         <FormField
           control={form.control}
           name="description"
@@ -220,7 +157,7 @@ const FoodForm = ({ vendors, food, isEdit, onSuccess, onCancel }: FoodFormProps)
                 <Textarea
                   {...field}
                   placeholder="Describe the food item..."
-                  className="resize-none rounded-lg min-h-[120px]"
+                  className="resize-none rounded-lg min-h-[100px]"
                   rows={3}
                 />
               </FormControl>
@@ -229,49 +166,127 @@ const FoodForm = ({ vendors, food, isEdit, onSuccess, onCancel }: FoodFormProps)
           )}
         />
 
+        {/* Special Order */}
         <FormField
           control={form.control}
           name="isSpecialOrder"
           render={({ field }) => (
             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
               <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
+                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
               </FormControl>
               <div className="space-y-1 leading-none">
-                <FormLabel>
-                  Special Order
-                </FormLabel>
+                <FormLabel>Special Order</FormLabel>
                 <FormDescription>
-                  Mark this as a special order (e.g., veggie-only, special dietary requirements)
+                  Mark as a special order (e.g., veggie-only, special dietary requirements)
                 </FormDescription>
               </div>
             </FormItem>
           )}
         />
 
-        <div className="flex gap-4 pt-4">
-          <Button
-            type="submit"
-            disabled={form.formState.isSubmitting}
-            className="min-w-[120px]"
-          >
+        {/* Vendor Assignments */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Vendor Assignments</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Assign this food to one or more vendors with optional pricing
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={availableVendors.length === 0}
+              onClick={() => append({ vendorId: "", price: undefined })}
+            >
+              <Plus className="h-3.5 w-3.5 mr-1.5" />
+              Add Vendor
+            </Button>
+          </div>
+
+          {fields.length === 0 && (
+            <p className="text-xs text-muted-foreground rounded-md border border-dashed px-4 py-3">
+              No vendors assigned yet. Click &ldquo;Add Vendor&rdquo; to assign this food to a vendor.
+            </p>
+          )}
+
+          {fields.map((field, index) => (
+            <div key={field.id} className="flex gap-3 items-start rounded-lg border p-3 bg-muted/30">
+              <FormField
+                control={form.control}
+                name={`vendorAssignments.${index}.vendorId`}
+                render={({ field: f }) => (
+                  <FormItem className="flex-1">
+                    <Select onValueChange={f.onChange} value={f.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-10 rounded-lg">
+                          <SelectValue placeholder="Select vendor" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {vendors
+                          .filter((v) => v.id === f.value || !assignedVendorIds.includes(v.id!))
+                          .map((vendor) => (
+                            <SelectItem key={vendor.id} value={vendor.id!}>
+                              {vendor.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name={`vendorAssignments.${index}.price`}
+                render={({ field: f }) => (
+                  <FormItem className="w-32">
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="Price (opt.)"
+                        className="h-10 rounded-lg"
+                        value={f.value ?? ""}
+                        onChange={(e) =>
+                          f.onChange(e.target.value ? parseFloat(e.target.value) : undefined)
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-destructive hover:text-destructive shrink-0"
+                onClick={() => remove(index)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-4 pt-2">
+          <Button type="submit" disabled={form.formState.isSubmitting} className="min-w-[120px]">
             {isEdit
-              ? form.formState.isSubmitting ? 'Updating...' : 'Update Food'
-              : form.formState.isSubmitting ? 'Creating...' : 'Create Food'}
+              ? form.formState.isSubmitting ? "Updating..." : "Update Food"
+              : form.formState.isSubmitting ? "Creating..." : "Create Food"}
           </Button>
           <Button
             type="button"
             variant="outline"
-            onClick={() => {
-              if (onCancel) {
-                onCancel()
-              } else {
-                router.back()
-              }
-            }}
+            onClick={() => (onCancel ? onCancel() : router.back())}
           >
             Cancel
           </Button>

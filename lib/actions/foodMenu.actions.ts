@@ -88,7 +88,7 @@ export async function fetchActiveFoodMenus() {
           include: {
             food: {
               include: {
-                vendor: true
+                vendorItems: { include: { vendor: true } }
               }
             }
           },

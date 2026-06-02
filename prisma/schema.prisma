@@ -421,29 +421,41 @@ model FoodVendor {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @default(now())
   menus       WeeklyFoodMenu[]
-  foods       Food[]
+  vendorItems FoodVendorItem[]
 
   @@map("food_vendors")
 }
 
 model Food {
-  id             String         @id @default(cuid())
-  name           String
+  id             String           @id @default(cuid())
+  name           String           @unique // Catalog-level uniqueness — same dish across vendors
   description    String?
-  price          Float?
   category       String? // e.g., "Main Course", "Soup", "Rice Dish", etc.
-  vendorId       String
-  vendor         FoodVendor     @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  isSpecialOrder Boolean        @default(false) // For special dietary needs (e.g., veggie-only orders)
-  isActive       Boolean        @default(true)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @default(now())
+  isSpecialOrder Boolean          @default(false) // For special dietary needs (e.g., veggie-only orders)
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now())
+  vendorItems    FoodVendorItem[]
   menuItems      FoodMenuItem[]
 
-  @@index([vendorId])
   @@index([isActive])
   @@index([isSpecialOrder])
   @@map("foods")
+}
+
+model FoodVendorItem {
+  id        String     @id @default(cuid())
+  foodId    String
+  food      Food       @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  vendorId  String
+  vendor    FoodVendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  price     Float? // Vendor-specific price for this food item
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+
+  @@unique([foodId, vendorId])
+  @@index([vendorId])
+  @@map("food_vendor_items")
 }
 
 model WeeklyFoodMenu {

@@ -205,20 +205,21 @@ export async function setFoodVendorActive(vendorId: string, isActive: boolean) {
 }
 
 /**
- * Permanently removes the vendor and its weekly menus and foods.
- * Menu-linked records cascade; foods for this vendor are removed before the vendor row.
+ * Permanently removes the vendor and its weekly menus.
+ * FoodVendorItem assignments for this vendor cascade-delete automatically.
+ * Foods themselves are NOT deleted — they are shared catalog items.
  */
 export async function permanentlyDeleteFoodVendor(vendorId: string) {
   try {
     await requireFoodCommitteeOrAdmin();
-    
+
     if (!isValidPrismaId(vendorId)) {
       return { success: false as const, error: 'Invalid vendor ID' };
     }
-    
+
     await prisma.$transaction(async (tx) => {
       await tx.weeklyFoodMenu.deleteMany({ where: { vendorId } });
-      await tx.food.deleteMany({ where: { vendorId } });
+      // FoodVendorItem rows for this vendor cascade-delete via FK
       await tx.foodVendor.delete({ where: { id: vendorId } });
     });
     revalidatePath('/admin/food-management/vendors');
