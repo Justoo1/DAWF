@@ -31,7 +31,7 @@ export async function fetchAllFoods(vendorId?: string) {
     return { success: true, foods, totalFoods: foods.length };
   } catch (error) {
     console.error('Food fetch error:', error);
-    return { error: 'Failed to fetch foods' };
+    return { error: `Failed to fetch foods: ${error instanceof Error ? error.message : String(error)}` };
   }
 }
 
