@@ -10,29 +10,41 @@ import { isValidPrismaId, sanitizeText } from '@/lib/utils/validators';
 // ============================================
 
 export async function fetchAllFoods(vendorId?: string) {
-  try {
-    const foods = await prisma.food.findMany({
-      where: {
-        isActive: true,
-        ...(vendorId && {
-          vendorItems: { some: { vendorId, isActive: true } }
-        })
-      },
-      include: {
-        vendorItems: {
-          where: { isActive: true },
-          include: { vendor: true },
-          orderBy: { createdAt: 'asc' }
-        }
-      },
-      orderBy: { name: 'asc' }
-    });
+  // A vendor delete can land between the vendorItems query and the vendor
+  // lookup Prisma issues for `include: { vendor: true }`, which surfaces as
+  // an "Inconsistent query result" error. That's transient, so retry once.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const foods = await prisma.food.findMany({
+        where: {
+          isActive: true,
+          ...(vendorId && {
+            vendorItems: { some: { vendorId, isActive: true } }
+          })
+        },
+        include: {
+          vendorItems: {
+            // `vendor: { is: {} }` forces an existence check so stale vendor
+            // links (e.g. left behind by data that predates the FK cascade)
+            // are excluded instead of crashing the whole query.
+            where: { isActive: true, vendor: { is: {} } },
+            include: { vendor: true },
+            orderBy: { createdAt: 'asc' }
+          }
+        },
+        orderBy: { name: 'asc' }
+      });
 
-    return { success: true, foods, totalFoods: foods.length };
-  } catch (error) {
-    console.error('Food fetch error:', error);
-    return { error: `Failed to fetch foods: ${error instanceof Error ? error.message : String(error)}` };
+      return { success: true, foods, totalFoods: foods.length };
+    } catch (error) {
+      const isInconsistentResult = error instanceof Error && error.message.includes('Inconsistent query result');
+      if (isInconsistentResult && attempt === 0) continue;
+
+      console.error('Food fetch error:', error);
+      return { error: `Failed to fetch foods: ${error instanceof Error ? error.message : String(error)}` };
+    }
   }
+  return { error: 'Failed to fetch foods' };
 }
 
 export async function fetchFoodById(foodId: string) {
@@ -41,6 +53,7 @@ export async function fetchFoodById(foodId: string) {
       where: { id: foodId },
       include: {
         vendorItems: {
+          where: { vendor: { is: {} } },
           include: { vendor: true },
           orderBy: { createdAt: 'asc' }
         }
