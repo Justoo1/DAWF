@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select"
 import { useToast } from '@/hooks/use-toast'
 import { createFoodMenu, updateFoodMenu } from '@/lib/actions/foodMenu.actions'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { X, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { FoodVendorValues, FoodValues } from '@/lib/validation'
@@ -118,6 +118,17 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
   const availableFoods = foods.filter(food =>
     food.vendorItems?.some(vi => vi.vendorId === selectedVendorId && vi.isActive)
   )
+
+  useEffect(() => {
+    if (!selectedVendorId) return
+    console.log('[WeeklyMenuForm] selectedVendorId:', selectedVendorId)
+    console.log('[WeeklyMenuForm] total foods received:', foods.length)
+    console.log('[WeeklyMenuForm] availableFoods for this vendor:', availableFoods.length, availableFoods.map(f => f.name))
+    if (availableFoods.length === 0) {
+      console.log('[WeeklyMenuForm] no matches — sample of foods.vendorItems:', foods.slice(0, 5).map(f => ({ name: f.name, vendorItems: f.vendorItems })))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedVendorId])
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,

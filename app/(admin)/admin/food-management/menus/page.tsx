@@ -106,6 +106,14 @@ const FoodMenusPage = async () => {
   const vendors = vendorsData.vendors || []
   const foods = foodsData.foods || []
 
+  console.log('[FoodMenusPage] vendors:', vendors.map(v => ({ id: v.id, name: v.name })))
+  console.log(
+    '[FoodMenusPage] foods:',
+    foods.length,
+    'with vendor links:',
+    foods.map(f => ({ id: f.id, name: f.name, vendorIds: f.vendorItems?.map(vi => vi.vendorId) ?? [] }))
+  )
+
   if (menusData.error) {
     return (
       <main className="admin-main">

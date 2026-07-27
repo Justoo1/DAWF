@@ -134,20 +134,20 @@ export async function createFoodMenu(data: CreateMenuData) {
     if (!isValidPrismaId(data.vendorId)) {
       return { error: 'Invalid vendor ID' };
     }
-    
+
     const weekStartDate = new Date(data.weekStartDate);
     const weekEndDate = new Date(data.weekEndDate);
     const selectionOpenDate = new Date(data.selectionOpenDate);
     const selectionCloseDate = new Date(data.selectionCloseDate);
-    
+
     if (weekEndDate <= weekStartDate) {
       return { error: 'Week end date must be after week start date' };
     }
-    
+
     if (selectionCloseDate <= selectionOpenDate) {
       return { error: 'Selection close date must be after selection open date' };
     }
-    
+
     const sanitizedData = {
       ...data,
       menuItems: data.menuItems.map((item) => ({
@@ -157,7 +157,9 @@ export async function createFoodMenu(data: CreateMenuData) {
         foodId: item.foodId && isValidPrismaId(item.foodId) ? item.foodId : null
       }))
     };
-    
+
+    console.log('[createFoodMenu] vendorId:', sanitizedData.vendorId, 'items:', sanitizedData.menuItems.map(i => ({ day: i.dayOfWeek, foodId: i.foodId, itemName: i.itemName })));
+
     const menu = await prisma.weeklyFoodMenu.create({
       data: {
         vendorId: sanitizedData.vendorId,
@@ -185,10 +187,12 @@ export async function createFoodMenu(data: CreateMenuData) {
       }
     });
 
+    console.log('[createFoodMenu] created menu:', menu.id, 'menuItems saved:', menu.menuItems.length);
+
     revalidatePath('/admin/food-management/menus');
     return { success: true, menu };
   } catch (error) {
-    console.error('Food menu creation error:', error);
+    console.error('[createFoodMenu] Food menu creation error:', error);
     return { error: error instanceof Error ? error.message : 'Failed to create food menu' };
   }
 }
@@ -242,6 +246,8 @@ export async function updateFoodMenu(menuId: string, data: CreateMenuData) {
       return { error: 'Can only update menus in DRAFT status' };
     }
 
+    console.log('[updateFoodMenu] menuId:', menuId, 'vendorId:', sanitizedData.vendorId, 'items:', sanitizedData.menuItems.map(i => ({ day: i.dayOfWeek, foodId: i.foodId, itemName: i.itemName })));
+
     // Delete existing menu items and create new ones
     await prisma.foodMenuItem.deleteMany({
       where: { menuId }
@@ -273,10 +279,12 @@ export async function updateFoodMenu(menuId: string, data: CreateMenuData) {
       }
     });
 
+    console.log('[updateFoodMenu] updated menu:', menu.id, 'menuItems saved:', menu.menuItems.length);
+
     revalidatePath('/admin/food-management/menus');
     return { success: true, menu };
   } catch (error) {
-    console.error('Food menu update error:', error);
+    console.error('[updateFoodMenu] Food menu update error:', error);
     return { error: error instanceof Error ? error.message : 'Failed to update food menu' };
   }
 }
