@@ -14,21 +14,15 @@ import {
   FormMessage,
   FormDescription
 } from "@/components/ui/form"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from '@/hooks/use-toast'
 import { createBulkFoodSelections } from '@/lib/actions/foodSelection.actions'
 import { useState, useEffect } from 'react'
 import { WeeklyFoodMenuValues, FoodMenuItemValues } from '@/lib/validation'
-import { Calendar, Clock } from 'lucide-react'
+import { Calendar, Check, Clock, MessageSquarePlus, X } from 'lucide-react'
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { cn } from '@/lib/utils'
 
 interface FoodSelectionFormProps {
   menu: WeeklyFoodMenuValues
@@ -100,6 +94,17 @@ const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = 
       notes: existing?.notes || ''
     }
   })
+
+  const [openNotes, setOpenNotes] = useState<Set<number>>(
+    () => new Set(defaultSelections.flatMap((s, i) => (s.notes ? [i] : [])))
+  )
+  const toggleNotes = (index: number) => {
+    setOpenNotes((prev) => {
+      const next = new Set(prev)
+      next.has(index) ? next.delete(index) : next.add(index)
+      return next
+    })
+  }
 
   const form = useForm<z.infer<typeof BulkFoodSelectionCreateSchema>>({
     resolver: zodResolver(BulkFoodSelectionCreateSchema),
@@ -228,6 +233,7 @@ const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = 
       {/* Selection Form */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
           {DAYS_OF_WEEK.map((day, dayIndex) => {
             const dayItems = itemsByDay[day] || []
             const isOnLeave = checkIsOnLeave(day)
@@ -235,9 +241,9 @@ const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = 
             if (dayItems.length === 0 && !isOnLeave) return null
 
             return (
-              <div key={day} className={`border rounded-lg p-5 bg-white shadow-sm transition-opacity dark:bg-zinc-900 dark:border-zinc-800 ${isOnLeave ? 'opacity-70 grayscale-[0.5]' : ''}`}>
+              <div key={day} className={`border border-border rounded-xl p-5 bg-card shadow-sm transition-opacity ${isOnLeave ? 'opacity-70 grayscale-[0.5]' : ''}`}>
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-zinc-100">{day}</h3>
+                  <h3 className="text-lg font-semibold text-card-foreground">{day}</h3>
                   {isOnLeave && (
                     <span className="bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/30">
                       On Leave
@@ -249,72 +255,140 @@ const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = 
                   <FormField
                     control={form.control}
                     name={`selections.${dayIndex}.menuItemId`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Select Your Meal</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value || undefined}
-                          disabled={!isSelectionOpen || isOnLeave}
-                        >
+                    render={({ field }) => {
+                      const currentValue = field.value ?? null
+                      const cardsDisabled = !isSelectionOpen || isOnLeave
+
+                      return (
+                        <FormItem>
+                          <FormLabel>Select Your Meal</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={isOnLeave ? "Restricted during leave" : "Choose a meal option"} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="null">No Selection</SelectItem>
-                            {dayItems.map((item) => (
-                              <SelectItem key={item.id} value={item.id!}>
-                                {item.itemName}
-                                {item.price && ` - ₵${item.price.toFixed(2)}`}
-                                {item.description && (
-                                  <span className="text-xs text-gray-500 dark:text-zinc-400 block">
-                                    {item.description}
-                                  </span>
+                            <div role="radiogroup" aria-label={`${day} meal options`} className="grid gap-3">
+                              <button
+                                type="button"
+                                role="radio"
+                                aria-checked={currentValue === null}
+                                disabled={cardsDisabled}
+                                onClick={() => field.onChange(null)}
+                                className={cn(
+                                  "text-left rounded-xl border p-4 transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                                  currentValue === null
+                                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                                    : "border-border bg-background hover:border-primary/40 hover:bg-accent/40"
                                 )}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {isOnLeave && (
-                          <p className="text-xs text-amber-700 dark:text-amber-400 font-medium mt-1.5 flex items-center gap-1.5">
-                             Selection is disabled as you have an approved leave for this day.
-                          </p>
-                        )}
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                              >
+                                <span className="text-sm font-medium text-muted-foreground">No Selection</span>
+                              </button>
+
+                              {dayItems.map((item) => {
+                                const isSelected = currentValue === item.id
+                                return (
+                                  <button
+                                    key={item.id}
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={isSelected}
+                                    disabled={cardsDisabled}
+                                    onClick={() => field.onChange(item.id)}
+                                    className={cn(
+                                      "text-left rounded-xl border p-4 transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                                      isSelected
+                                        ? "border-primary bg-primary/5 ring-1 ring-primary"
+                                        : "border-border bg-background hover:border-primary/40 hover:bg-accent/40"
+                                    )}
+                                  >
+                                    <div className="flex items-start justify-between gap-2">
+                                      <span className="text-sm font-semibold text-foreground">{item.itemName}</span>
+                                      {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
+                                    </div>
+                                    {item.price != null && (
+                                      <span className="text-xs font-medium text-primary mt-1 block">
+                                        ₵{item.price.toFixed(2)}
+                                      </span>
+                                    )}
+                                    {item.description && (
+                                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                        {item.description}
+                                      </p>
+                                    )}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </FormControl>
+                          {isOnLeave && (
+                            <p className="text-xs text-amber-700 dark:text-amber-400 font-medium mt-1.5 flex items-center gap-1.5">
+                               Selection is disabled as you have an approved leave for this day.
+                            </p>
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      )
+                    }}
                   />
 
                   <FormField
                     control={form.control}
                     name={`selections.${dayIndex}.notes`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Special Requests (Optional)</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder={isOnLeave ? "Disabled on leave" : "E.g., No onions, extra pepper, etc."}
-                            className="resize-none"
-                            rows={2}
-                            disabled={!isSelectionOpen || isOnLeave}
-                          />
-                        </FormControl>
-                        {!isOnLeave && (
-                          <FormDescription>
-                            Add any special dietary requirements or preferences
-                          </FormDescription>
-                        )}
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const fieldDisabled = !isSelectionOpen || isOnLeave
+
+                      if (!openNotes.has(dayIndex)) {
+                        return (
+                          <button
+                            type="button"
+                            disabled={fieldDisabled}
+                            onClick={() => toggleNotes(dayIndex)}
+                            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <MessageSquarePlus className="h-4 w-4" />
+                            Add special request
+                          </button>
+                        )
+                      }
+
+                      return (
+                        <FormItem>
+                          <div className="flex items-center justify-between">
+                            <FormLabel>Special Requests (Optional)</FormLabel>
+                            <button
+                              type="button"
+                              disabled={fieldDisabled}
+                              onClick={() => {
+                                field.onChange('')
+                                toggleNotes(dayIndex)
+                              }}
+                              aria-label="Remove special request"
+                              className="text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                          <FormControl>
+                            <Textarea
+                              {...field}
+                              placeholder={isOnLeave ? "Disabled on leave" : "E.g., No onions, extra pepper, etc."}
+                              className="resize-none"
+                              rows={2}
+                              disabled={fieldDisabled}
+                              autoFocus
+                            />
+                          </FormControl>
+                          {!isOnLeave && (
+                            <FormDescription>
+                              Add any special dietary requirements or preferences
+                            </FormDescription>
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      )
+                    }}
                   />
                 </div>
               </div>
             )
           })}
+          </div>
 
           <div className="flex gap-4 pt-4">
             <Button
