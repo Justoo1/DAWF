@@ -158,11 +158,11 @@ const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = 
   return (
     <div className="space-y-6">
       {/* Menu Information Card */}
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6 dark:from-green-950/20 dark:to-emerald-950/20 dark:border-green-800/30">
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">{menu.vendor.name}</h2>
-            <div className="space-y-1 text-sm text-gray-600">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2 dark:text-zinc-100">{menu.vendor.name}</h2>
+            <div className="space-y-1 text-sm text-gray-600 dark:text-zinc-400">
               <p className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 Week: {new Date(menu.weekStartDate).toLocaleDateString()} - {new Date(menu.weekEndDate).toLocaleDateString()}
@@ -177,8 +177,8 @@ const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = 
             <span
               className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
                 isSelectionOpen
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
+                  ? 'bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400'
+                  : 'bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-400'
               }`}
             >
               {isSelectionOpen ? 'Open for Selection' : 'Closed'}
@@ -187,8 +187,8 @@ const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = 
         </div>
 
         {isDeadlineSoon && isSelectionOpen && (
-          <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded p-3">
-            <p className="text-sm text-yellow-800 font-medium">
+          <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded p-3 dark:bg-yellow-950/20 dark:border-yellow-800/30">
+            <p className="text-sm text-yellow-800 font-medium dark:text-yellow-400">
               Deadline approaching! Make your selections soon.
             </p>
           </div>
@@ -196,13 +196,13 @@ const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = 
       </div>
 
       {/* Special Order Toggle */}
-      <div className="bg-white border rounded-lg p-4">
+      <div className="bg-white border rounded-lg p-4 dark:bg-zinc-900 dark:border-zinc-800">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label htmlFor="special-order-toggle" className="text-base font-medium">
               {showSpecialOrders ? 'Special Orders' : 'Regular Orders'}
             </Label>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-zinc-400">
               {showSpecialOrders
                 ? 'Showing special dietary options (e.g., veggie-only meals)'
                 : 'Showing regular menu items'}
@@ -218,8 +218,8 @@ const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = 
       </div>
 
       {!isSelectionOpen && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-          <p className="text-red-800 font-medium">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center dark:bg-red-950/20 dark:border-red-800/30">
+          <p className="text-red-800 font-medium dark:text-red-400">
             Selection period has ended for this menu
           </p>
         </div>
@@ -235,11 +235,11 @@ const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = 
             if (dayItems.length === 0 && !isOnLeave) return null
 
             return (
-              <div key={day} className={`border rounded-lg p-5 bg-white shadow-sm transition-opacity ${isOnLeave ? 'opacity-70 grayscale-[0.5]' : ''}`}>
+              <div key={day} className={`border rounded-lg p-5 bg-white shadow-sm transition-opacity dark:bg-zinc-900 dark:border-zinc-800 ${isOnLeave ? 'opacity-70 grayscale-[0.5]' : ''}`}>
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-800">{day}</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-zinc-100">{day}</h3>
                   {isOnLeave && (
-                    <span className="bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-amber-200">
+                    <span className="bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/30">
                       On Leave
                     </span>
                   )}
@@ -269,7 +269,7 @@ const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = 
                                 {item.itemName}
                                 {item.price && ` - ₵${item.price.toFixed(2)}`}
                                 {item.description && (
-                                  <span className="text-xs text-gray-500 block">
+                                  <span className="text-xs text-gray-500 dark:text-zinc-400 block">
                                     {item.description}
                                   </span>
                                 )}
@@ -278,7 +278,7 @@ const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = 
                           </SelectContent>
                         </Select>
                         {isOnLeave && (
-                          <p className="text-xs text-amber-700 font-medium mt-1.5 flex items-center gap-1.5">
+                          <p className="text-xs text-amber-700 dark:text-amber-400 font-medium mt-1.5 flex items-center gap-1.5">
                              Selection is disabled as you have an approved leave for this day.
                           </p>
                         )}
@@ -330,7 +330,7 @@ const FoodSelectionForm = ({ menu, userId, existingSelections, approvedLeaves = 
               }
             </Button>
             {existingSelections && existingSelections.length > 0 && (
-              <p className="text-sm text-gray-600 flex items-center">
+              <p className="text-sm text-gray-600 dark:text-zinc-400 flex items-center">
                 You can update your selections until the deadline
               </p>
             )}
