@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation'
 import { Calendar, TrendingUp, Download, UtensilsCrossed, UserCheck } from 'lucide-react'
 import Link from 'next/link'
 import AdminAddFoodOrderDialog from '@/components/admin/AdminAddFoodOrderDialog'
+import DayOrdersCard from '@/components/admin/DayOrdersCard'
 
 // Tell Next.js to not pre-generate any pages for this dynamic route
 export const dynamic = 'force-dynamic'
@@ -132,36 +133,12 @@ const OrdersViewPage = async ({ params }: { params: Promise<{ menuId: string }> 
           if (daySelections.length === 0) return null
 
           return (
-            <Card key={day}>
-              <CardHeader>
-                <CardTitle className="text-lg">{day}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-
-                  {dayItemCounts.map((item: { itemName: string; count: number; users: string[] }, idx: number) => (
-                    <div key={idx} className="border-b pb-4 last:border-b-0">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-semibold text-lg">{item.itemName}</h4>
-                        <span className="bg-primary/10 text-primary px-3 py-1 rounded-full font-semibold">
-                          {item.count} {item.count === 1 ? 'order' : 'orders'}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {item.users.map((userName: string, userIdx: number) => (
-                          <span
-                            key={userIdx}
-                            className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm"
-                          >
-                            {userName}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <DayOrdersCard
+              key={day}
+              day={day}
+              totalOrders={daySelections.length}
+              items={dayItemCounts}
+            />
           )
         })}
 

@@ -289,6 +289,52 @@ export async function updateFoodMenu(menuId: string, data: CreateMenuData) {
   }
 }
 
+/**
+ * Updates only the selection deadline for a menu. Unlike `updateFoodMenu`, this never
+ * touches menuItems or selections, and works regardless of the menu's status — so
+ * extending/shortening a deadline never disturbs the menu or selections already made.
+ */
+export async function updateFoodMenuDeadline(menuId: string, selectionCloseDate: string) {
+  try {
+    await requireFoodCommitteeOrAdmin();
+
+    if (!isValidPrismaId(menuId)) {
+      return { error: 'Invalid menu ID' };
+    }
+
+    const newCloseDate = new Date(selectionCloseDate);
+    if (isNaN(newCloseDate.getTime())) {
+      return { error: 'Invalid deadline date' };
+    }
+
+    const menu = await prisma.weeklyFoodMenu.findUnique({
+      where: { id: menuId },
+      select: { selectionOpenDate: true }
+    });
+
+    if (!menu) {
+      return { error: 'Menu not found' };
+    }
+
+    if (newCloseDate <= menu.selectionOpenDate) {
+      return { error: 'Deadline must be after the selection open date' };
+    }
+
+    await prisma.weeklyFoodMenu.update({
+      where: { id: menuId },
+      data: { selectionCloseDate: newCloseDate }
+    });
+
+    revalidatePath('/admin/food-management/menus');
+    revalidatePath(`/admin/food-management/orders/${menuId}`);
+    revalidatePath('/food-orders');
+    return { success: true };
+  } catch (error) {
+    console.error('[updateFoodMenuDeadline] Food menu deadline update error:', error);
+    return { error: error instanceof Error ? error.message : 'Failed to update deadline' };
+  }
+}
+
 export async function publishFoodMenu(menuId: string) {
   try {
     await requireFoodCommitteeOrAdmin();

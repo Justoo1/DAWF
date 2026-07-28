@@ -8,6 +8,7 @@ import { Edit } from 'lucide-react'
 import { publishFoodMenu, closeFoodMenuSelection, markFoodMenuAsSent } from '@/lib/actions/foodMenu.actions'
 import { revalidatePath } from 'next/cache'
 import MenuDeleteActions from '@/components/admin/MenuDeleteActions'
+import EditDeadlineDialog from '@/components/admin/EditDeadlineDialog'
 import { Badge } from '@/components/ui/badge'
 import { AdminPageContent } from '@/components/admin/layout/AdminPageContent'
 import { AdminPageHeader } from '@/components/admin/layout/AdminPageHeader'
@@ -233,6 +234,7 @@ const FoodMenusPage = async () => {
                     </td>
                     <td className={cn(adminTdClass, "text-right")}>
                       <div className="flex items-center justify-end gap-2">
+                        <EditDeadlineDialog menuId={menu.id!} currentDeadline={new Date(menu.selectionCloseDate)} />
                         <MenuActionButton menuId={menu.id!} status={menu.status} />
                         <MenuDeleteActions
                           menuId={menu.id!}
