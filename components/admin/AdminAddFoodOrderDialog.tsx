@@ -211,7 +211,7 @@ const AdminAddFoodOrderDialog = ({ menu }: AdminAddFoodOrderDialogProps) => {
             <div className="px-6 py-6">
               {loadingEmployees ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                  <Loader2 className="h-8 w-8 animate-spin text-gray-400 dark:text-zinc-500" />
                 </div>
               ) : (
                 <Form {...form}>
@@ -234,8 +234,8 @@ const AdminAddFoodOrderDialog = ({ menu }: AdminAddFoodOrderDialogProps) => {
                             role="combobox"
                             aria-expanded={comboboxOpen}
                             className={cn(
-                              "w-full justify-between h-11 rounded-lg",
-                              !field.value && "text-muted-foreground"
+                              "w-full justify-between h-11 rounded-lg border-zinc-200 bg-white text-zinc-900 hover:bg-white dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-900",
+                              !field.value && "text-zinc-400 dark:text-zinc-500"
                             )}
                           >
                             {field.value
@@ -347,14 +347,14 @@ const AdminAddFoodOrderDialog = ({ menu }: AdminAddFoodOrderDialogProps) => {
 
               {/* Daily Selections */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-sm text-gray-700">Weekly Food Selections</h3>
+                <h3 className="font-semibold text-sm text-gray-700 dark:text-zinc-300">Weekly Food Selections</h3>
                 {DAYS_OF_WEEK.map((day, dayIndex) => {
                   const dayItems = itemsByDay[day] || []
                   if (dayItems.length === 0) return null
 
                   return (
-                    <div key={day} className="border rounded-lg p-4 bg-gray-50">
-                      <h4 className="font-medium mb-3 text-gray-800">{day}</h4>
+                    <div key={day} className="border rounded-lg p-4 bg-gray-50 dark:bg-zinc-900/60 dark:border-zinc-800">
+                      <h4 className="font-medium mb-3 text-gray-800 dark:text-zinc-100">{day}</h4>
 
                       <div className="space-y-3">
                         <FormField
@@ -368,7 +368,7 @@ const AdminAddFoodOrderDialog = ({ menu }: AdminAddFoodOrderDialogProps) => {
                                 value={field.value || undefined}
                               >
                                 <FormControl>
-                                  <SelectTrigger className="h-11 rounded-lg">
+                                  <SelectTrigger className="h-11 rounded-lg border-zinc-200 bg-white text-zinc-900 placeholder:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500">
                                     <SelectValue placeholder="Choose a meal" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -378,7 +378,7 @@ const AdminAddFoodOrderDialog = ({ menu }: AdminAddFoodOrderDialogProps) => {
                                     <SelectItem key={item.id} value={item.id!}>
                                       {item.itemName}
                                       {item.description && (
-                                        <span className="text-xs text-gray-500 block">
+                                        <span className="text-xs text-gray-500 dark:text-zinc-400 block">
                                           {item.description}
                                         </span>
                                       )}
@@ -401,7 +401,7 @@ const AdminAddFoodOrderDialog = ({ menu }: AdminAddFoodOrderDialogProps) => {
                                 <Textarea
                                   {...field}
                                   placeholder="Any special requests..."
-                                  className="resize-none rounded-lg min-h-[44px]"
+                                  className="resize-none rounded-lg min-h-[44px] border-zinc-200 bg-white text-zinc-900 placeholder:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                                   rows={2}
                                 />
                               </FormControl>
