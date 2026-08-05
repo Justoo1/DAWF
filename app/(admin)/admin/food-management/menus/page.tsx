@@ -22,8 +22,11 @@ import {
 } from '@/lib/admin-ui'
 import { cn } from '@/lib/utils'
 import { MenusClient } from '@/components/admin/MenusClient'
-import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
+
+// Prevent this page from being statically prerendered at build time — vendor/food
+// assignments change after deploy, and a stale prerendered snapshot would keep
+// showing whatever data existed at the last build instead of the live DB state.
+export const dynamic = 'force-dynamic'
 
 const MenuActionButton = ({ menuId, status }: { menuId: string, status: string }) => {
   const handlePublish = async () => {

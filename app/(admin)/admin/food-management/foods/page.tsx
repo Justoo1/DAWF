@@ -4,6 +4,10 @@ import { AdminPageContent } from '@/components/admin/layout/AdminPageContent'
 import { AdminPageHeader } from '@/components/admin/layout/AdminPageHeader'
 import { FoodsClient } from '@/components/admin/FoodsClient'
 
+// See menus/page.tsx for why this is forced dynamic: without it, this page can be
+// statically prerendered at build time and serve stale food/vendor data in production.
+export const dynamic = 'force-dynamic'
+
 const FoodsPage = async () => {
   const [foodsData, vendorsData] = await Promise.all([
     fetchAllFoods(),
