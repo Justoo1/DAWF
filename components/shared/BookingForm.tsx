@@ -461,9 +461,9 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
         </div>
 
         <p className="text-xs text-muted-foreground -mt-2">
-          Slots are for this room on the selected date ({businessHoursRangeLabel()}, 30 minutes each).
-          Load availability, then tap a free slot — that confirms your booking window. Changing date or
-          times clears the selection until you pick a slot again.
+          Slots are for this room on the selected date ({businessHoursRangeLabel()}, 30 minutes each,
+          2-hour maximum per booking). Load availability, then tap a free slot — that confirms your
+          booking window. Changing date or times clears the selection until you pick a slot again.
         </p>
 
         <Button

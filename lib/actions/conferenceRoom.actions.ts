@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "../prisma";
-import { ConferenceRoom, ConferenceRoomBooking } from "../validation";
+import { ConferenceRoom, ConferenceRoomBooking, MAX_BOOKING_DURATION_MS } from "../validation";
 import { createNotificationForAllUsers, createNotification, createNotificationForApprovers } from './notification.actions';
 import { sendEmail, conferenceRoomBookingTemplate, roomBookingApprovedTemplate, roomBookingRejectedTemplate } from '../email';
 import { getPublicCalendarQueryRange } from '@/lib/calendar-range';
@@ -434,7 +434,12 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
     if (endDate <= startDate) {
       return { error: 'End time must be after start time' };
     }
-    
+
+    // Enforce a maximum booking length
+    if (endDate.getTime() - startDate.getTime() > MAX_BOOKING_DURATION_MS) {
+      return { error: 'Bookings can be at most 2 hours long' };
+    }
+
     // Sanitize inputs
     const sanitizedBooking = {
       ...booking,
@@ -570,11 +575,22 @@ export async function updateBooking(
   booking: Omit<ConferenceRoomBooking, 'id' | 'userId'>
 ) {
   try {
+    const startDate = new Date(booking.start);
+    const endDate = new Date(booking.end);
+
+    if (endDate <= startDate) {
+      return { error: 'End time must be after start time' };
+    }
+
+    if (endDate.getTime() - startDate.getTime() > MAX_BOOKING_DURATION_MS) {
+      return { error: 'Bookings can be at most 2 hours long' };
+    }
+
     // Check room availability (excluding current booking)
     const availabilityCheck = await checkRoomAvailability(
       booking.roomId,
-      new Date(booking.start),
-      new Date(booking.end),
+      startDate,
+      endDate,
       bookingId
     );
 

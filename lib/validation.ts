@@ -464,6 +464,8 @@ export function combineLocalDateAndTime(dateStr: string, timeStr: string): Date 
   return new Date(y, mo - 1, d, hh, mm, 0, 0)
 }
 
+export const MAX_BOOKING_DURATION_MS = 2 * 60 * 60 * 1000
+
 export const ConferenceRoomBookingCreateSchema = z.object({
   roomId: z.string().min(1, { message: "Select a conference room" }),
   title: z
@@ -481,15 +483,26 @@ export const ConferenceRoomBookingCreateSchema = z.object({
     })
     .int({ message: "Use a whole number" })
     .min(1, { message: "Enter at least 1 person" }),
-}).refine(
-  (data) => {
-    const start = combineLocalDateAndTime(data.date, data.startTime)
-    const end = combineLocalDateAndTime(data.date, data.endTime)
-    if (!start || !end) return false
-    return end.getTime() > start.getTime()
-  },
-  { message: "End time must be after start time", path: ["endTime"] }
-)
+}).superRefine((data, ctx) => {
+  const start = combineLocalDateAndTime(data.date, data.startTime)
+  const end = combineLocalDateAndTime(data.date, data.endTime)
+  if (!start || !end) return
+  if (end.getTime() <= start.getTime()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "End time must be after start time",
+      path: ["endTime"],
+    })
+    return
+  }
+  if (end.getTime() - start.getTime() > MAX_BOOKING_DURATION_MS) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Bookings can be at most 2 hours long",
+      path: ["endTime"],
+    })
+  }
+})
 
 /** Admin list row: Prisma booking with `room` + `user` includes (see fetchAllBookings). */
 export type ConferenceRoomBookingValues = Omit<
