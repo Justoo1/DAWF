@@ -12,14 +12,22 @@ interface AuthLayoutProps {
   teamImage: string
   className?: string
   flexStart?: boolean
+  title?: string
 }
 
-const AuthLayout = ({ children, description, secondaryDescription, teamImage, className, flexStart }: AuthLayoutProps) => {
+const AuthLayout = ({ children, description, secondaryDescription, teamImage, className, flexStart, title = PLATFORM_NAME }: AuthLayoutProps) => {
   return (
     <div className={cn("relative min-h-screen flex flex-col items-center justify-center bg-[#121212] overflow-hidden font-sans", flexStart && "items-start")}>
-      {/* Background Pattern Overlay */}
-      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none">
-        <div className="absolute inset-0 bg-[url('/assets/images/logo.png')] bg-repeat bg-[length:200px_200px] grayscale brightness-0 invert" />
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <Image
+          src="/assets/images/bg-background.png"
+          alt=""
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-[#121212]/70" />
       </div>
 
       {/* Top Navigation */}
@@ -69,7 +77,7 @@ const AuthLayout = ({ children, description, secondaryDescription, teamImage, cl
           <div className="hidden lg:flex flex-col justify-center space-y-6 text-white pl-8">
             <div className="flex items-center gap-6">
               <div className="space-y-1">
-                <h2 className="text-3xl font-black tracking-tighter leading-tight">{PLATFORM_NAME}</h2>
+                <h2 className="text-3xl font-black tracking-tighter leading-tight">{title}</h2>
                 <div className="text-sm font-bold tracking-[0.1em] text-white/80 uppercase">
                   {COMPANY_LEGAL_NAME}
                 </div>

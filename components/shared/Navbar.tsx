@@ -22,6 +22,7 @@ import { authClient } from "@/lib/auth-client"
 import { cn } from '@/lib/utils'
 import { usePathname } from 'next/navigation'
 import { AdminShellUser } from '@/lib/validation'
+import { PLATFORM_SHORT_NAME } from '@/lib/brand'
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -77,10 +78,7 @@ export const Navbar = () => {
               <Home className="h-[18px] w-[18px] text-emerald-400" />
             </div>
             <div className="hidden min-[380px]:block leading-tight">
-              <span className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                DevOps Africa
-              </span>
-              <span className="block text-sm font-semibold text-foreground">Welfare</span>
+              <span className="block text-sm font-semibold text-foreground">{PLATFORM_SHORT_NAME}</span>
             </div>
           </Link>
 

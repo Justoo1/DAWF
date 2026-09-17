@@ -1,7 +1,7 @@
 {
-  "name": "DevOps Africa Management System",
-  "short_name": "DevOps Africa",
-  "description": "DevOps Africa Management System — employee portal, welfare, events, and operations",
+  "name": "Devops Employee Management",
+  "short_name": "DEM",
+  "description": "Devops Employee Management — employee portal, welfare, events, and operations",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

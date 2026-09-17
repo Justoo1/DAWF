@@ -5,6 +5,7 @@ import { Suspense } from "react";
 const LoginPage = () => {
   return (
     <AuthLayout
+      title="Devops Employee Management System"
       description="The Welfare team is dedicated to enhancing the overall well-being of members of the organization, thus, providing support and resources when and where necessary."
       secondaryDescription="This application provides each member access to various contributions made to the Welfare team and also the total amount accumulated by the Welfare team of DEVOPS AFRICA ltd."
       teamImage="/assets/images/team.png"

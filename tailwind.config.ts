@@ -60,7 +60,7 @@ export default {
   			green: colors.emerald,
   		},
 		backgroundImage: {
-			'bg-img': "url('/assets/images/bg.png')",
+			'bg-img': "url('/assets/images/bg-background.png')",
 		},
   		borderRadius: {
   			lg: 'var(--radius)',
