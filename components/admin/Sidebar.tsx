@@ -23,6 +23,7 @@ import {
   CalendarDays,
   Inbox,
   ChevronDown,
+  History,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -329,7 +330,8 @@ export function Sidebar({
               hasPermission(userRole, "view_policies") ||
               hasPermission(userRole, "view_reports") ||
               hasPermission(userRole, "view_analytics") ||
-              hasPermission(userRole, "view_conference_rooms")) && (
+              hasPermission(userRole, "view_conference_rooms") ||
+              hasPermission(userRole, "view_audit_logs")) && (
               <StaticNavSection title="Overview" collapsed={collapsed} isMd={isMd}>
                 {hasPermission(userRole, "view_dashboard") && (
                   <NavItem
@@ -377,6 +379,16 @@ export function Sidebar({
                     label="Bookings"
                     icon={DoorOpen}
                     active={isActive("/admin/conference-rooms")}
+                    collapsed={collapsed}
+                    showTooltips={showTooltips}
+                  />
+                )}
+                {hasPermission(userRole, "view_audit_logs") && (
+                  <NavItem
+                    href="/admin/audit-logs"
+                    label="Audit Logs"
+                    icon={History}
+                    active={isActive("/admin/audit-logs")}
                     collapsed={collapsed}
                     showTooltips={showTooltips}
                   />

@@ -9,6 +9,7 @@ import { getAuthAppOrigin } from '@/lib/auth-app-url';
 import { sendEmployeeVerificationEmail } from '@/lib/auth-email';
 import { headers } from 'next/headers'
 import { randomBytes, randomUUID } from 'crypto'
+import { logAuditEvent } from '@/lib/actions/auditLog.actions'
 
 const EMPLOYEE_VERIFICATION_TTL_MS = 1000 * 60 * 60 * 24 * 2 // 48 hours
 
@@ -415,17 +416,26 @@ export async function updateEmployeeStatus(userId: string, isActive: boolean) {
       return { success: false, error: 'Unauthorized: Only admins can update employee status' }
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.user.update({
+    const target = await prisma.$transaction(async (tx) => {
+      const updated = await tx.user.update({
         where: { id: userId },
         data: { isActive },
+        select: { id: true, name: true, email: true },
       })
       if (!isActive) {
         await tx.session.deleteMany({ where: { userId } })
       }
+      return updated
     })
     revalidatePath('/admin/employees')
     revalidatePath('/admin/manage-employees')
+    await logAuditEvent({
+      actor: { id: session.user.id, name: session.user.name, email: session.user.email },
+      action: isActive ? 'employee.activate' : 'employee.deactivate',
+      entityType: 'User',
+      entityId: target.id,
+      description: `${isActive ? 'Activated' : 'Deactivated'} employee ${target.name} (${target.email})`,
+    })
     return { success: true }
   } catch (error) {
     console.error('Error updating employee status:', error)
@@ -464,12 +474,20 @@ export async function updateContributorStatus(userId: string, isContributor: boo
       }
     }
 
-    await prisma.user.update({
+    const updated = await prisma.user.update({
       where: { id: userId },
-      data: { isContributor }
+      data: { isContributor },
+      select: { id: true, name: true, email: true },
     })
     revalidatePath('/admin/employees')
     revalidatePath('/admin/manage-employees')
+    await logAuditEvent({
+      actor: { id: session.user.id, name: session.user.name, email: session.user.email },
+      action: isContributor ? 'employee.enable_contributor' : 'employee.disable_contributor',
+      entityType: 'User',
+      entityId: updated.id,
+      description: `${isContributor ? 'Marked' : 'Unmarked'} ${updated.name} (${updated.email}) as a welfare contributor`,
+    })
     return { success: true }
   } catch (error) {
     console.error('Error updating contributor status:', error)
@@ -497,12 +515,20 @@ export async function updateBookingApprovalPermission(userId: string, canApprove
       return { success: false, error: 'Unauthorized: Only admins can update booking approval permissions' }
     }
 
-    await prisma.user.update({
+    const updated = await prisma.user.update({
       where: { id: userId },
-      data: { canApproveBookings }
+      data: { canApproveBookings },
+      select: { id: true, name: true, email: true },
     })
     revalidatePath('/admin/employees')
     revalidatePath('/admin/manage-employees')
+    await logAuditEvent({
+      actor: { id: session.user.id, name: session.user.name, email: session.user.email },
+      action: 'employee.update_booking_approval_permission',
+      entityType: 'User',
+      entityId: updated.id,
+      description: `${canApproveBookings ? 'Granted' : 'Revoked'} booking approval permission for ${updated.name} (${updated.email})`,
+    })
     return { success: true }
   } catch (error) {
     console.error('Error updating booking approval permission:', error)
@@ -530,12 +556,20 @@ export async function updateUserRole(userId: string, role: string) {
       return { success: false, error: 'Unauthorized: Only admins can update user roles' }
     }
 
-    await prisma.user.update({
+    const updated = await prisma.user.update({
       where: { id: userId },
-      data: { role: role as UserRole }
+      data: { role: role as UserRole },
+      select: { id: true, name: true, email: true, role: true },
     })
     revalidatePath('/admin/employees')
     revalidatePath('/admin/manage-employees')
+    await logAuditEvent({
+      actor: { id: session.user.id, name: session.user.name, email: session.user.email },
+      action: 'employee.update_role',
+      entityType: 'User',
+      entityId: updated.id,
+      description: `Changed role of ${updated.name} (${updated.email}) to ${updated.role}`,
+    })
     return { success: true }
   } catch (error) {
     console.error('Error updating user role:', error)
@@ -679,6 +713,13 @@ export async function createEmployee(data: {
 
     revalidatePath('/admin/employees')
     revalidatePath('/admin/manage-employees')
+    await logAuditEvent({
+      actor: { id: session.user.id, name: session.user.name, email: session.user.email },
+      action: 'employee.create',
+      entityType: 'User',
+      entityId: user.id,
+      description: `Added new employee ${displayName} (${email})`,
+    })
     return {
       success: true,
       user,
@@ -857,6 +898,13 @@ export async function updateEmployeeProfile(
 
     revalidatePath('/admin/employees')
     revalidatePath('/admin/manage-employees')
+    await logAuditEvent({
+      actor: { id: session.user.id, name: session.user.name, email: session.user.email },
+      action: 'employee.update_profile',
+      entityType: 'User',
+      entityId: userId,
+      description: `Updated profile for ${displayName} (${newEmail})`,
+    })
     return { success: true, emailChanged, verificationEmailSent }
   } catch (error) {
     console.error('Error updating employee profile:', error)

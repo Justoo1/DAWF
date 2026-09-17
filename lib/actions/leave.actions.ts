@@ -10,6 +10,7 @@ import { countLeaveWorkingDays } from "@/lib/leave-working-days";
 import { runAfterResponse } from "@/lib/background-work";
 import { deliverLeaveDecisionNotifications } from "@/lib/jobs/leave-decision-notifications";
 import { computeAnnualEntitlement, getLeaveYearBounds } from "@/lib/leave-entitlement";
+import { logAuditEvent } from "./auditLog.actions";
 
 async function workingDaysForLeaveRange(startDate: Date, endDate: Date) {
   const holidays = await prisma.publicHoliday.findMany({
@@ -632,6 +633,13 @@ export async function approveLeaveRequest(requestId: string, approverId: string)
     revalidatePath("/admin/leave-management/requests");
     revalidatePath("/admin/leave-management/leaves");
     revalidatePath("/leave");
+    await logAuditEvent({
+      actor: { id: approver.id, name: approver.name, email: approver.email },
+      action: "leave_request.approve",
+      entityType: "LeaveRequest",
+      entityId: request.id,
+      description: `Approved ${request.days}-day leave request for ${request.user.name}`,
+    });
     return { success: true };
   } catch (error) {
     console.error("Error approving leave request:", error);
@@ -699,6 +707,13 @@ export async function rejectLeaveRequest(requestId: string, approverId: string, 
     revalidatePath("/admin/leave-management/requests");
     revalidatePath("/admin/leave-management/leaves");
     revalidatePath("/leave");
+    await logAuditEvent({
+      actor: { id: approver.id, name: approver.name, email: approver.email },
+      action: "leave_request.reject",
+      entityType: "LeaveRequest",
+      entityId: request.id,
+      description: `Declined leave request for ${request.user.name}: ${declineReasonText}`,
+    });
     return { success: true };
   } catch (error) {
     console.error("Error declining leave request:", error);

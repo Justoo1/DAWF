@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import prisma from "../prisma";
 import { ConferenceRoom, ConferenceRoomBooking, MAX_BOOKING_DURATION_MS } from "../validation";
+import { logAuditEvent } from "./auditLog.actions";
 import { createNotificationForAllUsers, createNotification, createNotificationForApprovers } from './notification.actions';
 import { sendEmail, conferenceRoomBookingTemplate, roomBookingApprovedTemplate, roomBookingRejectedTemplate } from '../email';
 import { getPublicCalendarQueryRange } from '@/lib/calendar-range';
@@ -63,7 +64,7 @@ export async function fetchConferenceRoomById(roomId: string) {
 
 export async function createConferenceRoom(room: Omit<ConferenceRoom, 'id'>) {
   try {
-    await requireAdmin();
+    const admin = await requireAdmin();
 
     const sanitizedRoom = {
       ...room,
@@ -73,8 +74,15 @@ export async function createConferenceRoom(room: Omit<ConferenceRoom, 'id'>) {
       amenities: sanitizeText(room.amenities),
     };
 
-    await prisma.conferenceRoom.create({ data: sanitizedRoom });
+    const created = await prisma.conferenceRoom.create({ data: sanitizedRoom });
     revalidatePath('/admin/conference-rooms');
+    await logAuditEvent({
+      actor: { id: admin.id, name: admin.name, email: admin.email },
+      action: 'conference_room.create',
+      entityType: 'ConferenceRoom',
+      entityId: created.id,
+      description: `Created conference room ${created.name}`,
+    });
     return { success: true };
   } catch (error) {
     console.error('Conference room creation error:', error);
@@ -86,8 +94,8 @@ export async function createConferenceRoom(room: Omit<ConferenceRoom, 'id'>) {
 
 export async function updateConferenceRoom(roomId: string, room: Omit<ConferenceRoom, 'id'>) {
   try {
-    await requireAdmin();
-    
+    const admin = await requireAdmin();
+
     if (!isValidPrismaId(roomId)) {
       return { error: 'Invalid room ID' };
     }
@@ -100,11 +108,18 @@ export async function updateConferenceRoom(roomId: string, room: Omit<Conference
       amenities: sanitizeText(room.amenities),
     };
 
-    await prisma.conferenceRoom.update({
+    const updated = await prisma.conferenceRoom.update({
       where: { id: roomId },
       data: sanitizedRoom
     });
     revalidatePath('/admin/conference-rooms');
+    await logAuditEvent({
+      actor: { id: admin.id, name: admin.name, email: admin.email },
+      action: 'conference_room.update',
+      entityType: 'ConferenceRoom',
+      entityId: updated.id,
+      description: `Updated conference room ${updated.name}`,
+    });
     return { success: true };
   } catch (error) {
     console.error('Conference room update error:', error);
@@ -116,18 +131,25 @@ export async function updateConferenceRoom(roomId: string, room: Omit<Conference
 
 export async function deleteConferenceRoom(roomId: string) {
   try {
-    await requireAdmin();
-    
+    const admin = await requireAdmin();
+
     if (!isValidPrismaId(roomId)) {
       return { error: 'Invalid room ID' };
     }
 
     // Soft delete by setting isActive to false
-    await prisma.conferenceRoom.update({
+    const deleted = await prisma.conferenceRoom.update({
       where: { id: roomId },
       data: { isActive: false }
     });
     revalidatePath('/admin/conference-rooms');
+    await logAuditEvent({
+      actor: { id: admin.id, name: admin.name, email: admin.email },
+      action: 'conference_room.delete',
+      entityType: 'ConferenceRoom',
+      entityId: deleted.id,
+      description: `Deleted conference room ${deleted.name}`,
+    });
     return { success: true };
   } catch (error) {
     console.error('Conference room deletion error:', error);
@@ -840,6 +862,13 @@ export async function approveBooking(bookingId: string) {
     revalidatePath('/events');
     revalidatePath('/approvals');
     revalidatePath('/admin/conference-rooms');
+    await logAuditEvent({
+      actor: { id: approver.id, name: approver.name, email: approver.email },
+      action: 'conference_room_booking.approve',
+      entityType: 'ConferenceRoomBooking',
+      entityId: booking.id,
+      description: `Approved ${booking.room.name} booking "${booking.title}" for ${booking.user.name}`,
+    });
     return { success: true };
   } catch (error) {
     console.error('Booking approval error:', error);
@@ -958,6 +987,13 @@ export async function rejectBooking(bookingId: string, rejectionReason: string) 
     revalidatePath('/events');
     revalidatePath('/approvals');
     revalidatePath('/admin/conference-rooms');
+    await logAuditEvent({
+      actor: { id: approver.id, name: approver.name, email: approver.email },
+      action: 'conference_room_booking.reject',
+      entityType: 'ConferenceRoomBooking',
+      entityId: booking.id,
+      description: `Rejected ${booking.room.name} booking "${booking.title}" for ${booking.user.name}: ${sanitizedReason}`,
+    });
     return { success: true };
   } catch (error) {
     console.error('Booking rejection error:', error);

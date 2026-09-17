@@ -22,6 +22,7 @@ export type Permission =
   | 'manage_food_menus'
   | 'view_food_orders'
   | 'export_food_orders'
+  | 'view_audit_logs'
 
 // Define permissions for each role
 const rolePermissions: Record<UserRole, Permission[]> = {
@@ -59,6 +60,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     'manage_food_menus',
     'view_food_orders',
     'export_food_orders',
+    'view_audit_logs',
   ],
   FOOD_COMMITTEE: [
     'view_food_management',

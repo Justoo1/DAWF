@@ -192,6 +192,7 @@ model User {
   leaveBalances          LeaveBalance[]
   leaveRequests          LeaveRequest[]
   approvedLeaveRequests  LeaveRequest[] @relation("LeaveApprover")
+  auditLogs              AuditLog[]
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @default(now())
 
@@ -611,4 +612,27 @@ model PublicHoliday {
   updatedAt   DateTime @updatedAt
 
   @@map("public_holidays")
+}
+
+// ============================================
+// AUDIT LOG
+// ============================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String? // Nullable + no cascade so logs survive the acting user being deleted
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorName  String // Denormalized snapshot in case the user is later deleted/renamed
+  actorEmail String
+  action     String // e.g. "employee.create", "leave_request.approve"
+  entityType String // e.g. "User", "LeaveRequest"
+  entityId   String?
+  description String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
 }
