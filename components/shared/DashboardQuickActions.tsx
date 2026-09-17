@@ -1,7 +1,7 @@
 "use client"
 import React from 'react'
 import { Card } from '@/components/ui/card'
-import { UtensilsCrossed, FileText, BookOpen, DoorOpen } from 'lucide-react'
+import { UtensilsCrossed, BookOpen, DoorOpen } from 'lucide-react'
 import Link from 'next/link'
 
 const actions = [
@@ -12,13 +12,15 @@ const actions = [
     color: "text-emerald-500",
     bgColor: "bg-emerald-500/10",
   },
-  {
-    icon: FileText,
-    label: "LEAVE REQUEST",
-    href: "/leave", 
-    color: "text-orange-500",
-    bgColor: "bg-orange-500/10",
-  },
+  // Hidden for now, not needed yet — bring back when leave requests are ready to launch.
+  // (re-add `FileText` to the lucide-react import above too)
+  // {
+  //   icon: FileText,
+  //   label: "LEAVE REQUEST",
+  //   href: "/leave",
+  //   color: "text-orange-500",
+  //   bgColor: "bg-orange-500/10",
+  // },
   {
     icon: DoorOpen,
     label: "ROOM BOOKING",
@@ -37,7 +39,7 @@ const actions = [
 
 export function DashboardQuickActions() {
   return (
-    <div className="h-[480px] overflow-y-auto pr-4 custom-scrollbar">
+    <div>
         <div className="flex flex-col gap-6 pb-6">
         {actions.map((action, idx) => {
             const Icon = action.icon

@@ -13,6 +13,7 @@ import { headers } from 'next/headers'
 import { Home } from 'lucide-react'
 import ProfileMenu from '@/components/shared/ProfileMenu'
 import NotificationBell from '@/components/shared/NotificationBell'
+import Image from 'next/image'
 
 const Dashboard = async () => {
   const session = await auth.api.getSession({
@@ -51,8 +52,16 @@ const Dashboard = async () => {
   
   return (
     <div className='flex flex-col w-full min-h-screen relative overflow-hidden bg-background'>
-      {/* Background Logo Pattern */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('/assets/images/logo.png')] bg-[length:120px_120px] bg-repeat z-0" />
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <Image
+          src="/assets/images/bg-background.png"
+          alt=""
+          fill
+          className="object-cover opacity-[0.05] dark:opacity-[0.08]"
+          priority
+        />
+      </div>
       
       {/* Specialized Dashboard Header */}
       <header className="relative z-20 flex items-center justify-between px-8 py-8 md:px-20 md:py-12">
