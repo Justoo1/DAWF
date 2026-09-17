@@ -4,7 +4,6 @@ import {
   ConferenceRoomBookingCreateSchema,
   combineLocalDateAndTime,
   ConferenceRoomValues,
-  roomFitsHeadcount,
 } from '@/lib/validation'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -34,7 +33,7 @@ import {
   type RoomDaySlotRow,
 } from '@/lib/actions/conferenceRoom.actions'
 import { Textarea } from '../ui/textarea'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import { RequiredMark } from '@/components/ui/required-mark'
 import { cn } from '@/lib/utils'
@@ -123,33 +122,6 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
 
   const roomIdWatch = form.watch("roomId")
   const dateWatch = form.watch("date")
-  const attendeeWatch = form.watch("attendeeCount")
-
-  const filteredRooms = useMemo(() => {
-    const n =
-      typeof attendeeWatch === "number" && !Number.isNaN(attendeeWatch) ? attendeeWatch : 0
-    if (n < 1) return []
-    return rooms.filter((r) => roomFitsHeadcount(r.capacity, n))
-  }, [rooms, attendeeWatch])
-
-  useEffect(() => {
-    const n =
-      typeof attendeeWatch === "number" && !Number.isNaN(attendeeWatch) ? attendeeWatch : 0
-    const rid = form.getValues("roomId")
-    if (!rid) return
-    if (n < 1) {
-      form.setValue("roomId", "", { shouldValidate: true })
-      setSlotRows(null)
-      resetSlotSelection()
-      return
-    }
-    const room = rooms.find((r) => r.id === rid)
-    if (!room || !roomFitsHeadcount(room.capacity, n)) {
-      form.setValue("roomId", "", { shouldValidate: true })
-      setSlotRows(null)
-      resetSlotSelection()
-    }
-  }, [attendeeWatch, rooms, form])
 
   const loadDaySlots = async () => {
     const roomId = form.getValues("roomId")
@@ -345,9 +317,6 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
                   className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full"
                 />
               </FormControl>
-              <p className="text-xs text-muted-foreground">
-                Only rooms that fit this headcount will appear below.
-              </p>
               <FormMessage />
             </FormItem>
           )}
@@ -368,39 +337,21 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
                   resetSlotSelection()
                 }}
                 value={field.value}
-                disabled={filteredRooms.length === 0}
+                disabled={rooms.length === 0}
               >
                 <FormControl>
                   <SelectTrigger className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 disabled:opacity-70">
-                    <SelectValue
-                      placeholder={
-                        filteredRooms.length === 0
-                          ? (typeof attendeeWatch === "number" &&
-                            !Number.isNaN(attendeeWatch) &&
-                            attendeeWatch >= 1
-                              ? "No rooms fit that size"
-                              : "Enter headcount first")
-                          : "Select a conference room"
-                      }
-                    />
+                    <SelectValue placeholder="Select a conference room" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800">
-                  {filteredRooms.map((room) => (
+                  {rooms.map((room) => (
                     <SelectItem key={room.id} value={room.id!} className="rounded-lg">
                       {room.name} (capacity {room.capacity})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {typeof attendeeWatch === "number" &&
-              !Number.isNaN(attendeeWatch) &&
-              attendeeWatch >= 1 &&
-              filteredRooms.length === 0 ? (
-                <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">
-                  No conference rooms match this group size. Try a smaller number.
-                </p>
-              ) : null}
               <FormMessage />
             </FormItem>
           )}
