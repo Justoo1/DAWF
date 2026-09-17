@@ -443,28 +443,6 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Meeting title
-                <RequiredMark />
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="text"
-                  {...field}
-                  placeholder="e.g. Team planning meeting"
-                  className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <p className="text-xs text-muted-foreground -mt-2">
           Slots are for this room on the selected date ({businessHoursRangeLabel()}, 30 minutes each,
           2-hour maximum per booking). Load availability, then tap a free slot — or tap a start and an
@@ -552,6 +530,28 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
             </div>
           </div>
         ) : null}
+
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Meeting title
+                <RequiredMark />
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  {...field}
+                  placeholder="e.g. Team planning meeting"
+                  className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
