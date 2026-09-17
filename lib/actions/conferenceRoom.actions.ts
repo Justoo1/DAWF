@@ -462,6 +462,10 @@ export async function createBooking(booking: Omit<ConferenceRoomBooking, 'id' | 
       return { error: 'Bookings can be at most 2 hours long' };
     }
 
+    if (!booking.description?.trim()) {
+      return { error: 'Description is required' };
+    }
+
     // Sanitize inputs
     const sanitizedBooking = {
       ...booking,

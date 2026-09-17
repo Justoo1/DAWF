@@ -558,8 +558,9 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Description (optional)
+              <FormLabel className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Description
+                <RequiredMark />
               </FormLabel>
               <FormControl>
                 <Textarea
