@@ -4,6 +4,7 @@ import {
   ConferenceRoomBookingCreateSchema,
   combineLocalDateAndTime,
   ConferenceRoomValues,
+  MAX_BOOKING_DURATION_MS,
 } from '@/lib/validation'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -46,6 +47,9 @@ interface BookingFormProps {
 
 const BUSINESS_START_HOUR = 10
 const BUSINESS_END_HOUR = 19
+/** Must match the server's `DAY_SLOT_MINUTES` in conferenceRoom.actions.ts. */
+const SLOT_MINUTES = 30
+const MAX_SLOTS_PER_BOOKING = Math.floor(MAX_BOOKING_DURATION_MS / (SLOT_MINUTES * 60 * 1000))
 
 function pad2(n: number) {
   return String(n).padStart(2, "0")
@@ -88,14 +92,17 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
   const { toast } = useToast()
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false)
   const [slotRows, setSlotRows] = useState<RoomDaySlotRow[] | null>(null)
-  /** Must choose a free slot from the grid after loading availability (typing times alone is not enough). */
+  /** Must choose free slot(s) from the grid after loading availability (typing times alone is not enough). */
   const [hasPickedAvailableSlot, setHasPickedAvailableSlot] = useState(false)
-  /** `startIso` of the slot the user tapped (for highlighting). */
-  const [pickedSlotKey, setPickedSlotKey] = useState<string | null>(null)
+  /** `startIso`s of the slots the user has selected, in chronological order (for highlighting). */
+  const [selectedSlotKeys, setSelectedSlotKeys] = useState<string[]>([])
+  /** Index (in `slotRows`) of the first slot tapped in the current selection; the next tap sets the range end. */
+  const [rangeAnchorIdx, setRangeAnchorIdx] = useState<number | null>(null)
 
   const resetSlotSelection = () => {
     setHasPickedAvailableSlot(false)
-    setPickedSlotKey(null)
+    setSelectedSlotKeys([])
+    setRangeAnchorIdx(null)
   }
 
   const defaults = useMemo(() => {
@@ -199,10 +206,14 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
     }
   }
 
-  const applySlot = (row: RoomDaySlotRow) => {
-    if (!row.available) return
-    const s = new Date(row.startIso)
-    const e = new Date(row.endIso)
+  /** Applies a contiguous run of slot indexes (already validated) as the booking window. */
+  const applySlotRange = (idxs: number[]) => {
+    if (!slotRows || idxs.length === 0) return
+    const sorted = [...idxs].sort((a, b) => a - b)
+    const first = slotRows[sorted[0]]
+    const last = slotRows[sorted[sorted.length - 1]]
+    const s = new Date(first.startIso)
+    const e = new Date(last.endIso)
     form.setValue(
       "date",
       `${s.getFullYear()}-${pad2(s.getMonth() + 1)}-${pad2(s.getDate())}`,
@@ -210,12 +221,61 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
     )
     form.setValue("startTime", timeFromDate(s), { shouldValidate: true })
     form.setValue("endTime", timeFromDate(e), { shouldValidate: true })
+    setSelectedSlotKeys(sorted.map((i) => slotRows[i].startIso))
     setHasPickedAvailableSlot(true)
-    setPickedSlotKey(row.startIso)
     toast({
-      title: "Slot selected",
+      title: sorted.length > 1 ? "Slots selected" : "Slot selected",
       description: formatSlotLabel(s, e),
     })
+  }
+
+  /**
+   * Tap a slot to start a selection; tap another free slot to extend it into a range
+   * (up to the 2-hour max). Tapping the lone selected slot again clears it, and any
+   * other tap after a range is confirmed starts a fresh selection.
+   */
+  const handleSlotClick = (row: RoomDaySlotRow) => {
+    if (!row.available || !slotRows) return
+    const idx = slotRows.findIndex((r) => r.startIso === row.startIso)
+    if (idx === -1) return
+
+    if (rangeAnchorIdx === null) {
+      setRangeAnchorIdx(idx)
+      applySlotRange([idx])
+      return
+    }
+
+    if (selectedSlotKeys.length === 1 && idx === rangeAnchorIdx) {
+      resetSlotSelection()
+      return
+    }
+
+    const lo = Math.min(rangeAnchorIdx, idx)
+    const hi = Math.max(rangeAnchorIdx, idx)
+    const rangeIdxs: number[] = []
+    for (let i = lo; i <= hi; i++) rangeIdxs.push(i)
+
+    if (rangeIdxs.length > MAX_SLOTS_PER_BOOKING) {
+      toast({
+        variant: "destructive",
+        title: "2-hour limit",
+        description: `A booking can span at most ${MAX_SLOTS_PER_BOOKING * SLOT_MINUTES} minutes. Pick a shorter range.`,
+      })
+      return
+    }
+
+    const allAvailable = rangeIdxs.every((i) => slotRows[i]?.available)
+    if (!allAvailable) {
+      toast({
+        variant: "destructive",
+        title: "Not available",
+        description: "That range includes a booked slot. Choose a different range.",
+      })
+      return
+    }
+
+    setRangeAnchorIdx(null)
+    applySlotRange(rangeIdxs)
   }
 
   const clearPickState = () => {
@@ -462,8 +522,9 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
 
         <p className="text-xs text-muted-foreground -mt-2">
           Slots are for this room on the selected date ({businessHoursRangeLabel()}, 30 minutes each,
-          2-hour maximum per booking). Load availability, then tap a free slot — that confirms your
-          booking window. Changing date or times clears the selection until you pick a slot again.
+          2-hour maximum per booking). Load availability, then tap a free slot — or tap a start and an
+          end slot for a longer range — to confirm your booking window. Changing date or times clears
+          the selection until you pick again.
         </p>
 
         <Button
@@ -482,7 +543,8 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
               Time slots (this room)
             </p>
             <p className="text-xs text-muted-foreground">
-              Green = free. Gray = booked. Your choice shows a checkmark badge.
+              Green = free. Gray = booked. Tap a slot for a 30-minute booking, or tap a start slot then
+              an end slot to select a longer range (up to 2 hours). Your choice shows a checkmark badge.
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-56 overflow-y-auto pr-1">
               {slotRows.map((row) => {
@@ -490,8 +552,7 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
                 const e = new Date(row.endIso)
                 const label = formatSlotLabel(s, e)
                 const isBusy = !row.available
-                const isPicked =
-                  row.available && hasPickedAvailableSlot && pickedSlotKey === row.startIso
+                const isPicked = row.available && selectedSlotKeys.includes(row.startIso)
                 return (
                   <button
                     key={row.startIso}
@@ -502,9 +563,11 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
                         ? row.busyLabel || "Booked"
                         : isPicked
                           ? "Selected time"
-                          : "Use this time"
+                          : rangeAnchorIdx !== null
+                            ? "Tap to set the end of your range"
+                            : "Tap to start a booking here"
                     }
-                    onClick={() => applySlot(row)}
+                    onClick={() => handleSlotClick(row)}
                     className={cn(
                       "rounded-lg border px-2 py-2 text-center text-[11px] font-semibold leading-tight transition-colors",
                       isBusy &&
