@@ -96,13 +96,10 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
   const [hasPickedAvailableSlot, setHasPickedAvailableSlot] = useState(false)
   /** `startIso`s of the slots the user has selected, in chronological order (for highlighting). */
   const [selectedSlotKeys, setSelectedSlotKeys] = useState<string[]>([])
-  /** Index (in `slotRows`) of the first slot tapped in the current selection; the next tap sets the range end. */
-  const [rangeAnchorIdx, setRangeAnchorIdx] = useState<number | null>(null)
 
   const resetSlotSelection = () => {
     setHasPickedAvailableSlot(false)
     setSelectedSlotKeys([])
-    setRangeAnchorIdx(null)
   }
 
   const defaults = useMemo(() => {
@@ -230,52 +227,54 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
   }
 
   /**
-   * Tap a slot to start a selection; tap another free slot to extend it into a range
-   * (up to the 2-hour max). Tapping the lone selected slot again clears it, and any
-   * other tap after a range is confirmed starts a fresh selection.
+   * Tap a free slot to select it. Tap a free slot right next to the current selection to
+   * grow it by one (up to the 2-hour max). Tap either end of the current selection to shrink
+   * it. Tapping anywhere else starts a fresh single-slot selection.
    */
   const handleSlotClick = (row: RoomDaySlotRow) => {
     if (!row.available || !slotRows) return
     const idx = slotRows.findIndex((r) => r.startIso === row.startIso)
     if (idx === -1) return
 
-    if (rangeAnchorIdx === null) {
-      setRangeAnchorIdx(idx)
+    const selectedIdxs = selectedSlotKeys
+      .map((key) => slotRows.findIndex((r) => r.startIso === key))
+      .filter((i) => i !== -1)
+      .sort((a, b) => a - b)
+
+    if (selectedIdxs.length === 0) {
       applySlotRange([idx])
       return
     }
 
-    if (selectedSlotKeys.length === 1 && idx === rangeAnchorIdx) {
-      resetSlotSelection()
+    const firstIdx = selectedIdxs[0]
+    const lastIdx = selectedIdxs[selectedIdxs.length - 1]
+
+    // Tapping a currently-selected end shrinks the selection from that end.
+    if (idx === firstIdx || idx === lastIdx) {
+      if (selectedIdxs.length === 1) {
+        resetSlotSelection()
+        return
+      }
+      applySlotRange(idx === firstIdx ? selectedIdxs.slice(1) : selectedIdxs.slice(0, -1))
       return
     }
 
-    const lo = Math.min(rangeAnchorIdx, idx)
-    const hi = Math.max(rangeAnchorIdx, idx)
-    const rangeIdxs: number[] = []
-    for (let i = lo; i <= hi; i++) rangeIdxs.push(i)
-
-    if (rangeIdxs.length > MAX_SLOTS_PER_BOOKING) {
-      toast({
-        variant: "destructive",
-        title: "2-hour limit",
-        description: `A booking can span at most ${MAX_SLOTS_PER_BOOKING * SLOT_MINUTES} minutes. Pick a shorter range.`,
-      })
+    // Tapping right before/after the selection grows it by one slot.
+    if (idx === lastIdx + 1 || idx === firstIdx - 1) {
+      if (selectedIdxs.length + 1 > MAX_SLOTS_PER_BOOKING) {
+        toast({
+          variant: "destructive",
+          title: "2-hour limit",
+          description: `A booking can span at most ${MAX_SLOTS_PER_BOOKING * SLOT_MINUTES} minutes. Remove a slot before adding another.`,
+        })
+        return
+      }
+      applySlotRange(idx === lastIdx + 1 ? [...selectedIdxs, idx] : [idx, ...selectedIdxs])
       return
     }
 
-    const allAvailable = rangeIdxs.every((i) => slotRows[i]?.available)
-    if (!allAvailable) {
-      toast({
-        variant: "destructive",
-        title: "Not available",
-        description: "That range includes a booked slot. Choose a different range.",
-      })
-      return
-    }
-
-    setRangeAnchorIdx(null)
-    applySlotRange(rangeIdxs)
+    // Tapping somewhere non-adjacent starts a fresh selection there.
+    applySlotRange([idx])
   }
 
   const clearPickState = () => {
@@ -489,8 +488,9 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
               Time slots (this room)
             </p>
             <p className="text-xs text-muted-foreground">
-              Green = free. Gray = booked. Tap a slot for a 30-minute booking, or tap a start slot then
-              an end slot to select a longer range (up to 2 hours). Your choice shows a checkmark badge.
+              Green = free. Gray = booked. Tap a slot to select it, then tap the slot right before or
+              after it to add more time (up to 2 hours). Tap either end of your selection to remove it.
+              Your choice shows a checkmark badge.
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-56 overflow-y-auto pr-1">
               {slotRows.map((row) => {
@@ -499,6 +499,10 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
                 const label = formatSlotLabel(s, e)
                 const isBusy = !row.available
                 const isPicked = row.available && selectedSlotKeys.includes(row.startIso)
+                const isEdgeOfSelection =
+                  isPicked &&
+                  (row.startIso === selectedSlotKeys[0] ||
+                    row.startIso === selectedSlotKeys[selectedSlotKeys.length - 1])
                 return (
                   <button
                     key={row.startIso}
@@ -508,10 +512,10 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
                       isBusy
                         ? row.busyLabel || "Booked"
                         : isPicked
-                          ? "Selected time"
-                          : rangeAnchorIdx !== null
-                            ? "Tap to set the end of your range"
-                            : "Tap to start a booking here"
+                          ? isEdgeOfSelection
+                            ? "Tap to remove from your selection"
+                            : "Selected time"
+                          : "Tap to select this time"
                     }
                     onClick={() => handleSlotClick(row)}
                     className={cn(
