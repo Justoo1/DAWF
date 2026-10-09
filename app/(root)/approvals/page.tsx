@@ -67,7 +67,7 @@ const ApprovalsPage = async () => {
       ) : (
         <Card className="bg-zinc-800/50 p-8 text-center">
           <p className="text-zinc-400 text-lg">No pending bookings to review</p>
-          <p className="text-zinc-500 text-sm mt-2">
+          <p className="text-zinc-500 dark:text-slate-400 text-sm mt-2">
             All conference room bookings have been processed
           </p>
         </Card>

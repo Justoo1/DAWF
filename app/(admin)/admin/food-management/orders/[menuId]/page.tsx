@@ -33,8 +33,8 @@ const OrdersViewPage = async ({ params }: { params: Promise<{ menuId: string }> 
       <div className="mx-auto max-w-7xl space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-800">Food Orders Summary</h1>
-            <p className="text-gray-600">{menu.vendor.name}</p>
+            <h1 className="text-2xl font-semibold text-gray-800 dark:text-slate-100">Food Orders Summary</h1>
+            <p className="text-gray-600 dark:text-slate-300">{menu.vendor.name}</p>
           </div>
           <div className="flex gap-2">
             <AdminAddFoodOrderDialog menu={menu} />
@@ -107,12 +107,12 @@ const OrdersViewPage = async ({ params }: { params: Promise<{ menuId: string }> 
                 <span
                   className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
                     menu.status === 'PUBLISHED'
-                      ? 'bg-green-100 text-green-800'
+                      ? 'bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300'
                       : menu.status === 'CLOSED'
-                      ? 'bg-orange-100 text-orange-800'
+                      ? 'bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300'
                       : menu.status === 'SENT'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-800'
+                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300'
+                      : 'bg-gray-100 text-gray-800 dark:text-slate-100 dark:bg-zinc-800'
                   }`}
                 >
                   {menu.status}
@@ -145,7 +145,7 @@ const OrdersViewPage = async ({ params }: { params: Promise<{ menuId: string }> 
         {summaryData.totalSelections === 0 && (
           <Card>
             <CardContent className="text-center py-12">
-              <p className="text-gray-500">No selections have been made yet</p>
+              <p className="text-gray-500 dark:text-slate-400">No selections have been made yet</p>
             </CardContent>
           </Card>
         )}

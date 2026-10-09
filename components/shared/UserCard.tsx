@@ -74,7 +74,7 @@ const UserCard = ({ userData }: UserCardProps) => {
         {/* Bottom Section - Status */}
         <div className="flex justify-between items-end border-t border-white/5 pt-6">
           <div className="space-y-1">
-            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+            <p className="text-[10px] font-black text-zinc-500 dark:text-slate-400 uppercase tracking-widest">
               Current Month
             </p>
             <p className="text-sm font-bold text-[#D3A94C] uppercase tracking-wider">
@@ -82,7 +82,7 @@ const UserCard = ({ userData }: UserCardProps) => {
             </p>
           </div>
           <div className="text-right space-y-1">
-            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+            <p className="text-[10px] font-black text-zinc-500 dark:text-slate-400 uppercase tracking-widest">
               Dues Owed
             </p>
             <div className="flex items-center gap-2 justify-end">

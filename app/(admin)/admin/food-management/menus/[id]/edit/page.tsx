@@ -54,8 +54,8 @@ const EditMenuPage = async ({ params }: { params: Promise<{ id: string }> }) => 
         <div className="mx-auto max-w-6xl">
           <Card>
             <CardContent className="py-12 text-center">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">Cannot Edit Published Menu</h2>
-              <p className="text-gray-600 mb-4">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-slate-100 mb-2">Cannot Edit Published Menu</h2>
+              <p className="text-gray-600 dark:text-slate-300 mb-4">
                 This menu has been published and can no longer be edited.
               </p>
               <a href="/admin/food-management/menus" className="text-primary hover:underline">
@@ -72,8 +72,8 @@ const EditMenuPage = async ({ params }: { params: Promise<{ id: string }> }) => 
     <main className="admin-main">
       <div className="mx-auto max-w-6xl space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Edit Weekly Menu</h1>
-          <p className="text-gray-600 mt-1">Update the menu details and items</p>
+          <h1 className="text-2xl font-semibold text-gray-800 dark:text-slate-100">Edit Weekly Menu</h1>
+          <p className="text-gray-600 dark:text-slate-300 mt-1">Update the menu details and items</p>
         </div>
 
         <Card>

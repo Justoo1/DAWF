@@ -23,7 +23,7 @@ const EditConferenceRoomPage = async ({ params }: EditConferenceRoomPageProps) =
     <main className="admin-main">
       <div className="mx-auto max-w-3xl">
         <Card className="p-6">
-          <h1 className="text-2xl font-semibold text-gray-800 mb-6">Edit Conference Room</h1>
+          <h1 className="text-2xl font-semibold text-gray-800 dark:text-slate-100 mb-6">Edit Conference Room</h1>
           <ConferenceRoomForm
             room={{
               id: room.id,

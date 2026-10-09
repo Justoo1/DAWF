@@ -103,8 +103,8 @@ export default function NotificationDetailDialog({
                 <DialogTitle className="text-xl mb-2">
                   {notification.title}
                 </DialogTitle>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <span className="px-2 py-1 bg-gray-100 rounded">
+                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
+                  <span className="px-2 py-1 bg-gray-100 dark:bg-zinc-800 rounded">
                     {getNotificationTypeLabel(notification.type)}
                   </span>
                   <span>•</span>
@@ -120,13 +120,13 @@ export default function NotificationDetailDialog({
             </div>
           </DialogHeader>
 
-          <DialogDescription className="text-base text-gray-700 leading-relaxed py-4">
+          <DialogDescription className="text-base text-gray-700 dark:text-slate-200 leading-relaxed py-4">
             {notification.message}
           </DialogDescription>
 
           {notification.linkUrl && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-gray-600 mb-2">Related link:</p>
+            <div className="bg-blue-50 border border-blue-200 dark:bg-blue-500/15 dark:border-blue-500/40 rounded-lg p-4">
+              <p className="text-sm text-gray-600 dark:text-slate-300 mb-2">Related link:</p>
               <Link
                 href={notification.linkUrl}
                 className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"

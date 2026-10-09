@@ -79,7 +79,7 @@ const OrderHistorySection = ({ userId }: OrderHistorySectionProps) => {
     return (
       <Card>
         <CardContent className="pt-6">
-          <div className="text-center py-8 text-gray-500">Loading order history...</div>
+          <div className="text-center py-8 text-gray-500 dark:text-slate-400">Loading order history...</div>
         </CardContent>
       </Card>
     )
@@ -111,12 +111,12 @@ const OrderHistorySection = ({ userId }: OrderHistorySectionProps) => {
           <OrderHistoryFilters onFilterChange={handleFilterChange} />
 
           {totalOrders === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500 dark:text-slate-400">
               <UtensilsCrossed className="h-12 w-12 mx-auto mb-2 text-gray-400" />
               <p>No order history found for the selected period</p>
             </div>
           ) : (
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 dark:text-slate-300">
               Found <strong>{totalOrders}</strong> menu{totalOrders !== 1 ? 's' : ''} with your selections
             </div>
           )}
@@ -151,7 +151,7 @@ const OrderHistorySection = ({ userId }: OrderHistorySectionProps) => {
               <div className="flex justify-between items-start">
                 <div>
                   <CardTitle className="text-lg">{menu.vendor.name}</CardTitle>
-                  <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
+                  <p className="text-sm text-gray-600 dark:text-slate-300 flex items-center gap-2 mt-1">
                     <Calendar className="h-4 w-4" />
                     {weekStart} - {weekEnd}
                   </p>
@@ -169,21 +169,21 @@ const OrderHistorySection = ({ userId }: OrderHistorySectionProps) => {
                   if (daySelections.length === 0) return null
 
                   return (
-                    <div key={day} className="border rounded-lg p-4 bg-gray-50">
-                      <h4 className="font-semibold text-gray-700 mb-2">{day}</h4>
+                    <div key={day} className="border rounded-lg p-4 bg-gray-50 dark:bg-zinc-900">
+                      <h4 className="font-semibold text-gray-700 dark:text-slate-200 mb-2">{day}</h4>
                       {daySelections.map((selection) => {
                         if (!selection.menuItem) {
                           return (
-                            <div key={selection.id} className="bg-white rounded p-3 space-y-1">
+                            <div key={selection.id} className="bg-white dark:bg-zinc-950 rounded p-3 space-y-1">
                               <div className="flex justify-between items-start">
                                 <div>
-                                  <p className="font-medium text-gray-500 italic">
+                                  <p className="font-medium text-gray-500 dark:text-slate-400 italic">
                                     No Selection
                                   </p>
                                 </div>
                               </div>
                               {selection.notes && (
-                                <div className="mt-2 text-sm text-gray-600 bg-yellow-50 border border-yellow-200 rounded p-2">
+                                <div className="mt-2 text-sm text-gray-600 bg-yellow-50 border border-yellow-200 dark:text-slate-300 dark:bg-yellow-500/15 dark:border-yellow-500/40 rounded p-2">
                                   <span className="font-medium">Note:</span> {selection.notes}
                                 </div>
                               )}
@@ -192,14 +192,14 @@ const OrderHistorySection = ({ userId }: OrderHistorySectionProps) => {
                         }
 
                         return (
-                          <div key={selection.id} className="bg-white rounded p-3 space-y-1">
+                          <div key={selection.id} className="bg-white dark:bg-zinc-950 rounded p-3 space-y-1">
                             <div className="flex justify-between items-start">
                               <div>
-                                <p className="font-medium text-gray-800">
+                                <p className="font-medium text-gray-800 dark:text-slate-100">
                                   {selection.menuItem.itemName}
                                 </p>
                                 {selection.menuItem.description && (
-                                  <p className="text-sm text-gray-600">
+                                  <p className="text-sm text-gray-600 dark:text-slate-300">
                                     {selection.menuItem.description}
                                   </p>
                                 )}
@@ -216,7 +216,7 @@ const OrderHistorySection = ({ userId }: OrderHistorySectionProps) => {
                               )}
                             </div>
                             {selection.notes && (
-                              <div className="mt-2 text-sm text-gray-600 bg-yellow-50 border border-yellow-200 rounded p-2">
+                              <div className="mt-2 text-sm text-gray-600 bg-yellow-50 border border-yellow-200 dark:text-slate-300 dark:bg-yellow-500/15 dark:border-yellow-500/40 rounded p-2">
                                 <span className="font-medium">Note:</span> {selection.notes}
                               </div>
                             )}

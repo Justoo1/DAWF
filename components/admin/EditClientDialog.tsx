@@ -169,7 +169,7 @@ export function EditClientDialog({
                   <FormItem className="flex flex-row items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 px-4 py-3">
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">Active</FormLabel>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         Inactive clients are hidden from the client picker when
                         adding employees.
                       </p>

@@ -108,7 +108,7 @@ const Header = ({
               type="button"
               variant="ghost"
               size="icon"
-              className="text-slate-500 transition-colors hover:bg-primary/10 hover:text-primary"
+              className="text-slate-500 dark:text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary"
               aria-label="Help"
             >
               <HelpCircle className="h-5 w-5" />

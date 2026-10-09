@@ -357,7 +357,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                 className={`px-4 py-2 font-medium whitespace-nowrap ${
                   selectedDay === day
                     ? 'border-b-2 border-primary text-primary'
-                    : 'text-gray-600 hover:text-gray-900'
+                    : 'text-gray-600 dark:text-slate-300 hover:text-gray-900'
                 }`}
               >
                 {day}
@@ -419,7 +419,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
                                 </SelectItem>
                               ))
                             ) : (
-                              <div className="px-2 py-1 text-sm text-gray-500">No foods available for this vendor</div>
+                              <div className="px-2 py-1 text-sm text-gray-500 dark:text-slate-400">No foods available for this vendor</div>
                             )}
                           </SelectContent>
                         </Select>
@@ -498,7 +498,7 @@ const WeeklyMenuForm = ({ vendors, foods, menu, isEdit, onSuccess, onCancel }: W
               ))
             ) : (
               <div className="text-center py-8 border-2 border-dashed rounded-lg">
-                <p className="text-gray-500 mb-4">No menu items for {selectedDay}</p>
+                <p className="text-gray-500 dark:text-slate-400 mb-4">No menu items for {selectedDay}</p>
               </div>
             )}
 

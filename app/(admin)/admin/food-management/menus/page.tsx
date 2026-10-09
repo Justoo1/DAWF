@@ -280,12 +280,12 @@ const FoodMenusPage = async () => {
                       </span>
                     </td>
                     <td className={cn(adminTdClass, "text-center")}>
-                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-500/15 text-amber-700 text-xs font-bold">
+                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-xs font-bold">
                         {menu._count?.selections || 0}
                       </span>
                     </td>
                     <td className={adminTdClass}>
-                      <Badge className="bg-amber-500/15 text-amber-700 hover:bg-amber-500/15" variant="secondary">
+                      <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 hover:bg-amber-500/15" variant="secondary">
                         CLOSED
                       </Badge>
                     </td>

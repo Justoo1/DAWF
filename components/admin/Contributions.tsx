@@ -249,7 +249,7 @@ const Contributions = ({contributions, pagination}: ContributionsProps) => {
                   </td>
                   <td className={adminTdClass}>
                     <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider", 
-                        record.status === 'COMPLETED' ? "bg-emerald-100 text-emerald-800" : 
+                        record.status === 'COMPLETED' ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300" : 
                         record.status === 'PENDING' ? "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300" : "bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-slate-400"
                       )}>
                         {record.status}

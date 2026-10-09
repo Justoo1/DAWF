@@ -57,8 +57,8 @@ export function UserAvatarHover({ initials }: UserAvatarHoverProps) {
       <div
         ref={triggerRef}
         className={cn(
-          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-slate-100 text-xs font-bold text-slate-600 transition-all duration-300",
-          isOpen ? "border-primary opacity-0 scale-95" : "border-slate-200 hover:border-primary/50"
+          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-slate-100 text-xs font-bold text-slate-600 dark:bg-zinc-800 dark:text-slate-200 transition-all duration-300",
+          isOpen ? "border-primary opacity-0 scale-95" : "border-slate-200 dark:border-zinc-700 hover:border-primary/50"
         )}
       >
         {initials}
@@ -71,7 +71,7 @@ export function UserAvatarHover({ initials }: UserAvatarHoverProps) {
 
           {/* Enlarged Image Overlay (Portaled so it breaks out of table overflow) */}
           <div 
-            className="absolute z-50 flex h-36 w-36 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-white bg-slate-100 shadow-2xl text-4xl font-bold text-slate-700 ring-4 ring-primary/10 pointer-events-auto animate-in zoom-in-75 fade-in duration-200"
+            className="absolute z-50 flex h-36 w-36 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-white dark:border-zinc-700 bg-slate-100 dark:bg-zinc-800 shadow-2xl text-4xl font-bold text-slate-700 dark:text-slate-100 ring-4 ring-primary/10 pointer-events-auto animate-in zoom-in-75 fade-in duration-200"
             style={{ top: coords.top, left: coords.left }}
           >
             {initials}

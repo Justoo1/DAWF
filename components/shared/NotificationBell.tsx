@@ -134,11 +134,11 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
 
         <ScrollArea className="h-[400px]">
           {loading ? (
-            <div className="p-4 text-center text-gray-500">
+            <div className="p-4 text-center text-gray-500 dark:text-slate-400">
               Loading notifications...
             </div>
           ) : notifications.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center text-gray-500 dark:text-slate-400">
               <Bell className="h-12 w-12 mx-auto mb-2 opacity-20" />
               <p>No notifications yet</p>
             </div>
@@ -148,7 +148,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
                 <div
                   key={notification.id}
                   className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors relative group ${
-                    !notification.isRead ? 'bg-blue-50' : ''
+                    !notification.isRead ? 'bg-blue-50 dark:bg-blue-500/15' : ''
                   }`}
                   role="button"
                   tabIndex={0}
@@ -172,7 +172,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
                       <p className="font-medium text-sm">
                         {notification.title}
                       </p>
-                      <p className="text-xs text-gray-600 mt-1">
+                      <p className="text-xs text-gray-600 dark:text-slate-300 mt-1">
                         {notification.message}
                       </p>
                       <p className="text-xs text-gray-400 mt-1">

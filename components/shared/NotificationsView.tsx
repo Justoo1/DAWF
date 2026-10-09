@@ -95,14 +95,14 @@ export default function NotificationsView({ userId }: NotificationsViewProps) {
   if (loading && notifications.length === 0) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="text-gray-500">Loading notifications...</div>
+        <div className="text-gray-500 dark:text-slate-400">Loading notifications...</div>
       </div>
     )
   }
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-sm border">
+      <div className="bg-white dark:bg-zinc-950 rounded-lg shadow-sm border">
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold">All Notifications</h2>
@@ -124,7 +124,7 @@ export default function NotificationsView({ userId }: NotificationsViewProps) {
         </div>
 
         {notifications.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">
+          <div className="p-12 text-center text-gray-500 dark:text-slate-400">
             <Bell className="h-16 w-16 mx-auto mb-4 opacity-20" />
             <p className="text-lg">No notifications yet</p>
             <p className="text-sm mt-2">When you receive notifications, they&#39;ll appear here</p>
@@ -135,7 +135,7 @@ export default function NotificationsView({ userId }: NotificationsViewProps) {
               <div
                 key={notification.id}
                 className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors relative ${
-                  !notification.isRead ? 'bg-blue-50' : ''
+                  !notification.isRead ? 'bg-blue-50 dark:bg-blue-500/15' : ''
                 }`}
                 onClick={() => handleNotificationClick(notification)}
               >
@@ -151,7 +151,7 @@ export default function NotificationsView({ userId }: NotificationsViewProps) {
                     <p className="font-semibold text-base">
                       {notification.title}
                     </p>
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                    <p className="text-sm text-gray-600 dark:text-slate-300 mt-1 line-clamp-2">
                       {notification.message}
                     </p>
                     <p className="text-xs text-gray-400 mt-2">

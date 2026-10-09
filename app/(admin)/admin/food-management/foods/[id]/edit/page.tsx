@@ -40,7 +40,7 @@ const EditFoodPage = async ({ params }: { params: Promise<{ id: string }> }) => 
   return (
     <main className="admin-main">
       <div className="mx-auto max-w-4xl space-y-6">
-        <h1 className="text-2xl font-semibold text-gray-800">Edit Food Item</h1>
+        <h1 className="text-2xl font-semibold text-gray-800 dark:text-slate-100">Edit Food Item</h1>
 
         <Card>
           <CardHeader>

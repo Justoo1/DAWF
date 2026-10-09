@@ -261,7 +261,7 @@ const Expenses = ({ expenses }: ExpensesProps) => {
                     </div>
                   </td>
                   <td className={adminTdClass}>
-                    <span className="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
+                    <span className="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
                       {record.type.replace('_', ' ')}
                     </span>
                   </td>
@@ -278,7 +278,7 @@ const Expenses = ({ expenses }: ExpensesProps) => {
                   </td>
                   <td className={adminTdClass}>
                     <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider", 
-                        record.status === 'APPROVED' ? "bg-emerald-100 text-emerald-800" : 
+                        record.status === 'APPROVED' ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300" : 
                         record.status === 'PENDING' ? "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300" : "bg-rose-100 text-rose-800"
                       )}>
                         {record.status}

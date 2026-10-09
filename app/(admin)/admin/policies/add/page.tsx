@@ -23,7 +23,7 @@ const AddPolicyPage = async () => {
   return (
     <main className="admin-main">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Add New Policy</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 dark:text-slate-100 mb-6">Add New Policy</h2>
 
         <Card className="p-6">
           <PolicyForm userEmail={session.user.email} mode="create" />

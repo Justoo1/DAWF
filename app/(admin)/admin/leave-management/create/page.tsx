@@ -470,7 +470,7 @@ export default function CreateLeavePage() {
                               setEditIsFlexible(policy.isFlexible)
                             }}
                           >
-                            <Edit2 className="h-4 w-4 text-gray-500" />
+                            <Edit2 className="h-4 w-4 text-gray-500 dark:text-slate-400" />
                             Edit details
                           </Button>
                           <Button 

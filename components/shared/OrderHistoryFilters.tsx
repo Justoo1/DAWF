@@ -91,7 +91,7 @@ const OrderHistoryFilters = ({ onFilterChange }: OrderHistoryFiltersProps) => {
 
       <div className="flex flex-wrap gap-2 items-end">
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-600">From Date</label>
+          <label className="text-xs text-gray-600 dark:text-slate-300">From Date</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -122,7 +122,7 @@ const OrderHistoryFilters = ({ onFilterChange }: OrderHistoryFiltersProps) => {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-600">To Date</label>
+          <label className="text-xs text-gray-600 dark:text-slate-300">To Date</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button

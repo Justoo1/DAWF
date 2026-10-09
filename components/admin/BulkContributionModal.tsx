@@ -218,10 +218,10 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
 
             <div className="border rounded-lg p-4 max-h-60 overflow-y-auto space-y-2">
               {activeContributors.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">No active contributors found</p>
+                <p className="text-sm text-gray-500 dark:text-slate-400 text-center py-4">No active contributors found</p>
               ) : (
                 activeContributors.map((user) => (
-                  <div key={user.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
+                  <div key={user.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded">
                     <Checkbox
                       id={user.id}
                       checked={selectedUsers.includes(user.id)}
@@ -233,7 +233,7 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
                     >
                       <div className="flex items-center justify-between">
                         <span>{user.name}</span>
-                        <span className="text-sm text-gray-500">{user.email}</span>
+                        <span className="text-sm text-gray-500 dark:text-slate-400">{user.email}</span>
                       </div>
                     </Label>
                   </div>
@@ -241,16 +241,16 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
               )}
             </div>
 
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-slate-400">
               Selected: {selectedUsers.length} contributor(s)
             </p>
           </div>
 
           {/* Summary */}
           {selectedUsers.length > 0 && startMonth && endMonth && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-              <h4 className="font-semibold text-emerald-900 mb-2">Summary</h4>
-              <ul className="text-sm text-emerald-800 space-y-1">
+            <div className="bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/15 dark:border-emerald-500/40 rounded-lg p-4">
+              <h4 className="font-semibold text-emerald-900 dark:text-emerald-300 mb-2">Summary</h4>
+              <ul className="text-sm text-emerald-800 dark:text-emerald-300 space-y-1">
                 <li>
                   <Users className="inline h-4 w-4 mr-2" />
                   {selectedUsers.length} employee(s)
@@ -262,7 +262,7 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
                 <li>
                   💰 GH₵{amount} per employee per month
                 </li>
-                <li className="font-semibold pt-2 border-t border-emerald-200 mt-2">
+                <li className="font-semibold pt-2 border-t border-emerald-200 dark:border-emerald-500/40 mt-2">
                   Total Contributions:{' '}
                   {(() => {
                     const start = new Date(startMonth + '-01')

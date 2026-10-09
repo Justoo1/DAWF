@@ -114,7 +114,7 @@ export default function NotificationTestPanel() {
               <Calendar className="h-4 w-4 text-blue-600" />
               <h4 className="font-semibold text-sm">Upcoming Events</h4>
             </div>
-            <p className="text-xs text-gray-600 mb-3">
+            <p className="text-xs text-gray-600 dark:text-slate-300 mb-3">
               Notify users about events starting within the next 24 hours
             </p>
             <Button
@@ -142,7 +142,7 @@ export default function NotificationTestPanel() {
               <Bell className="h-4 w-4 text-green-600" />
               <h4 className="font-semibold text-sm">Active Events</h4>
             </div>
-            <p className="text-xs text-gray-600 mb-3">
+            <p className="text-xs text-gray-600 dark:text-slate-300 mb-3">
               Notify users about events happening today
             </p>
             <Button
@@ -170,7 +170,7 @@ export default function NotificationTestPanel() {
               <Users className="h-4 w-4 text-purple-600" />
               <h4 className="font-semibold text-sm">Engagement Reminder</h4>
             </div>
-            <p className="text-xs text-gray-600 mb-3">
+            <p className="text-xs text-gray-600 dark:text-slate-300 mb-3">
               Send reminder to all users to check the app
             </p>
             <Button
@@ -194,8 +194,8 @@ export default function NotificationTestPanel() {
           </div>
         </div>
 
-        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 dark:bg-blue-500/15 dark:border-blue-500/40 rounded-lg">
+          <p className="text-sm text-blue-800 dark:text-blue-300">
             <strong>Note:</strong> These notifications will be sent to all active users immediately.
             The automatic system sends these notifications based on the cron schedule configured in vercel.json.
           </p>

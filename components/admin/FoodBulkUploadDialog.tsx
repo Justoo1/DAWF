@@ -364,7 +364,7 @@ export function FoodBulkUploadDialog({ open, onOpenChange }: FoodBulkUploadDialo
                             <tr key={name} className="border-b last:border-0">
                               <td className="py-2 px-3 text-muted-foreground">{name}</td>
                               <td className="py-2 px-3">
-                                <Badge variant="outline" className="text-xs rounded-full text-amber-600 border-amber-300">
+                                <Badge variant="outline" className="text-xs rounded-full text-amber-600 border-amber-300 dark:border-amber-500/40">
                                   Already exists
                                 </Badge>
                               </td>

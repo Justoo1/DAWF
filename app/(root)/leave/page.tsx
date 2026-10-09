@@ -454,7 +454,7 @@ const LeaveRequestPage = () => {
                                     <div>
                                         <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] dark:text-zinc-600">Calculated Duration</p>
                                         <p className="text-2xl font-black text-zinc-900 mt-1 dark:text-white">
-                                            {calculatedDays} <span className="text-sm font-bold text-zinc-500">working days</span>
+                                            {calculatedDays} <span className="text-sm font-bold text-zinc-500 dark:text-slate-400">working days</span>
                                         </p>
                                     </div>
                                     {selectedPolicyMeta?.isUnlimited ? (
@@ -468,7 +468,7 @@ const LeaveRequestPage = () => {
                                         <div className="text-right">
                                             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] dark:text-zinc-600">Available</p>
                                             <p className={`text-2xl font-black mt-1 ${calculatedDays > maxDays ? 'text-red-500' : 'text-emerald-600'}`}>
-                                                {maxDays} <span className="text-sm font-bold text-zinc-500">days</span>
+                                                {maxDays} <span className="text-sm font-bold text-zinc-500 dark:text-slate-400">days</span>
                                             </p>
                                         </div>
                                     )}
@@ -598,7 +598,7 @@ const LeaveRequestPage = () => {
                                         </p>
                                         <p className="text-2xl font-black text-zinc-900 mt-1 dark:text-white">
                                             {editCalculatedDays}{' '}
-                                            <span className="text-sm font-bold text-zinc-500">working days</span>
+                                            <span className="text-sm font-bold text-zinc-500 dark:text-slate-400">working days</span>
                                         </p>
                                     </div>
                                     {editPolicyMeta?.isUnlimited ? (
@@ -619,7 +619,7 @@ const LeaveRequestPage = () => {
                                                 className={`text-2xl font-black mt-1 ${editCalculatedDays > editMaxDays ? 'text-red-500' : 'text-emerald-600'}`}
                                             >
                                                 {editMaxDays}{' '}
-                                                <span className="text-sm font-bold text-zinc-500">days</span>
+                                                <span className="text-sm font-bold text-zinc-500 dark:text-slate-400">days</span>
                                             </p>
                                         </div>
                                     )}

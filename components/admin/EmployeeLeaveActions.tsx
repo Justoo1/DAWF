@@ -134,7 +134,7 @@ export default function EmployeeLeaveActions({ employee }: { employee: Employee 
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 ml-1">
                     Annual Leave (Days)
                   </label>
                   <div className="relative group">
@@ -148,7 +148,7 @@ export default function EmployeeLeaveActions({ employee }: { employee: Employee 
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 ml-1">
                     Sick Leave (Days)
                   </label>
                   <div className="relative group">
@@ -162,7 +162,7 @@ export default function EmployeeLeaveActions({ employee }: { employee: Employee 
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 ml-1">
                     Casual Leave (Days)
                   </label>
                   <div className="relative group">

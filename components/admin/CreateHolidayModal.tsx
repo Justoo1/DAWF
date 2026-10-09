@@ -132,7 +132,7 @@ export function CreateHolidayModal() {
         <div className="py-2">
           <Button 
             variant="outline" 
-            className="w-full justify-center border-dashed border-2 hover:bg-slate-50 text-[13px] h-12"
+            className="w-full justify-center border-dashed border-2 hover:bg-slate-50 dark:hover:bg-zinc-800 text-[13px] h-12"
             onClick={handleSyncHolidays}
             disabled={syncLoading || loading}
           >
@@ -146,9 +146,9 @@ export function CreateHolidayModal() {
         </div>
 
         <div className="flex items-center gap-2 py-2">
-          <div className="flex-1 border-t border-slate-100" />
+          <div className="flex-1 border-t border-slate-100 dark:border-zinc-800" />
           <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold whitespace-nowrap">OR MANUALLY ADD</span>
-          <div className="flex-1 border-t border-slate-100" />
+          <div className="flex-1 border-t border-slate-100 dark:border-zinc-800" />
         </div>
 
         <form onSubmit={handleSubmit}>
