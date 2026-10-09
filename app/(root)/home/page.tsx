@@ -81,12 +81,13 @@ const Dashboard = async () => {
       </header>
 
       <main className="mx-auto w-full max-w-[1550px] px-8 py-4 md:px-16 relative z-10">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16">
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-16">
           
           {/* Column 1: Quick Actions */}
-          <div className="flex-shrink-0 flex items-center gap-8">
+          <div className="relative flex-shrink-0 flex items-center">
              <DashboardQuickActions />
-             <div className="hidden lg:block w-[1px] h-72 bg-border/50 self-center mx-6" />
+             {/* Divider sits in the middle of the column gap so left/right spacing around the card stays equal */}
+             <div className="hidden lg:block absolute top-1/2 -right-8 -translate-y-1/2 w-[1px] h-72 bg-border/50" />
           </div>
 
           {/* Column 2: Center Card & Branding */}
@@ -120,7 +121,7 @@ const Dashboard = async () => {
           </div>
 
           {/* Column 3: Stats & Events */}
-          <div className="w-full lg:w-[420px] flex flex-col gap-6">
+          <div className="w-full lg:w-[620px] flex flex-col gap-6">
             
             <div className="grid grid-cols-2 gap-4">
                {/* Months Paid Card (Pure White) */}

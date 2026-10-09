@@ -10,7 +10,7 @@ const actions = [
     label: "FOOD ORDERS",
     href: "/food-orders",
     color: "text-emerald-500",
-    bgColor: "bg-emerald-500/10",
+    bgColor: "bg-primary shadow-sm",
   },
   // Hidden for now, not needed yet — bring back when leave requests are ready to launch.
   // (re-add `FileText` to the lucide-react import above too)
@@ -26,14 +26,14 @@ const actions = [
     label: "ROOM BOOKING",
     href: "/conference-rooms",
     color: "text-emerald-500",
-    bgColor: "bg-emerald-500/10",
+    bgColor: "bg-primary shadow-sm",
   },
   {
     icon: BookOpen,
     label: "COMPANY POLICY",
     href: "/policy",
     color: "text-emerald-500",
-    bgColor: "bg-emerald-500/10",
+    bgColor: "bg-primary shadow-sm",
   },
 ]
 
@@ -47,9 +47,9 @@ export function DashboardQuickActions() {
             <Link key={idx} href={action.href}>
                 <Card className="w-32 h-32 md:w-36 md:h-36 flex flex-col items-center justify-center gap-3 p-6 bg-white border-none shadow-xl hover:scale-105 transition-all text-center group rounded-2xl dark:bg-card">
                 <div className={`p-4 rounded-xl ${action.bgColor} group-hover:scale-110 transition-transform`}>
-                    <Icon className={`w-8 h-8 ${action.color}`} />
+                    <Icon className={`w-8 h-8 text-white`} />
                 </div>
-                <span className={`text-[10px] md:text-xs font-black leading-tight tracking-[0.05em] ${action.color}`}>
+                <span className={`text-[10px] md:text-xs font-black leading-tight tracking-[0.05em] ${action.color} dark:text-white`}>
                     {action.label.split(' ')[0]}<br/>{action.label.split(' ')[1] || ""}
                 </span>
                 </Card>

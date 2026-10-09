@@ -3,7 +3,6 @@ import Image from "next/image"
 import { type ReactNode } from "react"
 import { Home } from 'lucide-react'
 import Link from "next/link"
-import { PLATFORM_NAME } from "@/lib/brand"
 
 interface AuthLayoutProps {
   children: ReactNode
@@ -13,9 +12,10 @@ interface AuthLayoutProps {
   className?: string
   flexStart?: boolean
   title?: string
+  subtitle?: string
 }
 
-const AuthLayout = ({ children, description, secondaryDescription, teamImage, className, flexStart, title = PLATFORM_NAME }: AuthLayoutProps) => {
+const AuthLayout = ({ children, description, secondaryDescription, teamImage, className, flexStart, title = "Devops Africa", subtitle = "Employee Management System" }: AuthLayoutProps) => {
   return (
     <div className={cn("relative min-h-screen flex flex-col items-center justify-center bg-[#121212] overflow-hidden font-sans", flexStart && "items-start")}>
       {/* Background Image */}
@@ -76,8 +76,11 @@ const AuthLayout = ({ children, description, secondaryDescription, teamImage, cl
           {/* Right Column: Info Section */}
           <div className="hidden lg:flex flex-col justify-center space-y-4 text-white pl-8">
             <div className="flex items-center gap-4">
-              <div className="space-y-1">
-                <h2 className="text-3xl font-black tracking-tighter leading-tight">{title}</h2>
+              <div className="flex flex-col uppercase text-left">
+                <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-white">{title}</h2>
+                <p className="mt-1 text-xs font-black text-white/80 tracking-[0.2em] leading-tight">
+                  {subtitle}
+                </p>
               </div>
               <div className="relative size-20 flex items-center justify-center overflow-hidden">
                 <Image
