@@ -87,14 +87,14 @@ const CompleteProfileForm = () => {
 
   if (loading) {
     return (
-      <Card className="w-full max-w-md border-none bg-[#10b9818C] text-white flex items-center justify-center p-8">
+      <Card className="w-full max-w-md border-none bg-[#d33f2b8C] text-white flex items-center justify-center p-8">
         <Loader className="h-8 w-8 animate-spin text-white" />
       </Card>
     )
   }
 
   return (
-    <Card className="w-full max-w-md border-none bg-[#10b9818C] text-white">
+    <Card className="w-full max-w-md border-none bg-[#d33f2b8C] text-white">
       <CardHeader>
         <CardTitle className="text-2xl">Complete Your Profile</CardTitle>
         <p className="text-white/90">Please provide your birthday to complete registration</p>

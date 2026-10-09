@@ -84,7 +84,7 @@ function ResetPasswordFormInner() {
 
   if (errorParam) {
     return (
-      <Card className="w-full max-w-md border-none bg-[#146C43] text-white shadow-2xl rounded-3xl overflow-hidden p-4 md:p-8">
+      <Card className="w-full max-w-md border-none bg-[#982b1d] text-white shadow-2xl rounded-3xl overflow-hidden p-4 md:p-8">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Link not valid</CardTitle>
           <p className="text-white/70 text-sm pt-2">
@@ -106,7 +106,7 @@ function ResetPasswordFormInner() {
 
   if (!token) {
     return (
-      <Card className="w-full max-w-md border-none bg-[#146C43] text-white shadow-2xl rounded-3xl overflow-hidden p-4 md:p-8">
+      <Card className="w-full max-w-md border-none bg-[#982b1d] text-white shadow-2xl rounded-3xl overflow-hidden p-4 md:p-8">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Missing token</CardTitle>
           <p className="text-white/70 text-sm pt-2">
@@ -126,7 +126,7 @@ function ResetPasswordFormInner() {
   }
 
   return (
-    <Card className="w-full max-w-md border-none bg-[#146C43] text-white shadow-2xl rounded-3xl overflow-hidden p-4 md:p-8">
+    <Card className="w-full max-w-md border-none bg-[#982b1d] text-white shadow-2xl rounded-3xl overflow-hidden p-4 md:p-8">
       <CardHeader className="space-y-4 pb-8">
         <CardTitle className="text-3xl font-bold tracking-tight">
           Choose a new password
@@ -213,7 +213,7 @@ export function ResetPasswordForm() {
   return (
     <Suspense
       fallback={
-        <Card className="w-full max-w-md border-none bg-[#146C43] text-white shadow-2xl rounded-3xl overflow-hidden p-4 md:p-8">
+        <Card className="w-full max-w-md border-none bg-[#982b1d] text-white shadow-2xl rounded-3xl overflow-hidden p-4 md:p-8">
           <p className="text-white/70 text-sm">Loading…</p>
         </Card>
       }

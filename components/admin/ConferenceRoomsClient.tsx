@@ -116,7 +116,7 @@ export default function ConferenceRoomsClient({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tracking-tight text-[#10b981]">
+            <div className="text-3xl font-bold tracking-tight text-[#d33f2b]">
               {upcomingBookingsCount}
             </div>
           </CardContent>
@@ -151,7 +151,7 @@ export default function ConferenceRoomsClient({
                       </div>
                     </td>
                     <td className={cn(adminTdClass, "text-center")}>
-                      <span className="inline-flex items-center rounded-xl bg-[#10b981]/10 px-3 py-1 text-xs font-bold text-[#10b981]">
+                      <span className="inline-flex items-center rounded-xl bg-[#d33f2b]/10 px-3 py-1 text-xs font-bold text-[#d33f2b]">
                         {room.capacity}
                       </span>
                     </td>
@@ -271,7 +271,7 @@ export default function ConferenceRoomsClient({
                         <p className="truncate text-sm font-bold text-slate-800 dark:text-slate-200">
                           {booking.user.name}
                         </p>
-                        <p className="truncate text-[10px] font-black text-[#10b981] uppercase tracking-tighter">
+                        <p className="truncate text-[10px] font-black text-[#d33f2b] uppercase tracking-tighter">
                           {booking.user.department || "N/A"}
                         </p>
                       </div>

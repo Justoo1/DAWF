@@ -106,7 +106,7 @@ const brand: React.CSSProperties = {
   fontSize: "13px",
   fontWeight: 800,
   letterSpacing: "0.35em",
-  color: "#146C43",
+  color: "#982b1d",
   textTransform: "uppercase",
 };
 
@@ -173,7 +173,7 @@ const passwordHint: React.CSSProperties = {
 };
 
 const button: React.CSSProperties = {
-  backgroundColor: "#146C43",
+  backgroundColor: "#982b1d",
   borderRadius: "10px",
   color: "#ffffff",
   fontSize: "15px",
@@ -195,7 +195,7 @@ const linkFallback: React.CSSProperties = {
   margin: "0 0 8px",
   fontSize: "11px",
   lineHeight: 1.5,
-  color: "#146C43",
+  color: "#982b1d",
   wordBreak: "break-all",
 };
 

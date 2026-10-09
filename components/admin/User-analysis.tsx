@@ -128,7 +128,7 @@ const UserAnalysis = ({ userData, className, showRecentContributions }: UserAnal
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="amount" fill="#10b981" name="Contribution Amount" />
+                <Bar dataKey="amount" fill="#d33f2b" name="Contribution Amount" />
               </BarChart>
             </ResponsiveContainer>
           </div>

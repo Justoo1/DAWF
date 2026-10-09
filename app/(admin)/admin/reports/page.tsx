@@ -82,8 +82,8 @@ interface QuarterlyData {
 type ReportType = 'financial_summary' | 'contribution_by_employee' | 'expense_by_type' | 'event_summary' | 'quarterly_comparison'
 
 const EXPENSE_COLORS: Record<string, string> = {
-  BIRTHDAY: '#10b981',
-  CHILDBIRTH: '#34d399',
+  BIRTHDAY: '#d33f2b',
+  CHILDBIRTH: '#e26a58',
   MARRIAGE: '#E84E1B',
   FUNERAL: '#666666',
   EMPLOYEE_DEPARTURE: '#999999',
@@ -349,7 +349,7 @@ export default function Reports() {
     if (!financialData) return null
 
     const chartData = [
-      { category: 'Contributions', amount: financialData.totalContribution, fill: '#10b981' },
+      { category: 'Contributions', amount: financialData.totalContribution, fill: '#d33f2b' },
       { category: 'Expenses', amount: financialData.totalExpenses, fill: '#E84E1B' }
     ]
 
@@ -394,7 +394,7 @@ export default function Reports() {
           <CardContent>
             <ChartContainer
               config={{
-                contributions: { label: "Contributions", color: "#10b981" },
+                contributions: { label: "Contributions", color: "#d33f2b" },
                 expenses: { label: "Expenses", color: "#E84E1B" },
               }}
               className="h-[300px]"
@@ -622,7 +622,7 @@ export default function Reports() {
           <CardContent>
             <ChartContainer
               config={{
-                contributions: { label: "Contributions", color: "#10b981" },
+                contributions: { label: "Contributions", color: "#d33f2b" },
                 expenses: { label: "Expenses", color: "#E84E1B" },
                 net: { label: "Net", color: "#2563eb" },
               }}
@@ -634,7 +634,7 @@ export default function Reports() {
                 <YAxis tickFormatter={(value) => formatCurrency(value)} />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Legend />
-                <Bar dataKey="contributions" fill="#10b981" name="Contributions" />
+                <Bar dataKey="contributions" fill="#d33f2b" name="Contributions" />
                 <Bar dataKey="expenses" fill="#E84E1B" name="Expenses" />
                 <Bar dataKey="net" fill="#2563eb" name="Net" />
               </BarChart>

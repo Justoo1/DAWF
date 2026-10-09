@@ -79,7 +79,7 @@ const ConferenceRoomsClient = ({ userId, rooms, bookings }: ConferenceRoomsClien
           
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="h-12 px-6 rounded-xl bg-[#10b981] hover:bg-[#059669] text-white font-bold shadow-md shadow-emerald-500/20 transition-all hover:shadow-lg hover:shadow-emerald-500/30 active:scale-[0.98]">
+              <Button className="h-12 px-6 rounded-xl bg-[#d33f2b] hover:bg-[#b93524] text-white font-bold shadow-md shadow-emerald-500/20 transition-all hover:shadow-lg hover:shadow-emerald-500/30 active:scale-[0.98]">
                 <Plus className="h-4 w-4 mr-2" />
                 Book a Room
               </Button>

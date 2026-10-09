@@ -1,6 +1,19 @@
 import type { Config } from "tailwindcss";
-import colors from "tailwindcss/colors";
 import animate from "tailwindcss-animate";
+
+const brand = {
+  50: "#fdf2f0",
+  100: "#fbe1dd",
+  200: "#f6c3bb",
+  300: "#ee9a8d",
+  400: "#e26a58",
+  500: "#d33f2b",
+  600: "#b93524",
+  700: "#982b1d",
+  800: "#7a2318",
+  900: "#631f16",
+  950: "#360d09",
+};
 
 export default {
     darkMode: ["class"],
@@ -56,8 +69,9 @@ export default {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			},
-  			/** Platform green: rgb(16 185 129) — same scale as emerald */
-  			green: colors.emerald,
+			/** Brand accent #d33f2b — replaces the old emerald/green scale site-wide */
+			emerald: brand,
+			green: brand,
   		},
 		backgroundImage: {
 			'bg-img': "url('/assets/images/bg-background.png')",

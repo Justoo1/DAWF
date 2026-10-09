@@ -57,7 +57,7 @@ const Login = () => {
   };
 
   return (
-    <Card className="flex h-full min-h-0 w-full flex-col border-none bg-[#146C43] text-white shadow-2xl rounded-3xl p-4 md:p-8">
+    <Card className="flex h-full min-h-0 w-full flex-col border-none bg-[#982b1d] text-white shadow-2xl rounded-3xl p-4 md:p-8">
       <CardHeader className="min-w-0 space-y-4 pb-8">
         <CardTitle className="text-balance text-2xl font-bold leading-tight tracking-tight sm:text-3xl md:text-4xl">
           Sign In to DEVOPS AFRICA

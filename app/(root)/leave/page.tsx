@@ -371,7 +371,7 @@ const LeaveRequestPage = () => {
                 </div>
                 <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                     <DialogTrigger asChild>
-                        <Button className="h-11 bg-[#10b981] hover:bg-[#059669] text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-lg shadow-lg hover:translate-y-[-1px] transition-all active:scale-[0.98] dark:shadow-emerald-900/20">
+                        <Button className="h-11 bg-[#d33f2b] hover:bg-[#b93524] text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-lg shadow-lg hover:translate-y-[-1px] transition-all active:scale-[0.98] dark:shadow-emerald-900/20">
                             <FileText className="w-4 h-4 mr-2" /> Request Leave
                         </Button>
                     </DialogTrigger>
@@ -499,7 +499,7 @@ const LeaveRequestPage = () => {
                                 <Button
                                     type="submit"
                                     disabled={isSubmitting || !isFormValid}
-                                    className="w-full h-11 bg-[#10b981] hover:bg-[#059669] text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-lg shadow-lg hover:translate-y-[-1px] transition-all active:scale-[0.98] dark:shadow-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full h-11 bg-[#d33f2b] hover:bg-[#b93524] text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-lg shadow-lg hover:translate-y-[-1px] transition-all active:scale-[0.98] dark:shadow-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isSubmitting ? (
                                         <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Submitting...</>
@@ -643,7 +643,7 @@ const LeaveRequestPage = () => {
                                 disabled={
                                     isEditSubmitting || !editPolicy || !editStart || !editEnd
                                 }
-                                className="w-full h-11 bg-[#10b981] hover:bg-[#059669] text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-lg shadow-lg hover:translate-y-[-1px] transition-all active:scale-[0.98] dark:shadow-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full h-11 bg-[#d33f2b] hover:bg-[#b93524] text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-lg shadow-lg hover:translate-y-[-1px] transition-all active:scale-[0.98] dark:shadow-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isEditSubmitting ? (
                                     <>

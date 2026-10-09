@@ -32,14 +32,14 @@ export function VerifyEmailPending() {
 
   if (loading) {
     return (
-      <Card className="w-full max-w-md border-none bg-[#10b9818C] text-white flex items-center justify-center p-8">
+      <Card className="w-full max-w-md border-none bg-[#d33f2b8C] text-white flex items-center justify-center p-8">
         <Loader className="h-8 w-8 animate-spin text-white" />
       </Card>
     )
   }
 
   return (
-    <Card className="w-full max-w-md border-none bg-[#146C43] text-white shadow-2xl rounded-3xl overflow-hidden p-4 md:p-8">
+    <Card className="w-full max-w-md border-none bg-[#982b1d] text-white shadow-2xl rounded-3xl overflow-hidden p-4 md:p-8">
       <CardHeader className="space-y-2">
         <CardTitle className="text-2xl font-bold tracking-tight">Finish signing in</CardTitle>
         <p className="text-white/80 text-sm leading-relaxed">

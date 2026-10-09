@@ -376,7 +376,7 @@ export default function CreateLeavePage() {
               <button
                 type="submit"
                 disabled={isSubmitting || !name.trim()}
-                className="w-full h-12 mt-8 flex items-center justify-center bg-[#10B981] hover:bg-[#059669] text-white font-medium text-[15px] rounded-[12px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-12 mt-8 flex items-center justify-center bg-[#d33f2b] hover:bg-[#b93524] text-white font-medium text-[15px] rounded-[12px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Processing...</>
@@ -392,7 +392,7 @@ export default function CreateLeavePage() {
                 <span className="text-emerald-500"><Shapes className="w-5 h-5" /></span>
                 Existing Types
               </h3>
-              <span className="bg-[#ECFDF5] dark:bg-emerald-500/10 text-[#10B981] text-[11px] font-bold px-2.5 py-1 rounded-[6px] tracking-wider">
+              <span className="bg-[#ECFDF5] dark:bg-emerald-500/10 text-[#d33f2b] text-[11px] font-bold px-2.5 py-1 rounded-[6px] tracking-wider">
                 {loadingPolicies ? "..." : `${policies.filter(p => p.isActive).length} ACTIVE`}
               </span>
             </div>

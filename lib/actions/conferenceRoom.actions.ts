@@ -278,8 +278,8 @@ export async function fetchBookingsForCalendar(opts?: { rangeStart: Date; rangeE
         status: booking.status,
         attendeeCount: booking.attendeeCount
       },
-      backgroundColor: booking.status === 'APPROVED' ? '#10b981' : '#f59e0b',
-      borderColor: booking.status === 'APPROVED' ? '#10b981' : '#d97706'
+      backgroundColor: booking.status === 'APPROVED' ? '#d33f2b' : '#f59e0b',
+      borderColor: booking.status === 'APPROVED' ? '#d33f2b' : '#d97706'
     }));
 
     return { success: true, bookings: calendarBookings };

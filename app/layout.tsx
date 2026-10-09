@@ -49,7 +49,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#10b981",
+  themeColor: "#d33f2b",
 };
 
 export default function RootLayout({
@@ -60,7 +60,7 @@ export default function RootLayout({
   return (
     // <ClerkProvider appearance={{
     //   variables: {
-    //     colorBackground: "#10a07514",
+    //     colorBackground: "#d33f2b14",
     //     colorPrimary: '#D23D0E',
     //     colorText: '#fff'
         
