@@ -140,7 +140,19 @@ export default function ConferenceRoomsClient({
               {rooms.map((room) => {
                 const amenities: string[] = room.amenities ? JSON.parse(room.amenities) : []
                 return (
-                  <tr key={room.id} className={adminTbodyRowClass}>
+                  <tr
+                    key={room.id}
+                    className={cn(adminTbodyRowClass, "cursor-pointer")}
+                    onClick={() => handleEditRoom(room)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault()
+                        handleEditRoom(room)
+                      }
+                    }}
+                    tabIndex={0}
+                    aria-label={`Edit ${room.name}`}
+                  >
                     <td className={adminTdClass}>
                       <div className="min-w-0">
                         <p className="truncate font-bold text-slate-800 dark:text-slate-200">{room.name}</p>
@@ -152,7 +164,7 @@ export default function ConferenceRoomsClient({
                       </div>
                     </td>
                     <td className={cn(adminTdClass, "text-center")}>
-                      <span className="inline-flex items-center rounded-xl bg-[#d33f2b]/10 px-3 py-1 text-xs font-bold text-[#d33f2b]">
+                      <span className="inline-flex items-center whitespace-nowrap rounded-xl bg-[#d33f2b]/10 px-3 py-1 text-xs font-bold text-[#d33f2b]">
                         {formatCapacity(room.capacity)}
                       </span>
                     </td>
@@ -183,12 +195,12 @@ export default function ConferenceRoomsClient({
                         <span className="text-sm text-slate-400">—</span>
                       )}
                     </td>
-                    <td className={cn(adminTdClass, "text-right")}>
+                    <td className={cn(adminTdClass, "text-right")} onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1">
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-8 w-8 text-slate-400 hover:text-primary hover:bg-primary/5"
+                          className="h-8 w-8 text-slate-400 hover:text-primary hover:bg-primary/10"
                           onClick={() => handleEditRoom(room)}
                         >
                           <Pencil className="h-4 w-4" />
@@ -245,7 +257,7 @@ export default function ConferenceRoomsClient({
                     key={booking.id}
                     role="button"
                     tabIndex={0}
-                    className={cn(adminTbodyRowClass, "cursor-pointer hover:bg-muted/40")}
+                    className={cn(adminTbodyRowClass, "cursor-pointer")}
                     onClick={() => setReviewBooking(booking)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {

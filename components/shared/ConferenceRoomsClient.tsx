@@ -123,7 +123,7 @@ const ConferenceRoomsClient = ({ userId, rooms, bookings }: ConferenceRoomsClien
                   >
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-bold text-foreground flex-1">{room.name}</h3>
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/70 text-[11px] font-semibold text-muted-foreground">
+                      <div className="flex shrink-0 items-center whitespace-nowrap gap-1.5 px-2.5 py-1 rounded-full bg-muted/70 text-[11px] font-semibold text-muted-foreground">
                         <Users className="h-3 w-3" />
                         {formatCapacity(room.capacity)}
                       </div>

@@ -90,7 +90,7 @@ const DisbursementsPage = async () => {
                     </tr>
                   ) : (
                     expenses.map((expense) => (
-                      <tr key={expense.id} className="border-b border-white/10 hover:bg-white/5">
+                      <tr key={expense.id} className="border-b border-white/10 hover:bg-white/10">
                         <td className="py-3 px-4 text-gray-300">
                           {formatDateTime(expense.date).dateOnly}
                         </td>

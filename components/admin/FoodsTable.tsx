@@ -351,7 +351,7 @@ export function FoodsTable({ initialFoods = [], vendors = [] }: FoodsTableProps)
                   aria-label={`Edit food ${food.name}`}
                   className={cn(
                     adminTbodyRowClass,
-                    'group cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800/50'
+                    'group cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-900'
                   )}
                   onClick={() => openEdit(food)}
                   onKeyDown={(e) => {

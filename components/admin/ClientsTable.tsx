@@ -86,7 +86,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                 key={c.id}
                 className={cn(
                   adminTbodyRowClass,
-                  "group cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800/50 transition-colors"
+                  "group cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors"
                 )}
                 onClick={() => setEditing(c)}
                 onKeyDown={(e) => {
