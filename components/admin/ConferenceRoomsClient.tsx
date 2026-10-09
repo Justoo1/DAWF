@@ -20,6 +20,7 @@ import { ConferenceRoomModal } from './ConferenceRoomModal'
 import { AdminBookingModal } from './AdminBookingModal'
 import { ConferenceBookingReviewModal } from './ConferenceBookingReviewModal'
 import { Plus, CalendarPlus, Pencil } from 'lucide-react'
+import { formatCapacity, formatRoomDescription } from "@/lib/room-capacity"
 
 interface ConferenceRoomsClientProps {
   rooms: ConferenceRoomValues[]
@@ -145,14 +146,14 @@ export default function ConferenceRoomsClient({
                         <p className="truncate font-bold text-slate-800 dark:text-slate-200">{room.name}</p>
                         {room.description ? (
                           <p className="mt-0.5 line-clamp-1 text-xs text-slate-500 dark:text-slate-400 font-medium">
-                            {room.description}
+                            {formatRoomDescription(room.description, room.capacity)}
                           </p>
                         ) : null}
                       </div>
                     </td>
                     <td className={cn(adminTdClass, "text-center")}>
                       <span className="inline-flex items-center rounded-xl bg-[#d33f2b]/10 px-3 py-1 text-xs font-bold text-[#d33f2b]">
-                        {room.capacity}
+                        {formatCapacity(room.capacity)}
                       </span>
                     </td>
                     <td className={cn(adminTdClass, "hidden md:table-cell")}>

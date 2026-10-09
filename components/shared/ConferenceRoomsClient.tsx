@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { type ConferenceRoomValues } from '@/lib/validation'
+import { formatCapacity, formatRoomDescription } from '@/lib/room-capacity'
 
 const statusStyles = {
   APPROVED: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/30',
@@ -124,7 +125,7 @@ const ConferenceRoomsClient = ({ userId, rooms, bookings }: ConferenceRoomsClien
                       <h3 className="font-bold text-foreground flex-1">{room.name}</h3>
                       <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/70 text-[11px] font-semibold text-muted-foreground">
                         <Users className="h-3 w-3" />
-                        {room.capacity}
+                        {formatCapacity(room.capacity)}
                       </div>
                     </div>
                     
@@ -136,7 +137,7 @@ const ConferenceRoomsClient = ({ userId, rooms, bookings }: ConferenceRoomsClien
                         </p>
                       )}
                       {room.description && (
-                        <p className="text-muted-foreground leading-relaxed">{room.description}</p>
+                        <p className="text-muted-foreground leading-relaxed">{formatRoomDescription(room.description, room.capacity)}</p>
                       )}
                       {room.amenities && (
                         <div className="pt-1.5">
