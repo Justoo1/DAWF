@@ -3,6 +3,7 @@ import Image from "next/image"
 import { type ReactNode } from "react"
 import { Home } from 'lucide-react'
 import Link from "next/link"
+import { AuthImageCarousel } from "./AuthImageCarousel"
 
 interface AuthLayoutProps {
   children: ReactNode
@@ -62,14 +63,7 @@ const AuthLayout = ({ children, description, secondaryDescription, teamImage, cl
                 className
               )}
             >
-              <Image
-                src={teamImage}
-                alt="Team"
-                fill
-                className="object-contain p-8"
-                sizes="400px"
-                priority
-              />
+              <AuthImageCarousel firstImage={teamImage} />
             </div>
           </div>
 
