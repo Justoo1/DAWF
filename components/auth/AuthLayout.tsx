@@ -82,12 +82,12 @@ const AuthLayout = ({ children, description, secondaryDescription, teamImage, cl
                   {subtitle}
                 </p>
               </div>
-              <div className="relative size-20 flex items-center justify-center overflow-hidden">
+              <div className="relative size-14 flex items-center justify-center overflow-hidden">
                 <Image
                   src="/assets/images/dem-logo.svg"
                   alt="DEM logo"
-                  width={80}
-                  height={80}
+                  width={56}
+                  height={56}
                   className="object-contain"
                 />
               </div>
