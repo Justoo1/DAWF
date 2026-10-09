@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma'
 // import { auth } from '@clerk/nextjs/server'
 import { auth } from "@/lib/auth"
 import { revalidatePath } from 'next/cache'
-import { Contribution, ContributionCreateSchema, ExpenseSchema } from '../validation'
+import { Contribution, ContributionCreateSchema } from '../validation'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createNotificationForAllUsers } from './notification.actions'
@@ -391,13 +391,14 @@ export async function IncomeVsExpense(): Promise<{
   error?: string;
 }> {
   try {
-    // Fetch contributions and expenses from the database
-    const contributions: Contribution[] = await prisma.contribution.findMany();
-    const rawExpenses = await prisma.expense.findMany();
-    
-    const expenses = rawExpenses.map((expense) => ExpenseSchema.parse({
-      ...expense,
-      description: expense.description ?? undefined, // Ensure compatibility
+    // Let the database pre-aggregate contributions and fetch only the two columns we need from expenses.
+    const [contributionGroups, expenses] = await Promise.all([
+      prisma.contribution.groupBy({ by: ['month'], _sum: { amount: true } }),
+      prisma.expense.findMany({ select: { date: true, amount: true } }),
+    ]);
+    const contributions = contributionGroups.map((g) => ({
+      month: g.month,
+      amount: g._sum.amount ?? 0,
     }));
 
     // Initialize objects to accumulate totals

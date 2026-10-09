@@ -1,5 +1,5 @@
 import Employees from "@/components/admin/Employees"
-import { fetchUsers, fetchUser, fetchMembers } from "@/lib/actions/users.action"
+import { fetchUsers, fetchUser, fetchMembers, fetchEmployeeFilterOptions } from "@/lib/actions/users.action"
 import { AddEmployeeDialog } from "@/components/admin/AddEmployeeDialog"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
@@ -12,6 +12,11 @@ interface EmployeesPageProps {
   searchParams: Promise<{
     page?: string
     pageSize?: string
+    q?: string
+    status?: string
+    dept?: string
+    client?: string
+    verification?: string
   }>
 }
 
@@ -43,9 +48,18 @@ const EmployeesPage = async({ searchParams }: EmployeesPageProps) => {
   const isManager = currentUserResult.user.role === 'MANAGER'
   const isFoodCommittee = currentUserResult.user.role === 'FOOD_COMMITTEE'
 
-  const [employees, membersData] = await Promise.all([
-    fetchUsers(currentPage, pageSize),
-    fetchMembers()
+  const filters = {
+    q: params.q,
+    status: params.status === "active" || params.status === "inactive" ? params.status : undefined,
+    department: params.dept || undefined,
+    clientId: params.client || undefined,
+    unverified: isAdmin && params.verification === "unverified",
+  } as const
+
+  const [employees, membersData, filterOptions] = await Promise.all([
+    fetchUsers(currentPage, pageSize, filters),
+    fetchMembers(),
+    fetchEmployeeFilterOptions(),
   ])
 
   if (!employees.success) {
@@ -96,6 +110,8 @@ const EmployeesPage = async({ searchParams }: EmployeesPageProps) => {
 
         <Employees
           employees={employees.users}
+          clientOptions={filterOptions.clients}
+          departmentOptions={filterOptions.departments}
           pagination={employees.pagination!}
           isAdmin={isAdmin}
           isManager={isManager}

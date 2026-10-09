@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import prisma from '../prisma'
-import { ContributionStatus, EmploymentType, UserRole } from '@prisma/client';
+import { ContributionStatus, EmploymentType, Prisma, UserRole } from '@prisma/client';
 import { allowedWorkEmailMessage, isAllowedWorkEmail } from '@/lib/allowed-email-domains';
 import { auth } from '@/lib/auth'
 import { getAuthAppOrigin } from '@/lib/auth-app-url';
@@ -213,17 +213,66 @@ export async function fetchUserWithContributions(email: string) {
 // }
 
 /** Pass pageSize "all" to return every user in a single page. */
-export async function fetchUsers(page: number = 1, pageSize: number | "all" = 10) {
+export type UserListFilters = {
+  q?: string
+  status?: "active" | "inactive"
+  department?: string
+  clientId?: string
+  unverified?: boolean
+}
+
+function buildUserWhere(filters: UserListFilters = {}): Prisma.UserWhereInput {
+  const where: Prisma.UserWhereInput = {}
+  const q = filters.q?.trim()
+  if (q) {
+    where.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { email: { contains: q, mode: "insensitive" } },
+      { phoneNumber: { contains: q, mode: "insensitive" } },
+      { client: { name: { contains: q, mode: "insensitive" } } },
+    ]
+  }
+  if (filters.status) where.isActive = filters.status === "active"
+  if (filters.department) where.department = filters.department
+  if (filters.clientId) where.clientId = filters.clientId
+  if (filters.unverified) where.emailVerified = false
+  return where
+}
+
+/** Every client and department in use, so filter dropdowns are not limited to the current page. */
+export async function fetchEmployeeFilterOptions() {
+  const [clients, deptRows] = await Promise.all([
+    prisma.client.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    prisma.user.findMany({
+      where: { department: { not: null } },
+      select: { department: true },
+      distinct: ["department"],
+      orderBy: { department: "asc" },
+    }),
+  ])
+  return {
+    clients,
+    departments: deptRows.map((d) => d.department).filter((d): d is string => Boolean(d)),
+  }
+}
+
+export async function fetchUsers(
+  page: number = 1,
+  pageSize: number | "all" = 10,
+  filters: UserListFilters = {}
+) {
   try {
+    const where = buildUserWhere(filters)
     const showingAll = pageSize === "all"
     const take = showingAll ? undefined : pageSize
     const skip = showingAll ? 0 : (page - 1) * pageSize
 
     // Get total count for pagination
-    const totalCount = await prisma.user.count()
+    const totalCount = await prisma.user.count({ where })
 
     // Fetch users with only the requested fields and exact relation aggregates
     const users = await prisma.user.findMany({
+      where,
       select: {
         id: true,
         name: true,
@@ -253,9 +302,6 @@ export async function fetchUsers(page: number = 1, pageSize: number | "all" = 10
             expenses: true,
           }
         },
-        contributions: {
-          select: { amount: true }
-        }
       },
       skip,
       take,
@@ -263,6 +309,14 @@ export async function fetchUsers(page: number = 1, pageSize: number | "all" = 10
         createdAt: 'desc'
       }
     });
+
+    // Sum contributions in the database for just this page's users instead of loading every row.
+    const contributionSums = await prisma.contribution.groupBy({
+      by: ['userId'],
+      where: { userId: { in: users.map((u) => u.id) } },
+      _sum: { amount: true },
+    })
+    const totalsByUser = new Map(contributionSums.map((c) => [c.userId, c._sum.amount ?? 0]))
 
     // Map the users to keep the API contract consistent but drastically smaller payload
     const userValues = users.map((user) => {
@@ -273,7 +327,7 @@ export async function fetchUsers(page: number = 1, pageSize: number | "all" = 10
       contributionsCount: user._count.contributions,
       eventsCount: user._count.events,
       expensesCount: user._count.expenses,
-      totalAmountContributed: user.contributions.reduce((sum, contribution) => sum + contribution.amount, 0),
+      totalAmountContributed: totalsByUser.get(user.id) ?? 0,
       totalContributionMonths: user._count.contributions,
       // We clear out the full nested object since the UI does not read thousands of relational rows
       contributions: [], 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UserValues } from "@/lib/validation";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -67,6 +67,8 @@ interface EmployeesProps {
     totalPages: number;
     showingAll?: boolean;
   };
+  clientOptions: { id: string; name: string }[];
+  departmentOptions: string[];
   isAdmin: boolean;
   isManager: boolean;
   isFoodCommittee: boolean;
@@ -75,19 +77,42 @@ interface EmployeesProps {
 const Employees = ({
   employees,
   pagination,
+  clientOptions,
+  departmentOptions,
   isAdmin,
   isManager,
   isFoodCommittee,
 }: EmployeesProps) => {
   void isFoodCommittee;
-  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [verificationFilter, setVerificationFilter] = useState<"all" | "unverified">("all");
-  const [deptFilter, setDeptFilter] = useState("all");
-  const [clientFilter, setClientFilter] = useState("all");
+  // Filters live in the URL and are applied by the server query, so they cover every record, not just this page.
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") ?? "");
+  const statusFilter = searchParams.get("status") ?? "all";
+  const verificationFilter = (searchParams.get("verification") ?? "all") as "all" | "unverified";
+  const deptFilter = searchParams.get("dept") ?? "all";
+  const clientFilter = searchParams.get("client") ?? "all";
+
+  const setFilterParam = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "all" || value === "") params.delete(key);
+    else params.set(key, value);
+    params.set("page", "1");
+    router.push(`?${params.toString()}`);
+  };
+  const setStatusFilter = (v: string) => setFilterParam("status", v);
+  const setVerificationFilter = (v: "all" | "unverified") => setFilterParam("verification", v);
+  const setDeptFilter = (v: string) => setFilterParam("dept", v);
+  const setClientFilter = (v: string) => setFilterParam("client", v);
+
+  // Debounce typing so each keystroke doesn't trigger a server round trip.
+  useEffect(() => {
+    if (searchTerm === (searchParams.get("q") ?? "")) return;
+    const t = setTimeout(() => setFilterParam("q", searchTerm.trim()), 400);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
   const [sortConfig, setSortConfig] = useState<{
     key: keyof UserValues;
     direction: "asc" | "desc";
@@ -101,61 +126,17 @@ const Employees = ({
   } | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // Get unique departments for filter
-  const departments = Array.from(
-    new Set(employees.map((e) => e.department).filter(Boolean))
-  ).sort() as string[];
+  const departments = departmentOptions;
+  const clientFilterOptions = clientOptions;
 
-  const clientFilterOptions = (() => {
-    const map = new Map<string, string>();
-    for (const e of employees) {
-      const id = e.clientId;
-      if (!id) continue;
-      const label = e.clientName?.trim() || id;
-      if (!map.has(id)) map.set(id, label);
-    }
-    return [...map.entries()]
-      .map(([id, name]) => ({ id, name }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  })();
+  const filteredRecords = [...employees].sort((a, b) => {
+    const aValue = a[sortConfig.key] ?? "";
+    const bValue = b[sortConfig.key] ?? "";
 
-  const filteredRecords = employees
-    .filter((record) => {
-      const q = searchTerm.toLowerCase()
-      const matchesSearch =
-        record.name.toLowerCase().includes(q) ||
-        record.email.toLowerCase().includes(q) ||
-        (record.clientName?.toLowerCase().includes(q) ?? false) ||
-        (record.phoneNumber?.toLowerCase().includes(q) ?? false);
-      const matchesStatus =
-        statusFilter === "all"
-          ? true
-          : statusFilter === "active"
-          ? record.isActive
-          : !record.isActive;
-      const matchesDept =
-        deptFilter === "all" ? true : record.department === deptFilter;
-      const matchesClient =
-        clientFilter === "all" ? true : record.clientId === clientFilter;
-      const needsEmailVerification = !record.emailVerified;
-      const matchesVerification =
-        verificationFilter === "all" || needsEmailVerification;
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesDept &&
-        matchesClient &&
-        matchesVerification
-      );
-    })
-    .sort((a, b) => {
-      const aValue = a[sortConfig.key] ?? "";
-      const bValue = b[sortConfig.key] ?? "";
-
-      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-      return 0;
-    });
+    if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+    return 0;
+  });
 
   const handleSort = (key: keyof UserValues) => {
     setSortConfig((prev) => ({
@@ -341,10 +322,10 @@ const Employees = ({
               className="text-xs text-slate-400 dark:text-zinc-500 hover:text-primary dark:hover:text-emerald-400 h-10 px-2"
               onClick={() => {
                 setSearchTerm("");
-                setDeptFilter("all");
-                setClientFilter("all");
-                setStatusFilter("all");
-                setVerificationFilter("all");
+                const params = new URLSearchParams(searchParams.toString());
+                ["q", "status", "dept", "client", "verification"].forEach((k) => params.delete(k));
+                params.set("page", "1");
+                router.push(`?${params.toString()}`);
               }}
             >
               Reset Filters
