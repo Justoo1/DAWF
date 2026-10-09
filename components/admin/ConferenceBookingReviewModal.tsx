@@ -184,7 +184,7 @@ export function ConferenceBookingReviewModal({
           {booking.description ? (
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                Description
+                Meeting Purpose
               </p>
               <p className="text-sm whitespace-pre-wrap">{booking.description}</p>
             </div>

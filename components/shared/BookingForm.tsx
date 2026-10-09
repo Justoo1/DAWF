@@ -573,13 +573,13 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Description
+                Meeting Purpose
                 <RequiredMark />
               </FormLabel>
               <FormControl>
                 <Textarea
                   {...field}
-                  placeholder="Agenda or extra details"
+                  placeholder="Purpose of the meeting"
                   className="rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 w-full resize-none min-h-[100px]"
                 />
               </FormControl>
