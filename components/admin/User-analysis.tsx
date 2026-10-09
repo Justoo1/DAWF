@@ -127,7 +127,7 @@ const UserAnalysis = ({ userData, className, showRecentContributions }: UserAnal
                 <XAxis dataKey="monthYear" />
                 <YAxis />
                 <Tooltip />
-                <Legend />
+                <Legend formatter={(value) => <span style={{ color: "#D3A94C" }}>{value}</span>} />
                 <Bar dataKey="amount" fill="#d33f2b" name="Contribution Amount" />
               </BarChart>
             </ResponsiveContainer>
