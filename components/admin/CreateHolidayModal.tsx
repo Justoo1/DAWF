@@ -132,7 +132,7 @@ export function CreateHolidayModal() {
         <div className="py-2">
           <Button 
             variant="outline" 
-            className="w-full justify-center border-dashed border-2 hover:bg-slate-50 dark:hover:bg-zinc-800 text-[13px] h-12"
+            className="w-full justify-center border-dashed border-2 hover:bg-slate-100 dark:hover:bg-zinc-800 text-[13px] h-12"
             onClick={handleSyncHolidays}
             disabled={syncLoading || loading}
           >

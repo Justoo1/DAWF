@@ -134,7 +134,7 @@ export default function NotificationsView({ userId }: NotificationsViewProps) {
             {notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors relative ${
+                className={`p-4 hover:bg-gray-100 cursor-pointer transition-colors relative ${
                   !notification.isRead ? 'bg-blue-50 dark:bg-blue-500/15' : ''
                 }`}
                 onClick={() => handleNotificationClick(notification)}

@@ -221,7 +221,7 @@ export default function BulkContributionModal({ users }: BulkContributionModalPr
                 <p className="text-sm text-gray-500 dark:text-slate-400 text-center py-4">No active contributors found</p>
               ) : (
                 activeContributors.map((user) => (
-                  <div key={user.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded">
+                  <div key={user.id} className="flex items-center space-x-2 p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded">
                     <Checkbox
                       id={user.id}
                       checked={selectedUsers.includes(user.id)}

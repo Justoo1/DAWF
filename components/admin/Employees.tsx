@@ -414,7 +414,7 @@ const Employees = ({
                   className={cn(
                     adminTbodyRowClass,
                     isAdmin &&
-                      "cursor-pointer hover:bg-slate-50/90 dark:hover:bg-zinc-900 transition-colors"
+                      "cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors"
                   )}
                   onClick={
                     isAdmin

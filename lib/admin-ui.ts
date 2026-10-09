@@ -23,7 +23,7 @@ export const adminSelectContentSurfaceClass = "dark:border-zinc-800 dark:bg-zinc
 
 /** Sortable table header cell (use with adminThClass) */
 export const adminThSortableClass =
-  "cursor-pointer hover:bg-slate-50 dark:hover:bg-zinc-900/50 transition-colors group";
+  "cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-900/50 transition-colors group";
 
 export const adminTheadRowClass =
   "border-b border-slate-100 bg-white dark:border-slate-800 dark:bg-zinc-950";
@@ -35,7 +35,7 @@ export const adminTdClass =
   "px-4 sm:px-8 py-4 sm:py-6 align-middle text-[12px] sm:text-[13px] text-slate-700 font-medium dark:text-slate-200";
 
 export const adminTbodyRowClass =
-  "border-b border-slate-100 hover:bg-slate-50/50 transition-colors dark:border-slate-800 dark:hover:bg-slate-900/60";
+  "border-b border-slate-100 hover:bg-gray-100 transition-colors dark:border-slate-800 dark:hover:bg-slate-900/60";
 
 export function adminTableClassName(extra?: string) {
   return cn("w-full min-w-[800px] border-collapse text-left", extra);

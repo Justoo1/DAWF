@@ -147,7 +147,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors relative group ${
+                  className={`p-4 hover:bg-gray-100 cursor-pointer transition-colors relative group ${
                     !notification.isRead ? 'bg-blue-50 dark:bg-blue-500/15' : ''
                   }`}
                   role="button"
