@@ -5,6 +5,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/toaster"
 import { ProfileChecker } from "@/components/auth/ProfileChecker"
+import { IdleLogout } from "@/components/auth/IdleLogout"
 import { ThemeProvider } from "@/components/shared/ThemeProvider"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import "./globals.css";
@@ -98,6 +99,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ProfileChecker />
+          <IdleLogout />
           <div className="min-h-screen bg-background">
             {children}
           </div>

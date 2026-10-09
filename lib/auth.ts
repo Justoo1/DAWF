@@ -4,9 +4,7 @@ import { APIError, createAuthMiddleware } from "better-auth/api";
 import { getAuthAppOrigin } from "./auth-app-url";
 import { allowedWorkEmailMessage, isAllowedWorkEmail } from "./allowed-email-domains";
 import prisma from "./prisma";
-
-const ONE_HOUR_S = 60 * 60
-const ONE_DAY_S = 60 * 60 * 24
+import { SESSION_IDLE_TIMEOUT_S, SESSION_REFRESH_INTERVAL_S } from "./session-policy";
 
 export const auth = betterAuth({
   baseURL: getAuthAppOrigin(),
@@ -14,8 +12,8 @@ export const auth = betterAuth({
     provider: "postgresql",
   }),
   session: {
-    expiresIn: ONE_DAY_S,
-    updateAge: ONE_HOUR_S,
+    expiresIn: SESSION_IDLE_TIMEOUT_S,
+    updateAge: SESSION_REFRESH_INTERVAL_S,
   },
   emailAndPassword: {
     enabled: false,
