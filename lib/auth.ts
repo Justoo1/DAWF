@@ -14,6 +14,11 @@ export const auth = betterAuth({
   session: {
     expiresIn: SESSION_IDLE_TIMEOUT_S,
     updateAge: SESSION_REFRESH_INTERVAL_S,
+    // Serve session reads from a signed cookie for a few minutes instead of hitting the DB each time.
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
   },
   emailAndPassword: {
     enabled: false,

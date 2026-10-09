@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 import { fetchAccountGateState } from "@/lib/account-gate-client"
@@ -8,8 +8,11 @@ import { fetchAccountGateState } from "@/lib/account-gate-client"
 export function ProfileChecker() {
   const router = useRouter()
   const pathname = usePathname()
+  // The account gate only needs to be verified once per page load, not on every navigation.
+  const checkedRef = useRef(false)
 
   useEffect(() => {
+    if (checkedRef.current) return
     const checkProfile = async () => {
       if (
         pathname.startsWith("/sign-in") ||
@@ -26,7 +29,11 @@ export function ProfileChecker() {
       }
 
       try {
-        const session = await authClient.getSession()
+        checkedRef.current = true
+        const [session, gate] = await Promise.all([
+          authClient.getSession(),
+          fetchAccountGateState(),
+        ])
 
         if (!session.data?.user) {
           return
@@ -42,7 +49,6 @@ export function ProfileChecker() {
           return
         }
 
-        const gate = await fetchAccountGateState()
         if (!gate.authenticated) {
           return
         }

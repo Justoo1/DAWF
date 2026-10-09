@@ -342,8 +342,7 @@ export async function fetchUsersIdAndName() {
 
   export async function fetchMembers() {
     try {
-      const members = await prisma.user.findMany()
-      const totalMembers = members.length
+      const totalMembers = await prisma.user.count()
   
       // Calculate new members this month
       const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
