@@ -144,7 +144,7 @@ export default function ConferenceRoomsClient({
                       <div className="min-w-0">
                         <p className="truncate font-bold text-slate-800 dark:text-slate-200">{room.name}</p>
                         {room.description ? (
-                          <p className="mt-0.5 line-clamp-1 text-xs text-slate-500 font-medium">
+                          <p className="mt-0.5 line-clamp-1 text-xs text-slate-500 dark:text-slate-400 font-medium">
                             {room.description}
                           </p>
                         ) : null}
@@ -257,7 +257,7 @@ export default function ConferenceRoomsClient({
                       <div className="min-w-0">
                         <p className="truncate font-bold text-slate-800 dark:text-slate-200">{booking.title}</p>
                         {booking.purpose ? (
-                          <p className="mt-0.5 line-clamp-1 text-xs text-slate-500 font-medium">
+                          <p className="mt-0.5 line-clamp-1 text-xs text-slate-500 dark:text-slate-400 font-medium">
                             {booking.purpose}
                           </p>
                         ) : null}
@@ -277,7 +277,7 @@ export default function ConferenceRoomsClient({
                       </div>
                     </td>
                     <td className={cn(adminTdClass, "hidden lg:table-cell")}>
-                      <span className="text-[12px] font-medium text-slate-500">
+                      <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
                         {new Date(booking.start).toLocaleDateString()}
                         <br />
                         <span className="text-[10px] opacity-70">

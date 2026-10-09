@@ -442,10 +442,10 @@ const Employees = ({
                     <div className="flex items-center gap-4 relative">
                       <UserAvatarHover initials={initials} />
                       <div className="flex flex-col gap-1">
-                        <span className="font-bold text-slate-900">{record.name}</span>
-                        <span className="text-[12px] text-slate-500">{record.email}</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-50">{record.name}</span>
+                        <span className="text-[12px] text-slate-500 dark:text-slate-400">{record.email}</span>
                         {needsEmailVerification ? (
-                          <Badge variant="outline" className="w-fit text-[10px] border-amber-300 text-amber-800 bg-amber-50">
+                          <Badge variant="outline" className="w-fit text-[10px] border-amber-300 text-amber-800 bg-amber-50 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
                             Email not verified
                           </Badge>
                         ) : null}
@@ -453,12 +453,12 @@ const Employees = ({
                     </div>
                   </td>
                   <td className={adminTdClass}>
-                    <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-[800] tracking-widest text-slate-600 uppercase">
+                    <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-[800] tracking-widest text-slate-600 uppercase dark:bg-zinc-800 dark:text-slate-200">
                       {record.department || "N/A"}
                     </span>
                   </td>
                   <td className={adminTdClass}>
-                    <span className="text-[13px] font-medium text-slate-700">
+                    <span className="text-[13px] font-medium text-slate-700 dark:text-slate-200">
                       {record.clientName || "—"}
                     </span>
                   </td>
@@ -467,25 +467,25 @@ const Employees = ({
                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
                         {String(record.totalContributionMonths || 0).padStart(2, '0')}
                       </span>
-                      <span className="text-[12px] text-slate-400 font-medium">Total months</span>
+                      <span className="text-[12px] text-slate-400 font-medium dark:text-slate-300">Total months</span>
                     </div>
                   </td>
                   <td className={adminTdClass}>
                     <div className="flex flex-wrap items-center gap-2">
                        <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider", 
-                          record.isActive ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"
+                          record.isActive ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300" : "bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-slate-400"
                         )}>
                           {record.isActive ? "ACTIVE" : "INACTIVE"}
                        </span>
-                       <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
+                       <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
                          {record.role}
                        </span>
                        {needsEmailVerification ? (
-                         <span className="inline-flex rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800">
+                         <span className="inline-flex rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">
                            UNVERIFIED
                          </span>
                        ) : (
-                         <span className="inline-flex rounded-full bg-slate-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                         <span className="inline-flex rounded-full bg-slate-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:bg-zinc-800 dark:text-slate-200">
                            VERIFIED
                          </span>
                        )}

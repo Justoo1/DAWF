@@ -248,14 +248,14 @@ const Expenses = ({ expenses }: ExpensesProps) => {
                       {hasUser ? (
                         <UserAvatarHover initials={initials} />
                       ) : (
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-xs font-bold text-slate-600">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-100 dark:bg-zinc-800 text-xs font-bold text-slate-600 dark:text-slate-300">
                           {initials}
                         </div>
                       )}
                       <div className="flex flex-col">
-                        <span className="font-bold text-slate-900">{hasUser ? record.user!.name : record.recipient}</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-50">{hasUser ? record.user!.name : record.recipient}</span>
                         {hasUser && record.user?.email && (
-                          <span className="text-[12px] text-slate-500">{record.user.email}</span>
+                          <span className="text-[12px] text-slate-500 dark:text-slate-400">{record.user.email}</span>
                         )}
                       </div>
                     </div>
@@ -266,11 +266,11 @@ const Expenses = ({ expenses }: ExpensesProps) => {
                     </span>
                   </td>
                   <td className={adminTdClass}>
-                    <span className="font-bold text-slate-700">GHS {record.amount}</span>
+                    <span className="font-bold text-slate-700 dark:text-slate-200">GHS {record.amount}</span>
                   </td>
                   <td className={adminTdClass}>
                     <div className="flex flex-col">
-                      <span className="text-slate-700 font-medium">{formatDateTime(record.date).dateOnly}</span>
+                      <span className="text-slate-700 dark:text-slate-200 font-medium">{formatDateTime(record.date).dateOnly}</span>
                       {record.description && (
                         <span className="text-[11px] text-slate-400 truncate max-w-[120px]">{record.description}</span>
                       )}
@@ -279,7 +279,7 @@ const Expenses = ({ expenses }: ExpensesProps) => {
                   <td className={adminTdClass}>
                     <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider", 
                         record.status === 'APPROVED' ? "bg-emerald-100 text-emerald-800" : 
-                        record.status === 'PENDING' ? "bg-amber-100 text-amber-800" : "bg-rose-100 text-rose-800"
+                        record.status === 'PENDING' ? "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300" : "bg-rose-100 text-rose-800"
                       )}>
                         {record.status}
                     </span>

@@ -61,7 +61,7 @@ export default function PoliciesClient({ initialPolicies, userEmail }: PoliciesC
                     <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100 truncate">
                       {policy.title}
                     </CardTitle>
-                    <div className="flex flex-wrap items-center gap-3 mt-2 text-xs font-medium text-slate-500">
+                    <div className="flex flex-wrap items-center gap-3 mt-2 text-xs font-medium text-slate-500 dark:text-slate-400">
                       <span className="flex items-center gap-1.5">
                         Slug:
                         <code className="rounded-lg bg-slate-100 dark:bg-slate-900 px-2 py-0.5 text-[10px] text-slate-700 dark:text-slate-200 font-bold border border-slate-200/50 dark:border-slate-800">
@@ -80,7 +80,7 @@ export default function PoliciesClient({ initialPolicies, userEmail }: PoliciesC
                     </div>
                     <div className="mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-tight">
                       Last updated:{" "}
-                      <span className="text-slate-500">
+                      <span className="text-slate-500 dark:text-slate-400">
                         {new Date(policy.updatedAt).toLocaleDateString('en-GB', {
                           day: 'numeric',
                           month: 'long',
@@ -129,7 +129,7 @@ export default function PoliciesClient({ initialPolicies, userEmail }: PoliciesC
               <FileText className="h-8 w-8" />
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">No Policies Yet</h3>
-            <p className="text-slate-500 mb-8 max-w-md mx-auto font-medium leading-relaxed">
+            <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md mx-auto font-medium leading-relaxed">
               Get started by creating your first policy document. These documents define the rules and guidelines for your organization.
             </p>
             <Button onClick={handleAddPolicy} className="shadow-lg h-12 px-8 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase tracking-widest text-[12px] transition-all active:scale-95">

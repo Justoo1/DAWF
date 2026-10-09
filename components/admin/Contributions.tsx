@@ -236,21 +236,21 @@ const Contributions = ({contributions, pagination}: ContributionsProps) => {
                     <div className="flex items-center gap-4 relative">
                       <UserAvatarHover initials={initials} />
                       <div className="flex flex-col">
-                        <span className="font-bold text-slate-900">{record.user.name}</span>
-                        <span className="text-[12px] text-slate-500">{record.user.email}</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-50">{record.user.name}</span>
+                        <span className="text-[12px] text-slate-500 dark:text-slate-400">{record.user.email}</span>
                       </div>
                     </div>
                   </td>
                   <td className={adminTdClass}>
-                    <span className="font-bold text-slate-700">GHS {record.amount}</span>
+                    <span className="font-bold text-slate-700 dark:text-slate-200">GHS {record.amount}</span>
                   </td>
                   <td className={adminTdClass}>
-                    <span className="text-slate-500">{formatDateTime(record.month).dateOnly}</span>
+                    <span className="text-slate-500 dark:text-slate-400">{formatDateTime(record.month).dateOnly}</span>
                   </td>
                   <td className={adminTdClass}>
                     <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider", 
                         record.status === 'COMPLETED' ? "bg-emerald-100 text-emerald-800" : 
-                        record.status === 'PENDING' ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-500"
+                        record.status === 'PENDING' ? "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300" : "bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-slate-400"
                       )}>
                         {record.status}
                     </span>
