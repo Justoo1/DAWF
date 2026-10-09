@@ -212,9 +212,12 @@ export async function fetchUserWithContributions(email: string) {
 //   }
 // }
 
-export async function fetchUsers(page: number = 1, pageSize: number = 10) {
+/** Pass pageSize "all" to return every user in a single page. */
+export async function fetchUsers(page: number = 1, pageSize: number | "all" = 10) {
   try {
-    const skip = (page - 1) * pageSize
+    const showingAll = pageSize === "all"
+    const take = showingAll ? undefined : pageSize
+    const skip = showingAll ? 0 : (page - 1) * pageSize
 
     // Get total count for pagination
     const totalCount = await prisma.user.count()
@@ -255,7 +258,7 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
         }
       },
       skip,
-      take: pageSize,
+      take,
       orderBy: {
         createdAt: 'desc'
       }
@@ -283,10 +286,11 @@ export async function fetchUsers(page: number = 1, pageSize: number = 10) {
       success: true,
       users: userValues,
       pagination: {
-        page,
-        pageSize,
+        page: showingAll ? 1 : page,
+        pageSize: showingAll ? totalCount : pageSize,
         totalCount,
-        totalPages: Math.ceil(totalCount / pageSize)
+        totalPages: showingAll ? 1 : Math.ceil(totalCount / pageSize),
+        showingAll,
       }
     };
   } catch (error) {

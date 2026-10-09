@@ -65,6 +65,7 @@ interface EmployeesProps {
     pageSize: number;
     totalCount: number;
     totalPages: number;
+    showingAll?: boolean;
   };
   isAdmin: boolean;
   isManager: boolean;
@@ -166,6 +167,13 @@ const Employees = ({
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", page.toString());
+    router.push(`?${params.toString()}`);
+  };
+
+  const handlePageSizeChange = (size: number | "all") => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("pageSize", String(size));
+    params.set("page", "1");
     router.push(`?${params.toString()}`);
   };
 
@@ -353,6 +361,8 @@ const Employees = ({
             totalCount={pagination.totalCount}
             pageSize={pagination.pageSize}
             entityLabel="employees"
+            showingAll={pagination.showingAll}
+            onPageSizeChange={handlePageSizeChange}
             onPageChange={handlePageChange}
           />
         }

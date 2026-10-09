@@ -12,6 +12,11 @@ type BaseProps = {
   totalCount: number;
   pageSize: number;
   entityLabel?: string;
+  /** Optional "rows per page" selector; shown only when onPageSizeChange is provided. */
+  pageSizeOptions?: number[];
+  showAllOption?: boolean;
+  showingAll?: boolean;
+  onPageSizeChange?: (size: number | "all") => void;
 };
 
 type AdminPaginationBarProps = BaseProps &
@@ -27,6 +32,10 @@ export function AdminPaginationBar({
   totalCount,
   pageSize,
   entityLabel = "results",
+  pageSizeOptions = [10, 30, 50],
+  showAllOption = true,
+  showingAll = false,
+  onPageSizeChange,
   onPageChange,
   hrefForPage,
   hrefTemplate,
@@ -76,6 +85,26 @@ export function AdminPaginationBar({
         of <span className="font-semibold text-foreground">{totalCount}</span>{" "}
         {entityLabel}
       </p>
+      {onPageSizeChange ? (
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          Rows per page
+          <select
+            className="h-8 rounded-md border border-border/60 bg-background px-2 text-sm text-foreground"
+            value={showingAll ? "all" : String(pageSize)}
+            onChange={(e) =>
+              onPageSizeChange(e.target.value === "all" ? "all" : Number(e.target.value))
+            }
+            aria-label="Rows per page"
+          >
+            {pageSizeOptions.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+            {showAllOption ? <option value="all">All</option> : null}
+          </select>
+        </label>
+      ) : null}
       {totalPages > 1 ? (
         <div className="flex flex-wrap items-center justify-end gap-1">
           {(hrefForPage || hrefTemplate) ? (

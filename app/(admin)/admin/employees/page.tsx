@@ -11,13 +11,19 @@ import { Users, UserPlus, TrendingUp } from "lucide-react"
 interface EmployeesPageProps {
   searchParams: Promise<{
     page?: string
+    pageSize?: string
   }>
 }
 
 const EmployeesPage = async({ searchParams }: EmployeesPageProps) => {
   const params = await searchParams
   const currentPage = Number(params.page) || 1
-  const pageSize = 10
+  const pageSize: number | "all" =
+    params.pageSize === "all"
+      ? "all"
+      : [10, 30, 50].includes(Number(params.pageSize))
+        ? Number(params.pageSize)
+        : 10
 
   // Get current user's role
   const session = await auth.api.getSession({
