@@ -34,7 +34,7 @@ import {
   type RoomDaySlotRow,
 } from '@/lib/actions/conferenceRoom.actions'
 import { Textarea } from '../ui/textarea'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import { RequiredMark } from '@/components/ui/required-mark'
 import { cn } from '@/lib/utils'
@@ -91,6 +91,12 @@ function timeFromDate(d: Date) {
 const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
   const { toast } = useToast()
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false)
+  /** Ticks every minute so slots that have already started become disabled while the form is open. */
+  const [nowMs, setNowMs] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 60_000)
+    return () => clearInterval(id)
+  }, [])
   const [slotRows, setSlotRows] = useState<RoomDaySlotRow[] | null>(null)
   /** Must choose free slot(s) from the grid after loading availability (typing times alone is not enough). */
   const [hasPickedAvailableSlot, setHasPickedAvailableSlot] = useState(false)
@@ -179,7 +185,9 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
       if ("success" in result && result.success) {
         setSlotRows(result.slots)
         resetSlotSelection()
-        const free = result.slots.filter((s) => s.available).length
+        const free = result.slots.filter(
+          (s) => s.available && new Date(s.startIso).getTime() > Date.now()
+        ).length
         const busy = result.slots.length - free
         toast({
           title: "Availability loaded",
@@ -233,6 +241,7 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
    */
   const handleSlotClick = (row: RoomDaySlotRow) => {
     if (!row.available || !slotRows) return
+    if (new Date(row.startIso).getTime() <= Date.now()) return
     const idx = slotRows.findIndex((r) => r.startIso === row.startIso)
     if (idx === -1) return
 
@@ -475,8 +484,9 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
                 const s = new Date(row.startIso)
                 const e = new Date(row.endIso)
                 const label = formatSlotLabel(s, e)
-                const isBusy = !row.available
-                const isPicked = row.available && selectedSlotKeys.includes(row.startIso)
+                const isPast = s.getTime() <= nowMs
+                const isBusy = !row.available || isPast
+                const isPicked = !isBusy && selectedSlotKeys.includes(row.startIso)
                 const isEdgeOfSelection =
                   isPicked &&
                   (row.startIso === selectedSlotKeys[0] ||
@@ -487,7 +497,9 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
                     type="button"
                     disabled={isBusy}
                     title={
-                      isBusy
+                      isPast
+                        ? "This time has already passed"
+                        : isBusy
                         ? row.busyLabel || "Booked"
                         : isPicked
                           ? isEdgeOfSelection
@@ -519,7 +531,9 @@ const BookingForm = ({ userId, rooms, onSuccess }: BookingFormProps) => {
                         Selected
                       </span>
                     ) : null}
-                    {isBusy && row.busyLabel ? (
+                    {isPast ? (
+                      <span className="mt-1 block text-[9px] font-normal opacity-80">Passed</span>
+                    ) : isBusy && row.busyLabel ? (
                       <span className="mt-1 block text-[9px] font-normal opacity-80 line-clamp-2">
                         {row.busyLabel}
                       </span>
