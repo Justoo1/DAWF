@@ -76,7 +76,7 @@ export const Navbar = () => {
             className="flex shrink-0 items-center gap-2.5 rounded-lg py-1 pr-2 transition-opacity hover:opacity-90"
           >
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/15 ring-1 ring-emerald-500/25">
-              <Home className="h-[18px] w-[18px] text-emerald-400" />
+              <Home className="h-[18px] w-[18px] text-primary dark:text-white" />
             </div>
             <div className="hidden min-[380px]:block leading-tight">
               <span className="block text-sm font-semibold text-foreground">{PLATFORM_SHORT_NAME}</span>
@@ -95,11 +95,11 @@ export const Navbar = () => {
                     className={cn(
                       "flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-medium transition-colors",
                       active
-                        ? "bg-emerald-500/15 text-emerald-700 ring-1 ring-emerald-500/30 dark:text-emerald-300"
+                        ? "bg-emerald-500/15 text-emerald-700 ring-1 ring-emerald-500/30 dark:text-white"
                         : "text-muted-foreground hover:bg-muted/80 hover:text-foreground dark:hover:bg-zinc-800/80"
                     )}
                   >
-                    <Icon className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
+                    <Icon className={cn("h-3.5 w-3.5 shrink-0", active ? "opacity-100" : "opacity-80")} aria-hidden />
                     <span className="hidden lg:inline">{item.label}</span>
                   </Link>
                 )
